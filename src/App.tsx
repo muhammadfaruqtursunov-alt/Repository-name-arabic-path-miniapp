@@ -54,16 +54,24 @@ export default function App() {
       tg.ready();
       tg.expand();
     }
-    // Small delay so Telegram SDK fully populates initData before first request
-    setTimeout(init, 150);
+    init();
   }, []);
+
+  // Wait up to 3s for Telegram to populate initData
+  async function waitForInitData(): Promise<string> {
+    for (let i = 0; i < 15; i++) {
+      const d = window.Telegram?.WebApp?.initData ?? '';
+      if (d) return d;
+      await new Promise(r => setTimeout(r, 200));
+    }
+    return '';
+  }
 
   async function init() {
     setInitError(null);
 
-    const initData = window.Telegram?.WebApp?.initData ?? '';
+    const initData = await waitForInitData();
     if (!initData) {
-      // Not running inside Telegram — go to welcome/onboarding silently
       setScreen('welcome');
       return;
     }
@@ -79,7 +87,6 @@ export default function App() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes('404') || msg.includes('not found') || msg.includes('hash') || msg.includes('401')) {
-        // User not registered yet — go to onboarding
         setScreen('welcome');
       } else {
         setInitError(msg);
@@ -147,9 +154,10 @@ export default function App() {
             background: 'rgba(245,197,24,0.15)',
             borderBottom: '1px solid rgba(245,197,24,0.4)',
             padding: '10px 16px',
-            color: '#b8860b', fontSize: 12, textAlign: 'center',
+            color: '#b8860b', fontSize: 11, textAlign: 'center',
           }}>
-            Откройте через кнопку в Telegram боте
+            ⚠️ Нет Telegram контекста. Откройте через кнопку в боте.
+            {' '}[tg:{window.Telegram ? 'yes' : 'no'} | wb:{window.Telegram?.WebApp ? 'yes' : 'no'}]
           </div>
         )}
         {initError && hasTelegram && (
