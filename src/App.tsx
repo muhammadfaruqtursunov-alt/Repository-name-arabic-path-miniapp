@@ -54,11 +54,20 @@ export default function App() {
       tg.ready();
       tg.expand();
     }
-    init();
+    // Small delay so Telegram SDK fully populates initData before first request
+    setTimeout(init, 150);
   }, []);
 
   async function init() {
     setInitError(null);
+
+    const initData = window.Telegram?.WebApp?.initData ?? '';
+    if (!initData) {
+      // Not running inside Telegram — go to welcome/onboarding silently
+      setScreen('welcome');
+      return;
+    }
+
     try {
       const profile = await api.getUser();
       const appLang = normalizeLang(profile.lang);
@@ -69,10 +78,10 @@ export default function App() {
       setScreen('dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('404') || msg.includes('not found')) {
+      if (msg.includes('404') || msg.includes('not found') || msg.includes('hash') || msg.includes('401')) {
+        // User not registered yet — go to onboarding
         setScreen('welcome');
       } else {
-        // API error — show on welcome screen
         setInitError(msg);
         setScreen('welcome');
       }
