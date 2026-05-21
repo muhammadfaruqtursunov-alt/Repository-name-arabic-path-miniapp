@@ -39,6 +39,7 @@ export default function App() {
   const [selectedBook, setSelectedBook] = useState(1);
   const [selectedLesson, setSelectedLesson] = useState(1);
   const [onboardingLang, setOnboardingLang] = useState<Lang>('ru');
+  const [initError, setInitError] = useState<string | null>(null);
 
   // Apply RTL on lang change
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function App() {
   }, []);
 
   async function init() {
+    setInitError(null);
     try {
       const profile = await api.getUser();
       const appLang = normalizeLang(profile.lang);
@@ -66,12 +68,12 @@ export default function App() {
       setVolumes(vols);
       setScreen('dashboard');
     } catch (err: unknown) {
-      const status = (err as { status?: number })?.status;
-      if (status === 404 || String(err).includes('404')) {
-        // New user: go to onboarding
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('404') || msg.includes('not found')) {
         setScreen('welcome');
       } else {
-        // In dev/browser without Telegram, skip onboarding
+        // API error — show on welcome screen
+        setInitError(msg);
         setScreen('welcome');
       }
     }
@@ -124,11 +126,25 @@ export default function App() {
 
   if (screen === 'welcome') {
     return (
-      <Welcome
-        lang={lang}
-        onStart={() => setScreen('lang_select')}
-        onLogin={() => init()}
-      />
+      <>
+        {initError && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999,
+            background: 'rgba(224,85,85,0.15)',
+            borderBottom: '1px solid rgba(224,85,85,0.4)',
+            padding: '10px 16px',
+            color: 'var(--danger)', fontSize: 12,
+            wordBreak: 'break-all',
+          }}>
+            ⚠️ API error: {initError}
+          </div>
+        )}
+        <Welcome
+          lang={lang}
+          onStart={() => { setInitError(null); setScreen('lang_select'); }}
+          onLogin={() => init()}
+        />
+      </>
     );
   }
 
