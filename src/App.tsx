@@ -153,14 +153,12 @@ export default function App() {
             position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999,
             background: 'rgba(245,197,24,0.15)',
             borderBottom: '1px solid rgba(245,197,24,0.4)',
-            padding: '8px 12px',
-            color: '#b8860b', fontSize: 10, textAlign: 'left',
-            wordBreak: 'break-all',
+            padding: '10px 16px',
+            color: '#b8860b', fontSize: 12, textAlign: 'center',
           }}>
-            platform:{window.Telegram?.WebApp?.platform ?? 'n/a'} |
-            ver:{window.Telegram?.WebApp?.version ?? 'n/a'} |
-            uid:{window.Telegram?.WebApp?.initDataUnsafe?.user?.id ?? 'none'}<br/>
-            hash:{window.location.hash.slice(0, 80) || '(empty)'}
+            {window.Telegram?.WebApp?.platform === 'tdesktop'
+              ? '🖥️ Нажмите кнопку «🌐 Открыть Mini App» внизу справа'
+              : '⚠️ Откройте через кнопку в Telegram боте'}
           </div>
         )}
         {initError && hasTelegram && (
