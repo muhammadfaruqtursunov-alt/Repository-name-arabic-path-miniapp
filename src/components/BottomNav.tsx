@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { Home, BarChart3, UserCircle2, SlidersHorizontal } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
@@ -10,7 +11,7 @@ interface Props {
   onChange: (tab: NavTab) => void;
 }
 
-type NavItem = { id: NavTab; icon: (p: { size: number }) => JSX.Element; labelKey: 'nav_home' | 'nav_stats' | 'nav_profile' | 'nav_settings' };
+type NavItem = { id: NavTab; icon: (p: { size: number }) => ReactElement; labelKey: 'nav_home' | 'nav_stats' | 'nav_profile' | 'nav_settings' };
 
 const ITEMS: NavItem[] = [
   { id: 'home',     icon: ({ size }) => <Home size={size} />,             labelKey: 'nav_home' },

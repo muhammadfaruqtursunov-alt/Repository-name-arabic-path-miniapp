@@ -18,10 +18,8 @@ export default function UmrahGuide({ lang, onBack }: Props) {
   const [current, setCurrent] = useState<GuideSectionContent | null>(null);
   const [question, setQuestion] = useState<GuideQuestion | null>(null);
   const [feedback, setFeedback] = useState<{ correct: boolean; msg: string } | null>(null);
-  const [typed, setTyped]     = useState('');
   const [done, setDone]       = useState(false);
   const [loading, setLoading] = useState(false);
-  const quizMode = 'visual' as const;
 
   useEffect(() => {
     api.getUmrahSections().then(setSections);
@@ -59,20 +57,6 @@ export default function UmrahGuide({ lang, onBack }: Props) {
       const res = await api.answerUmrahQuiz(
         question.correct_ref, lang, 'visual', chosenRef
       );
-      handleResult(res);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleWrittenAnswer() {
-    if (!question || !typed.trim() || loading) return;
-    setLoading(true);
-    try {
-      const res = await api.answerUmrahQuiz(
-        question.correct_ref, lang, 'written', undefined, typed.trim()
-      );
-      setTyped('');
       handleResult(res);
     } finally {
       setLoading(false);
@@ -122,7 +106,7 @@ export default function UmrahGuide({ lang, onBack }: Props) {
                   </span>
                 </div>
               )}
-              {quizMode === 'visual' && question.choices && (
+              {question.choices && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {question.choices.map((ch, i) => (
                     <button key={i} className="btn btn-ghost"
@@ -132,16 +116,6 @@ export default function UmrahGuide({ lang, onBack }: Props) {
                       {ch.label}
                     </button>
                   ))}
-                </div>
-              )}
-              {quizMode === 'written' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <input className="input-field" placeholder={t(lang, 'written_placeholder')}
-                    value={typed} onChange={e => setTyped(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleWrittenAnswer()}
-                    disabled={!!feedback} />
-                  <button className="btn btn-primary" disabled={!typed.trim() || !!feedback || loading}
-                    onClick={handleWrittenAnswer}>{t(lang, 'btn_check')}</button>
                 </div>
               )}
             </>
