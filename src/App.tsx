@@ -77,16 +77,23 @@ export default function App() {
     }
   }
 
-  async function handleCreateUser(name: string) {
-    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    const tgId = tgUser?.id ?? 0;
-    await api.createUser(name, onboardingLang, tgId);
-    const profile = await api.getUser();
-    setUser(profile);
-    setLang(normalizeLang(profile.lang));
-    const vols = await api.getVolumes();
-    setVolumes(vols);
-    setScreen('dashboard');
+  async function handleCreateUser(name: string): Promise<string | null> {
+    try {
+      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+      const tgId = tgUser?.id ?? 0;
+      await api.createUser(name, onboardingLang, tgId);
+      const profile = await api.getUser();
+      setUser(profile);
+      setLang(normalizeLang(profile.lang));
+      const vols = await api.getVolumes();
+      setVolumes(vols);
+      setScreen('dashboard');
+      return null;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[handleCreateUser]', msg);
+      return msg;
+    }
   }
 
   async function handleLangChange(newLang: Lang) {
@@ -138,7 +145,7 @@ export default function App() {
     return (
       <NameInput
         lang={onboardingLang}
-        onSubmit={handleCreateUser}
+        onSubmit={(name) => handleCreateUser(name)}
       />
     );
   }

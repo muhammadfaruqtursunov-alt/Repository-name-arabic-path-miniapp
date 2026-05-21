@@ -4,12 +4,23 @@ import type { Lang } from '../i18n';
 
 interface Props {
   lang: Lang;
-  onSubmit: (name: string) => void;
-  loading?: boolean;
+  onSubmit: (name: string) => Promise<string | null>;
 }
 
-export default function NameInput({ lang, onSubmit, loading }: Props) {
+export default function NameInput({ lang, onSubmit }: Props) {
   const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit() {
+    const trimmed = name.trim();
+    if (!trimmed || loading) return;
+    setLoading(true);
+    setError(null);
+    const err = await onSubmit(trimmed);
+    if (err) setError(err);
+    setLoading(false);
+  }
 
   return (
     <div
@@ -32,16 +43,31 @@ export default function NameInput({ lang, onSubmit, loading }: Props) {
         placeholder={t(lang, 'name_placeholder')}
         value={name}
         onChange={e => setName(e.target.value)}
-        onKeyDown={e => e.key === 'Enter' && name.trim() && onSubmit(name.trim())}
+        onKeyDown={e => e.key === 'Enter' && handleSubmit()}
         autoFocus
         maxLength={50}
         style={{ fontSize: 17 }}
       />
 
+      {/* Error message */}
+      {error && (
+        <div style={{
+          background: 'rgba(224,85,85,0.12)',
+          border: '1px solid rgba(224,85,85,0.4)',
+          borderRadius: 10,
+          padding: '10px 14px',
+          color: 'var(--danger)',
+          fontSize: 13,
+          wordBreak: 'break-all',
+        }}>
+          ⚠️ {error}
+        </div>
+      )}
+
       <button
         className="btn btn-primary"
         disabled={!name.trim() || loading}
-        onClick={() => name.trim() && onSubmit(name.trim())}
+        onClick={handleSubmit}
         style={{ opacity: name.trim() ? 1 : 0.5 }}
       >
         {loading ? '...' : t(lang, 'btn_enter')}
