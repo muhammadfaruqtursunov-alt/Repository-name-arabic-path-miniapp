@@ -3,7 +3,7 @@
  * BASE_URL points to the Railway backend.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'https://arabskiy-put-v2-production.up.railway.app';
+const BASE_URL = 'https://arabskiy-put-v2-production.up.railway.app';
 
 function getInitData(): string {
   try {
