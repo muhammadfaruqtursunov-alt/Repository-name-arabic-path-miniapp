@@ -89,6 +89,10 @@ export default function App() {
   }
 
   async function handleCreateUser(name: string): Promise<string | null> {
+    const initData = window.Telegram?.WebApp?.initData ?? '';
+    if (!initData) {
+      return 'Откройте приложение через кнопку в Telegram боте';
+    }
     try {
       const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
       const tgId = tgUser?.id ?? 0;
@@ -134,9 +138,21 @@ export default function App() {
   }
 
   if (screen === 'welcome') {
+    const hasTelegram = !!(window.Telegram?.WebApp?.initData);
     return (
       <>
-        {initError && (
+        {!hasTelegram && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999,
+            background: 'rgba(245,197,24,0.15)',
+            borderBottom: '1px solid rgba(245,197,24,0.4)',
+            padding: '10px 16px',
+            color: '#b8860b', fontSize: 12, textAlign: 'center',
+          }}>
+            Откройте через кнопку в Telegram боте
+          </div>
+        )}
+        {initError && hasTelegram && (
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999,
             background: 'rgba(224,85,85,0.15)',
