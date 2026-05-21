@@ -148,7 +148,7 @@ export default function App() {
     const hasTelegram = !!(window.Telegram?.WebApp?.initData);
     return (
       <>
-        {!hasTelegram && (
+        {!hasTelegram && window.Telegram?.WebApp?.platform === 'tdesktop' && (
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999,
             background: 'rgba(245,197,24,0.15)',
@@ -156,9 +156,7 @@ export default function App() {
             padding: '10px 16px',
             color: '#b8860b', fontSize: 12, textAlign: 'center',
           }}>
-            {window.Telegram?.WebApp?.platform === 'tdesktop'
-              ? '🖥️ Нажмите кнопку «🌐 Открыть Mini App» внизу справа'
-              : '⚠️ Откройте через кнопку в Telegram боте'}
+            🖥️ Нажмите кнопку «🌐 Открыть Mini App» внизу справа
           </div>
         )}
         {initError && hasTelegram && (
