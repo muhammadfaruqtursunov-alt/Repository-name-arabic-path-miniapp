@@ -156,8 +156,12 @@ export default function App() {
             padding: '10px 16px',
             color: '#b8860b', fontSize: 11, textAlign: 'center',
           }}>
-            ⚠️ Нет Telegram контекста. Откройте через кнопку в боте.
-            {' '}[tg:{window.Telegram ? 'yes' : 'no'} | wb:{window.Telegram?.WebApp ? 'yes' : 'no'}]
+            ⚠️ Нет initData.{' '}
+            tg:{window.Telegram ? 'yes' : 'no'} |
+            wb:{window.Telegram?.WebApp ? 'yes' : 'no'} |
+            platform:{window.Telegram?.WebApp?.platform ?? 'n/a'} |
+            ver:{window.Telegram?.WebApp?.version ?? 'n/a'} |
+            uid:{window.Telegram?.WebApp?.initDataUnsafe?.user?.id ?? 'none'}
           </div>
         )}
         {initError && hasTelegram && (
