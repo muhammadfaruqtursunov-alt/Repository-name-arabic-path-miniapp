@@ -395,6 +395,7 @@ export default function App() {
         bookId={selectedBook}
         lesson={selectedLesson}
         onBack={() => setScreen('volume')}
+        onRestartLesson={() => setScreen('lesson')}
       />
     );
   }

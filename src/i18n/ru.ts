@@ -154,6 +154,13 @@ export const ru = {
 
   // Profile
   time_in_app: 'Время в приложении',
+
+  // Quiz fail (3 errors)
+  fail_title: 'Не сдавайся!',
+  fail_subtitle: 'Допущено 3 ошибки — нужно повторить урок',
+  btn_repeat_lesson: 'Повторить урок',
+  btn_retry_test: 'Попробовать тест снова',
+  fail_errors_warn: 'Ошибка',
 };
 
 export type TranslationKeys = keyof typeof ru;

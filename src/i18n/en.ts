@@ -135,4 +135,9 @@ export const en = {
   bg_select_btn: 'Select from gallery',
 
   time_in_app: 'App usage time',
+  fail_title: "Don't give up!",
+  fail_subtitle: '3 mistakes — please review the lesson first',
+  btn_repeat_lesson: 'Review lesson',
+  btn_retry_test: 'Retry test',
+  fail_errors_warn: 'Wrong',
 };

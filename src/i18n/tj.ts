@@ -135,4 +135,9 @@ export const tj = {
   bg_select_btn: 'Аз галерея интихоб кун',
 
   time_in_app: 'Вақт дар барнома',
+  fail_title: 'Таслим нашав!',
+  fail_subtitle: '3 хато — дарсро аз нав такрор кун',
+  btn_repeat_lesson: 'Дарсро такрор кун',
+  btn_retry_test: 'Санҷишро дубора иҷро кун',
+  fail_errors_warn: 'Хато',
 };

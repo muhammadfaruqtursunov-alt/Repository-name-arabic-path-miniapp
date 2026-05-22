@@ -135,4 +135,9 @@ export const ar = {
   bg_select_btn: 'اختر من المعرض',
 
   time_in_app: 'وقت استخدام التطبيق',
+  fail_title: 'لا تستسلم!',
+  fail_subtitle: '٣ أخطاء — راجع الدرس من جديد',
+  btn_repeat_lesson: 'مراجعة الدرس',
+  btn_retry_test: 'إعادة الاختبار',
+  fail_errors_warn: 'خطأ',
 };

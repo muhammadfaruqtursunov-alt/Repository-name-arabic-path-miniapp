@@ -154,4 +154,9 @@ export const uz = {
 
   // Profile
   time_in_app: "Ilovada sarflangan vaqt",
+  fail_title: "Taslim bo'lma!",
+  fail_subtitle: "3 xato — darsni qayta takrorlash kerak",
+  btn_repeat_lesson: "Darsni takrorlash",
+  btn_retry_test: "Testni qayta sinab ko'rish",
+  fail_errors_warn: 'Xato',
 };
