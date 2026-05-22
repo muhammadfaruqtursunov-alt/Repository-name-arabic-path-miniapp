@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Globe2, Bell, Moon, Type, ImageIcon, Camera, Trash2, Clock } from 'lucide-react';
+import { Globe2, Bell, BellOff, Type, ImageIcon, Camera, Trash2, CheckCircle2 } from 'lucide-react';
 import { t, LANGS } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
@@ -32,18 +32,14 @@ const COLOR_PRESETS = [
   { id: 'green',  label: 'Св.зелёный', hex: '#7AAF8A' },
 ];
 
-// ── World clock data ──────────────────────────────────────────────
-const CLOCKS = [
-  { name: 'Каир',       flag: '🇪🇬', tz: 'Africa/Cairo',       utc: '+2/+3' },
-  { name: 'Уфа',        flag: '🇷🇺', tz: 'Asia/Yekaterinburg',  utc: '+5'   },
-  { name: 'Дагестан',   flag: '🇷🇺', tz: 'Europe/Moscow',       utc: '+3'   },
-  { name: 'Чечня',      flag: '🇷🇺', tz: 'Europe/Moscow',       utc: '+3'   },
-  { name: 'Ингушетия',  flag: '🇷🇺', tz: 'Europe/Moscow',       utc: '+3'   },
-  { name: 'Астана',     flag: '🇰🇿', tz: 'Asia/Almaty',         utc: '+5'   },
-  { name: 'Алматы',     flag: '🇰🇿', tz: 'Asia/Almaty',         utc: '+5'   },
-  { name: 'ОАЭ',        flag: '🇦🇪', tz: 'Asia/Dubai',          utc: '+4'   },
-  { name: 'США',        flag: '🇺🇸', tz: 'America/New_York',    utc: 'NY'   },
-];
+// ── Auto-detect user timezone ─────────────────────────────────────
+function detectTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Moscow';
+  } catch {
+    return 'Europe/Moscow';
+  }
+}
 
 // ── Color swatches ────────────────────────────────────────────────
 function ColorSwatches({ current, onChange }: { current: string; onChange: (hex: string) => void }) {
@@ -69,42 +65,6 @@ function ColorSwatches({ current, onChange }: { current: string; onChange: (hex:
             outline: c.hex === '#111118' ? '1px solid rgba(255,255,255,0.15)' : 'none',
           }}
         />
-      ))}
-    </div>
-  );
-}
-
-// ── World clocks widget ───────────────────────────────────────────
-function WorldClocks() {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  function fmt(tz: string) {
-    try {
-      return now.toLocaleTimeString('ru-RU', {
-        timeZone: tz,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      });
-    } catch {
-      return '--:--:--';
-    }
-  }
-
-  return (
-    <div className="clock-grid">
-      {CLOCKS.map(c => (
-        <div key={c.name} className="clock-card">
-          <span className="clock-card__flag">{c.flag}</span>
-          <span className="clock-card__name">{c.name}</span>
-          <span className="clock-card__time">{fmt(c.tz)}</span>
-          <span className="clock-card__tz">UTC{c.utc}</span>
-        </div>
       ))}
     </div>
   );
@@ -149,11 +109,23 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     () => (localStorage.getItem('ap_trans_style') ?? 'italic') === 'italic'
   );
 
-  // Notifications
-  const [notifEnabled, setNotifEnabled] = useState<boolean>(
-    () => localStorage.getItem('ap_notif') === '1'
-  );
-  const [notifMsg, setNotifMsg] = useState<string>('');
+  // ── Notification / reminder ───────────────────────────────────────
+  const detectedTz = detectTimezone();
+  const [reminderTime, setReminderTime] = useState<string>('');       // "HH:MM" or ''
+  const [reminderTz]  = useState<string>(detectedTz);                  // auto-detected, read-only
+  const [reminderSaved, setReminderSaved] = useState(false);
+  const [reminderLoading, setReminderLoading] = useState(false);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+
+  // Load existing reminder from server on mount
+  useEffect(() => {
+    api.getReminder().then(r => {
+      if (r.reminder_time) {
+        setReminderTime(r.reminder_time);
+        setReminderEnabled(true);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Background
   const [activeBg, setActiveBg] = useState<string>(
@@ -217,30 +189,41 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     try { await api.setLang(newLang); } catch {}
   }
 
-  function handleNotifToggle() {
-    if (notifEnabled) {
-      setNotifEnabled(false);
-      localStorage.setItem('ap_notif', '0');
-      setNotifMsg('');
-    } else {
-      const tg = window.Telegram?.WebApp;
-      if (tg?.requestWriteAccess) {
-        tg.requestWriteAccess((granted: boolean) => {
-          if (granted) {
-            setNotifEnabled(true);
-            localStorage.setItem('ap_notif', '1');
-            setNotifMsg('✅ Telegram разрешил уведомления');
-          } else {
-            setNotifMsg('❌ Telegram отклонил запрос');
-          }
-        });
-      } else {
-        // Telegram version doesn't support requestWriteAccess — enable anyway,
-        // the bot already has write access from user starting it
-        setNotifEnabled(true);
-        localStorage.setItem('ap_notif', '1');
-        setNotifMsg('✅ Уведомления включены');
-      }
+  async function handleSaveReminder() {
+    if (!reminderTime) return;
+    setReminderLoading(true);
+    setReminderSaved(false);
+    try {
+      // Request Telegram write access so bot can send messages when app is closed
+      await new Promise<void>(resolve => {
+        const tg = window.Telegram?.WebApp;
+        if (tg?.requestWriteAccess) {
+          tg.requestWriteAccess(() => resolve());
+        } else {
+          resolve();
+        }
+      });
+      await api.setReminder(reminderTime, reminderTz);
+      setReminderEnabled(true);
+      setReminderSaved(true);
+      setTimeout(() => setReminderSaved(false), 3000);
+    } catch {
+      alert('Ошибка сохранения. Попробуйте ещё раз.');
+    } finally {
+      setReminderLoading(false);
+    }
+  }
+
+  async function handleDisableReminder() {
+    setReminderLoading(true);
+    try {
+      await api.setReminder(null, reminderTz);
+      setReminderEnabled(false);
+      setReminderTime('');
+    } catch {
+      alert('Ошибка. Попробуйте ещё раз.');
+    } finally {
+      setReminderLoading(false);
     }
   }
 
@@ -288,6 +271,80 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* ── Daily reminder ────────────────────────────────────── */}
+      <div className="glass-card" style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+          {reminderEnabled
+            ? <Bell size={18} color="var(--accent-teal)" />
+            : <BellOff size={18} color="var(--text-muted)" />}
+          <span className="title-card">Ежедневное напоминание</span>
+          {reminderEnabled && (
+            <span style={{
+              marginLeft: 'auto', fontSize: 10, fontWeight: 700,
+              background: 'rgba(45,212,160,0.15)', color: 'var(--accent-teal)',
+              padding: '2px 8px', borderRadius: 20,
+            }}>ВКЛ</span>
+          )}
+        </div>
+
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
+          Бот пришлёт мотивационное сообщение каждый день в выбранное время — напоминание об арабском
+        </p>
+
+        {/* Timezone — auto-detected */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '8px 12px', borderRadius: 10,
+          background: 'rgba(45,212,160,0.08)',
+          border: '1px solid rgba(45,212,160,0.2)',
+          marginBottom: 14,
+        }}>
+          <span style={{ fontSize: 13 }}>🌍</span>
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Ваш часовой пояс (определён автоматически)</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-teal)' }}>{reminderTz}</div>
+          </div>
+        </div>
+
+        {/* Time picker */}
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontSize: 13, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+            Время напоминания
+          </label>
+          <input
+            type="time"
+            value={reminderTime}
+            onChange={e => setReminderTime(e.target.value)}
+            className="input-field"
+            style={{ fontSize: 20, fontWeight: 700, textAlign: 'center', height: 56 }}
+          />
+        </div>
+
+        {/* Save button */}
+        <button
+          className="btn btn-primary"
+          style={{ marginBottom: reminderEnabled ? 10 : 0 }}
+          disabled={!reminderTime || reminderLoading}
+          onClick={handleSaveReminder}
+        >
+          {reminderLoading ? '⏳ Сохранение...' : reminderSaved
+            ? <><CheckCircle2 size={16} /> Сохранено!</>
+            : '💾 Сохранить напоминание'}
+        </button>
+
+        {/* Disable button — only if currently enabled */}
+        {reminderEnabled && (
+          <button
+            className="btn btn-danger"
+            style={{ height: 40, fontSize: 13 }}
+            disabled={reminderLoading}
+            onClick={handleDisableReminder}
+          >
+            <BellOff size={14} /> Отключить напоминания
+          </button>
+        )}
       </div>
 
       {/* ── Font + Colors ─────────────────────────────────────── */}
@@ -392,50 +449,6 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
               <Trash2 size={16} />
             </button>
           )}
-        </div>
-      </div>
-
-      {/* ── World clocks ──────────────────────────────────────── */}
-      <div className="glass-card" style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <Clock size={18} color="var(--accent-teal)" />
-          <span className="title-card">Мировое время</span>
-        </div>
-        <WorldClocks />
-      </div>
-
-      {/* ── Other settings ────────────────────────────────────── */}
-      <div className="glass-card" style={{ marginBottom: 16 }}>
-
-        {/* Notifications */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Bell size={18} color={notifEnabled ? 'var(--accent-teal)' : 'var(--text-muted)'} />
-          <div style={{ flex: 1 }}>
-            <span style={{ fontSize: 14, display: 'block' }}>{t(lang, 'setting_notif')}</span>
-            {notifMsg && (
-              <span style={{ fontSize: 11, color: notifMsg.startsWith('✅') ? 'var(--accent-teal)' : 'var(--danger)', marginTop: 2, display: 'block' }}>
-                {notifMsg}
-              </span>
-            )}
-          </div>
-          <button
-            className={`toggle-glass${notifEnabled ? ' on' : ''}`}
-            onClick={handleNotifToggle}
-            aria-label="Toggle notifications"
-          >
-            <div className="toggle-glass__dot" />
-          </button>
-        </div>
-
-        <div style={{ height: 1, background: 'var(--border)', margin: '12px 0' }} />
-
-        {/* Dark mode — always on */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Moon size={18} color="var(--text-muted)" />
-          <span style={{ flex: 1, fontSize: 14 }}>{t(lang, 'setting_theme')}</span>
-          <button className="toggle-glass on" aria-label="Dark mode" onClick={() => {}}>
-            <div className="toggle-glass__dot" />
-          </button>
         </div>
       </div>
 

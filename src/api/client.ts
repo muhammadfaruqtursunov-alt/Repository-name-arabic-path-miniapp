@@ -113,6 +113,11 @@ export interface GuideAnswerResult {
   next?: GuideQuestion;
 }
 
+export interface ReminderSettings {
+  reminder_time: string | null;
+  timezone: string;
+}
+
 export interface Stats {
   total_learned: number; streak: number; questions_asked: number;
   books: { book_id: number; total: number; learned: number; pct: number }[];
@@ -139,6 +144,9 @@ export const api = {
     request<{ ok: boolean }>('PUT', '/api/webapp/user/lang', { lang }),
   setName: (name: string) =>
     request<{ ok: boolean }>('PUT', '/api/webapp/user/name', { name }),
+  getReminder: () => request<ReminderSettings>('GET', '/api/webapp/user/reminder'),
+  setReminder: (reminder_time: string | null, timezone: string) =>
+    request<{ ok: boolean }>('PUT', '/api/webapp/user/reminder', { reminder_time, timezone }),
 
   // Volumes & Lessons
   getVolumes: () => request<VolumeInfo[]>('GET', '/api/webapp/volumes'),
