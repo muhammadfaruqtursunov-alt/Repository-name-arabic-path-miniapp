@@ -35,10 +35,19 @@ async function request<T>(
 
 // ── Types ─────────────────────────────────────────────────────────
 
+export interface TeacherStats {
+  total_students: number;
+  active_students: number;
+  total_words_learned: number;
+  unanswered_questions: number;
+  students: { user_id: number; name: string; current_book: number; current_lesson: number; learned: number }[];
+}
+
 export interface UserProfile {
   user_id: number;
   name: string;
   lang: string;
+  is_teacher: boolean;
   current_book: number;
   current_lesson: number;
   streak: number;
@@ -157,6 +166,9 @@ export const api = {
   ) =>
     request<GuideAnswerResult>('POST', '/api/webapp/umrah/quiz/answer',
       { correct_ref, lang, mode, chosen_ref, typed }),
+
+  // Teacher
+  getTeacherStats: () => request<TeacherStats>('GET', '/api/webapp/teacher/stats'),
 
   // Stats
   getStats: () => request<Stats>('GET', '/api/webapp/stats'),

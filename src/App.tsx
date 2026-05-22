@@ -7,17 +7,18 @@ import type { UserProfile, VolumeInfo } from './api/client';
 import BottomNav from './components/BottomNav';
 import type { NavTab } from './components/BottomNav';
 
-import Welcome       from './screens/Welcome';
-import LanguageSelect from './screens/LanguageSelect';
-import NameInput     from './screens/NameInput';
-import Dashboard     from './screens/Dashboard';
-import VolumeScreen  from './screens/VolumeScreen';
-import Tests         from './screens/Tests';
-import UmrahGuide    from './screens/UmrahGuide';
-import AskTeacher    from './screens/AskTeacher';
-import Statistics    from './screens/Statistics';
-import Profile       from './screens/Profile';
-import Settings      from './screens/Settings';
+import Welcome          from './screens/Welcome';
+import LanguageSelect   from './screens/LanguageSelect';
+import NameInput        from './screens/NameInput';
+import Dashboard        from './screens/Dashboard';
+import VolumeScreen     from './screens/VolumeScreen';
+import Tests            from './screens/Tests';
+import UmrahGuide       from './screens/UmrahGuide';
+import AskTeacher       from './screens/AskTeacher';
+import Statistics       from './screens/Statistics';
+import Profile          from './screens/Profile';
+import Settings         from './screens/Settings';
+import TeacherDashboard from './screens/TeacherDashboard';
 
 type Screen =
   | 'loading'
@@ -237,6 +238,15 @@ export default function App() {
     );
   }
 
+  // Teacher view
+  if (user?.is_teacher) {
+    return (
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+        <TeacherDashboard lang={lang} />
+      </div>
+    );
+  }
+
   // Dashboard + bottom nav tabs
   if (user) {
     return (
@@ -270,7 +280,6 @@ export default function App() {
             user={user}
             onLangChange={handleLangChange}
             onResetProgress={async () => {
-              // Reload after reset
               await init();
             }}
           />

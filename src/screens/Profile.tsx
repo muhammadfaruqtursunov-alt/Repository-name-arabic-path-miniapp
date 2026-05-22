@@ -45,9 +45,6 @@ export default function Profile({ lang, user, onLangChange, onResetProgress }: P
           {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👤'}
         </div>
         <h1 className="title-screen">{user.name}</h1>
-        {tgUser?.username && (
-          <p className="text-muted" style={{ fontSize: 13, marginTop: 4 }}>@{tgUser.username}</p>
-        )}
         <div style={{ marginTop: 10 }}>
           <span className="badge badge--teal">{getLevel(user.total_learned, lang)}</span>
         </div>
