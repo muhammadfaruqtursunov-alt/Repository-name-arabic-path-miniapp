@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { Globe2, Layers, TrendingUp, Calendar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Globe2, Layers, TrendingUp, Timer } from 'lucide-react';
 import { t, LANGS } from '../i18n';
 import type { Lang } from '../i18n';
+import { api } from '../api/client';
+import type { Stats } from '../api/client';
 import type { UserProfile } from '../api/client';
+import { formatAppTime } from '../utils/formatTime';
 
 interface Props {
   lang: Lang;
@@ -21,14 +24,17 @@ function getLevel(totalLearned: number, lang: Lang): string {
 
 export default function Profile({ lang, user, onLangChange, onResetProgress }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
+  const [stats, setStats] = useState<Stats | null>(null);
   const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const avatarUrl = tgUser?.photo_url;
+
+  useEffect(() => { api.getStats().then(setStats).catch(() => {}); }, []);
 
   const rows = [
     { icon: <Globe2 size={18} />, label: t(lang, 'lang_label'), value: `${LANG_FLAGS[user.lang] ?? ''} ${user.lang.toUpperCase()}` },
     { icon: <Layers size={18} />, label: t(lang, 'volume_label'), value: `📖 ${t(lang, `book_${user.current_book}` as 'book_1')}` },
     { icon: <TrendingUp size={18} />, label: t(lang, 'level_label'), value: getLevel(user.total_learned, lang) },
-    { icon: <Calendar size={18} />, label: t(lang, 'reg_date'), value: '—' },
+    { icon: <Timer size={18} />, label: 'Время в приложении', value: stats ? formatAppTime(stats.total_app_time ?? 0) : '…' },
   ];
 
   return (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSwipe } from './hooks/useSwipe';
 import { t, normalizeLang, getLangDir } from './i18n';
 import type { Lang } from './i18n';
@@ -55,6 +55,38 @@ export default function App() {
   const [selectedLesson, setSelectedLesson] = useState(1);
   const [onboardingLang, setOnboardingLang] = useState<Lang>('ru');
   const [initError, setInitError] = useState<string | null>(null);
+
+  // ── Session time tracking ─────────────────────────────────────────
+  const sessionStart = useRef<number>(Date.now());
+  useEffect(() => {
+    function flushSession() {
+      const secs = Math.floor((Date.now() - sessionStart.current) / 1000);
+      if (secs < 5) return;
+      // keepalive fetch survives page unload
+      try {
+        fetch(`https://arabskiy-put-v2-production.up.railway.app/api/webapp/user/session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Init-Data': window.Telegram?.WebApp?.initData ?? '' },
+          body: JSON.stringify({ seconds: secs }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch {}
+    }
+    function onVisibility() {
+      if (document.visibilityState === 'hidden') {
+        flushSession();
+      } else {
+        // App came back to foreground — reset start
+        sessionStart.current = Date.now();
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('beforeunload', flushSession);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('beforeunload', flushSession);
+    };
+  }, []);
 
   // Restore font sizes, colors + background from localStorage on mount
   useEffect(() => {

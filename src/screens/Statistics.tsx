@@ -4,6 +4,7 @@ import type { Lang } from '../i18n';
 import { api } from '../api/client';
 import type { Stats } from '../api/client';
 import ProgressBar from '../components/ProgressBar';
+import { formatAppTime } from '../utils/formatTime';
 
 interface Props { lang: Lang; }
 
@@ -22,7 +23,7 @@ export default function Statistics({ lang }: Props) {
 
   const cards = [
     { label: t(lang, 'stat_words'), value: stats.total_learned },
-    { label: t(lang, 'stat_hours'), value: t(lang, 'hours_placeholder') },
+    { label: t(lang, 'stat_hours'), value: formatAppTime(stats.total_app_time ?? 0) },
     { label: t(lang, 'stat_streak'), value: `${stats.streak} 🔥` },
     { label: t(lang, 'stat_tests'), value: stats.questions_asked },
   ];

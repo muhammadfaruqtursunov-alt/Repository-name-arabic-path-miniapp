@@ -40,7 +40,11 @@ export interface TeacherStats {
   active_students: number;
   total_words_learned: number;
   unanswered_questions: number;
-  students: { user_id: number; name: string; current_book: number; current_lesson: number; learned: number }[];
+  students: {
+    user_id: number; name: string;
+    current_book: number; current_lesson: number;
+    learned: number; total_app_time: number;
+  }[];
 }
 
 export interface UserProfile {
@@ -120,6 +124,7 @@ export interface ReminderSettings {
 
 export interface Stats {
   total_learned: number; streak: number; questions_asked: number;
+  total_app_time: number;  // seconds
   books: { book_id: number; total: number; learned: number; pct: number }[];
 }
 
@@ -197,6 +202,8 @@ export const api = {
 
   // Stats
   getStats: () => request<Stats>('GET', '/api/webapp/stats'),
+  addSession: (seconds: number) =>
+    request<{ ok: boolean }>('POST', '/api/webapp/user/session', { seconds }),
 
   // Teacher Q&A
   askQuestion: (question: string) =>

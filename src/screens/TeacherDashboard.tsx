@@ -3,6 +3,7 @@ import {
   MessageCircleQuestion, Megaphone, Mail, ImageIcon,
   Send, Users, CheckCircle2, Camera, Trash2,
 } from 'lucide-react';
+import { formatAppTime } from '../utils/formatTime';
 import { api } from '../api/client';
 import type { TeacherStats, TeacherQuestion } from '../api/client';
 import type { Lang } from '../i18n';
@@ -457,6 +458,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                   <span style={{ flex: 1, fontWeight: 500, fontSize: 13 }}>{s.name}</span>
                   <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Т{s.current_book} У{s.current_lesson}</span>
                   <span style={{ fontSize: 12, color: 'var(--accent-gold)', fontWeight: 600 }}>{s.learned} сл.</span>
+                  <span style={{ fontSize: 11, color: 'var(--accent-teal)', fontWeight: 500 }}>⏱ {formatAppTime(s.total_app_time ?? 0)}</span>
                 </div>
               </div>
             ))
