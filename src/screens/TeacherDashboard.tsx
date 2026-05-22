@@ -180,7 +180,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
         {/* Summary cards */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
           {[
-            { label: 'Учеников',      value: stats?.total_students ?? 0,      emoji: '👥' },
+            { label: 'Учеников',      value: stats?.total_students ?? 0,      emoji: '📋' },
             { label: 'Активных',      value: stats?.active_students ?? 0,      emoji: '✅' },
             { label: 'Слов выучено',  value: stats?.total_words_learned ?? 0,  emoji: '📚' },
             { label: 'Вопросов',      value: stats?.unanswered_questions ?? 0, emoji: '❓' },

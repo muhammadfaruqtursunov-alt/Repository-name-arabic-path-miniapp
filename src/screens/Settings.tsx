@@ -151,10 +151,18 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
 
       {/* ── Background photo ─────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <ImageIcon size={18} color="var(--accent-teal)" />
-          <span className="title-card">Фон приложения</span>
+          <span className="title-card">Мой фон</span>
+          <span style={{
+            marginLeft: 'auto', fontSize: 10, fontWeight: 700,
+            background: 'rgba(45,212,160,0.15)', color: 'var(--accent-teal)',
+            padding: '2px 8px', borderRadius: 20,
+          }}>Только для вас</span>
         </div>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
+          Фон виден только вам на вашем устройстве
+        </p>
 
         {/* Current background preview */}
         {activeBg ? (
