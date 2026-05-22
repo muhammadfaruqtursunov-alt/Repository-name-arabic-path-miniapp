@@ -23,7 +23,8 @@ import TeacherDashboard from './screens/TeacherDashboard';
 
 type Screen =
   | 'loading'
-  | 'welcome'
+  | 'welcome'       // opened in browser (no Telegram initData)
+  | 'error_retry'   // network/server error while inside Telegram
   | 'lang_select'
   | 'name_input'
   | 'dashboard'
@@ -132,11 +133,13 @@ export default function App() {
     return '';
   }
 
-  async function init() {
+  async function init(retryCount = 0) {
     setInitError(null);
+    if (retryCount === 0) setScreen('loading');
 
     const initData = await waitForInitData();
     if (!initData) {
+      // Not inside Telegram (browser) — show "open via Telegram" message
       setScreen('welcome');
       return;
     }
@@ -158,11 +161,23 @@ export default function App() {
       setScreen('dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('404') || msg.includes('not found') || msg.includes('hash') || msg.includes('401')) {
+
+      if (msg.includes('404') || msg.includes('not found')) {
+        // New user — go to onboarding (was wrongly showing "click button" before)
+        setScreen('lang_select');
+      } else if (msg.includes('hash') || msg.includes('401')) {
+        // Invalid Telegram session signature
         setScreen('welcome');
       } else {
+        // Network/server error (Railway sleeping, timeout, 502, etc.)
+        // Auto-retry once — Railway needs ~2s to wake up from sleep
+        if (retryCount === 0) {
+          await new Promise(r => setTimeout(r, 2500));
+          return init(1);
+        }
+        // Second failure — show retry screen with button
         setInitError(msg);
-        setScreen('welcome');
+        setScreen('error_retry');
       }
     }
   }
@@ -285,6 +300,43 @@ export default function App() {
             ⚠️ {initError}
           </p>
         )}
+      </div>
+    );
+  }
+
+  // ── Error + Retry screen (network/server errors inside Telegram) ──
+  if (screen === 'error_retry') {
+    return (
+      <div style={{
+        minHeight: '100dvh', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '32px 24px', textAlign: 'center', gap: 20,
+      }}>
+        <div className="text-arabic" style={{ fontSize: 32, color: 'var(--accent-gold)' }}>
+          الطريق العربي
+        </div>
+
+        <div className="glass-card" style={{ maxWidth: 340, padding: '28px 24px' }}>
+          <div style={{ fontSize: 42, marginBottom: 14 }}>📡</div>
+          <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main)', marginBottom: 10, lineHeight: 1.4 }}>
+            Не удалось подключиться
+          </p>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 20 }}>
+            Проверьте интернет-соединение и попробуйте снова. Сервер мог временно не отвечать.
+          </p>
+          {initError && (
+            <p style={{ fontSize: 10, color: 'var(--danger)', wordBreak: 'break-all', marginBottom: 16, opacity: 0.8 }}>
+              {initError}
+            </p>
+          )}
+          <button
+            className="btn btn-primary"
+            style={{ width: '100%' }}
+            onClick={() => init()}
+          >
+            🔄 Попробовать снова
+          </button>
+        </div>
       </div>
     );
   }
