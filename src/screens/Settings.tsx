@@ -1,22 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Globe2, Bell, Moon, ChevronRight, Type, ImageIcon } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Globe2, Bell, Moon, ChevronRight, Type, ImageIcon, Camera, Trash2 } from 'lucide-react';
 import { t, LANGS } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
+import { resizeImageToDataUrl } from '../utils/imageResize';
 
 interface Props {
   lang: Lang;
   onLangChange: (lang: Lang) => void;
   onBgChange?: (url: string) => void;
 }
-
-// ── Background presets ─────────────────────────────────────────────
-const BG_PRESETS = [
-  { id: 'none',   label: '⬛ Без фона', url: '' },
-  { id: 'kaaba',  label: '🕋 Кааба',   url: 'https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1080&auto=format&fit=crop' },
-  { id: 'medina', label: '🕌 Медина',  url: 'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=1080&auto=format&fit=crop' },
-  { id: 'mosque', label: '🌙 Мечеть',  url: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?w=1080&auto=format&fit=crop' },
-];
 
 // ── CSS variable helpers ───────────────────────────────────────────
 function getCssVar(name: string, fallback: number): number {
@@ -28,7 +21,6 @@ function getCssVar(name: string, fallback: number): number {
     return fallback;
   }
 }
-
 function setCssVar(name: string, value: string) {
   document.documentElement.style.setProperty(name, value);
 }
@@ -45,6 +37,8 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
   const [activeBg, setActiveBg] = useState<string>(() =>
     localStorage.getItem('ap_bg_url') ?? ''
   );
+  const [bgLoading, setBgLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Apply font size changes live
   useEffect(() => {
@@ -62,12 +56,27 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     try { await api.setLang(newLang); } catch {}
   }
 
-  function handleBgSelect(url: string) {
-    setActiveBg(url);
-    if (onBgChange) onBgChange(url);
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBgLoading(true);
+    try {
+      const dataUrl = await resizeImageToDataUrl(file, 1080, 0.72);
+      setActiveBg(dataUrl);
+      if (onBgChange) onBgChange(dataUrl);
+    } catch {
+      alert('Не удалось загрузить фото');
+    } finally {
+      setBgLoading(false);
+      // reset input so same file can be picked again
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   }
 
-  const activePresetId = BG_PRESETS.find(p => p.url === activeBg)?.id ?? 'none';
+  function removeBg() {
+    setActiveBg('');
+    if (onBgChange) onBgChange('');
+  }
 
   return (
     <div className="screen-enter page-content" style={{ paddingTop: 24 }}>
@@ -133,7 +142,6 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
             onChange={e => setTransSize(Number(e.target.value))}
           />
           <div
-            className="text-trans"
             style={{ marginTop: 8, textAlign: 'center', color: 'var(--text-muted)', fontSize: `${transSize}px` }}
           >
             Bismillāhi r-raḥmāni r-raḥīm
@@ -141,45 +149,72 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         </div>
       </div>
 
-      {/* ── Background ───────────────────────────────────────── */}
+      {/* ── Background photo ─────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <ImageIcon size={18} color="var(--accent-teal)" />
           <span className="title-card">Фон приложения</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {BG_PRESETS.map(preset => (
-            <button
-              key={preset.id}
-              onClick={() => handleBgSelect(preset.url)}
-              style={{
-                position: 'relative', height: 80, borderRadius: 14,
-                border: activePresetId === preset.id
-                  ? '2.5px solid var(--accent-teal)'
-                  : '1.5px solid rgba(45,212,160,0.2)',
-                overflow: 'hidden', cursor: 'pointer',
-                background: preset.url
-                  ? `linear-gradient(rgba(0,0,0,0.3),rgba(0,0,0,0.5)), url(${preset.url}) center/cover`
-                  : 'rgba(20,45,30,0.6)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: activePresetId === preset.id ? '0 0 0 2px rgba(45,212,160,0.3)' : 'none',
-                transition: 'all 150ms',
-              }}
-            >
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
-                {preset.label}
+
+        {/* Current background preview */}
+        {activeBg ? (
+          <div style={{
+            width: '100%', height: 120, borderRadius: 14,
+            backgroundImage: `url(${activeBg})`,
+            backgroundSize: 'cover', backgroundPosition: 'center',
+            marginBottom: 12, position: 'relative',
+            border: '1.5px solid rgba(45,212,160,0.3)',
+          }}>
+            <div style={{
+              position: 'absolute', inset: 0, borderRadius: 14,
+              background: 'linear-gradient(rgba(0,0,0,0.2),rgba(0,0,0,0.4))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
+                ✅ Фон установлен
               </span>
-              {activePresetId === preset.id && (
-                <div style={{
-                  position: 'absolute', top: 6, right: 6,
-                  width: 18, height: 18, borderRadius: '50%',
-                  background: 'var(--accent-teal)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10, color: '#021a12', fontWeight: 700,
-                }}>✓</div>
-              )}
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            width: '100%', height: 80, borderRadius: 14,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1.5px dashed rgba(45,212,160,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: 12, color: 'var(--text-muted)', fontSize: 13,
+          }}>
+            Фон не выбран
+          </div>
+        )}
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            className="btn btn-primary"
+            style={{ flex: 1 }}
+            disabled={bgLoading}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Camera size={16} />
+            {bgLoading ? 'Загрузка...' : '📷 Выбрать из галереи'}
+          </button>
+          {activeBg && (
+            <button
+              className="btn btn-danger btn-sm"
+              style={{ width: 48, padding: 0 }}
+              onClick={removeBg}
+            >
+              <Trash2 size={16} />
             </button>
-          ))}
+          )}
         </div>
       </div>
 

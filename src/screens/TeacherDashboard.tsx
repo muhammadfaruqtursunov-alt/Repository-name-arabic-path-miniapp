@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   MessageCircleQuestion, Megaphone, Mail, ImageIcon,
-  Send, Users, CheckCircle2,
+  Send, Users, CheckCircle2, Camera, Trash2,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { TeacherStats, TeacherQuestion } from '../api/client';
 import type { Lang } from '../i18n';
+import { resizeImageToDataUrl } from '../utils/imageResize';
 import Settings from './Settings';
 
 interface Props {
@@ -13,14 +14,6 @@ interface Props {
   onLangChange: (lang: Lang) => void;
   onBgChange: (url: string) => void;
 }
-
-// ── Background presets (same as Settings) ─────────────────────────
-const BG_PRESETS = [
-  { id: 'none',   label: '⬛ Без фона', url: '' },
-  { id: 'kaaba',  label: '🕋 Кааба',   url: 'https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1080&auto=format&fit=crop' },
-  { id: 'medina', label: '🕌 Медина',  url: 'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=1080&auto=format&fit=crop' },
-  { id: 'mosque', label: '🌙 Мечеть',  url: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?w=1080&auto=format&fit=crop' },
-];
 
 type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | null;
 type TeacherTab = 'dashboard' | 'settings';
@@ -49,14 +42,18 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   const [msgResult, setMsgResult] = useState<string | null>(null);
 
   // Background panel
-  const [activeBg, setActiveBg] = useState<string>(() => localStorage.getItem('ap_bg_url') ?? '');
+  const [globalBg, setGlobalBg] = useState<string>('');
+  const [bgLoading, setBgLoading] = useState(false);
   const [bgSaving, setBgSaving] = useState(false);
   const [bgSaved, setBgSaved] = useState(false);
+  const bgFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     api.getTeacherStats()
       .then(setStats)
       .finally(() => setLoading(false));
+    // Load current global bg
+    api.getAppConfig().then(cfg => setGlobalBg(cfg.bg_url || '')).catch(() => {});
   }, []);
 
   function togglePanel(p: Panel) {
@@ -119,30 +116,48 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     }
   }
 
-  async function applyGlobalBg(url: string) {
-    setActiveBg(url);
-    onBgChange(url);
+  async function handleBgFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBgLoading(true);
+    try {
+      const dataUrl = await resizeImageToDataUrl(file, 1080, 0.72);
+      setGlobalBg(dataUrl);
+      // Also apply to teacher's own background immediately
+      onBgChange(dataUrl);
+    } catch {
+      alert('Не удалось загрузить фото');
+    } finally {
+      setBgLoading(false);
+      if (bgFileRef.current) bgFileRef.current.value = '';
+    }
   }
 
   async function saveGlobalBg() {
     setBgSaving(true);
     setBgSaved(false);
     try {
-      await api.setGlobalBg(activeBg);
+      await api.setGlobalBg(globalBg);
       setBgSaved(true);
       setTimeout(() => setBgSaved(false), 2500);
-    } catch {}
-    finally { setBgSaving(false); }
+    } catch (e) {
+      alert('Ошибка сохранения: ' + String(e));
+    } finally {
+      setBgSaving(false);
+    }
   }
 
-  const activePresetId = BG_PRESETS.find(p => p.url === activeBg)?.id ?? 'none';
+  async function removeGlobalBg() {
+    setGlobalBg('');
+    onBgChange('');
+    try { await api.setGlobalBg(''); } catch {}
+  }
 
   // ── Settings tab ─────────────────────────────────────────────────
   if (tab === 'settings') {
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
         <Settings lang={lang} onLangChange={onLangChange} onBgChange={onBgChange} />
-        {/* Teacher bottom nav */}
         <TeacherNav tab={tab} setTab={setTab} unanswered={stats?.unanswered_questions ?? 0} />
       </div>
     );
@@ -335,48 +350,79 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           <div className="glass-card" style={{ marginBottom: 16 }}>
             <p className="title-card" style={{ marginBottom: 4 }}>🖼️ Фон для всех учеников</p>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
-              Выберите фон — ученики увидят его при следующем открытии приложения
+              Загрузите фото — ученики увидят его при следующем открытии приложения
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-              {BG_PRESETS.map(preset => (
-                <button
-                  key={preset.id}
-                  onClick={() => applyGlobalBg(preset.url)}
-                  style={{
-                    position: 'relative', height: 80, borderRadius: 14,
-                    border: activePresetId === preset.id
-                      ? '2.5px solid var(--accent-teal)'
-                      : '1.5px solid rgba(45,212,160,0.2)',
-                    overflow: 'hidden', cursor: 'pointer',
-                    background: preset.url
-                      ? `linear-gradient(rgba(0,0,0,0.3),rgba(0,0,0,0.5)), url(${preset.url}) center/cover`
-                      : 'rgba(20,45,30,0.6)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'all 150ms',
-                  }}
-                >
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
-                    {preset.label}
+
+            {/* Preview */}
+            {globalBg ? (
+              <div style={{
+                width: '100%', height: 130, borderRadius: 14,
+                backgroundImage: `url(${globalBg})`,
+                backgroundSize: 'cover', backgroundPosition: 'center',
+                marginBottom: 12, position: 'relative',
+                border: '1.5px solid rgba(45,212,160,0.4)',
+              }}>
+                <div style={{
+                  position: 'absolute', inset: 0, borderRadius: 14,
+                  background: 'linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.45))',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+                    📸 Фото выбрано
                   </span>
-                  {activePresetId === preset.id && (
-                    <div style={{
-                      position: 'absolute', top: 6, right: 6,
-                      width: 18, height: 18, borderRadius: '50%',
-                      background: 'var(--accent-teal)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 10, color: '#021a12', fontWeight: 700,
-                    }}>✓</div>
-                  )}
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                width: '100%', height: 90, borderRadius: 14,
+                background: 'rgba(255,255,255,0.03)',
+                border: '1.5px dashed rgba(45,212,160,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 12, color: 'var(--text-muted)', fontSize: 13,
+              }}>
+                Фото не выбрано
+              </div>
+            )}
+
+            {/* Hidden file input */}
+            <input
+              ref={bgFileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleBgFileChange}
+            />
+
+            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+              <button
+                className="btn btn-ghost"
+                style={{ flex: 1 }}
+                disabled={bgLoading}
+                onClick={() => bgFileRef.current?.click()}
+              >
+                <Camera size={16} />
+                {bgLoading ? 'Загрузка...' : '📷 Выбрать из галереи'}
+              </button>
+              {globalBg && (
+                <button
+                  className="btn btn-danger btn-sm"
+                  style={{ width: 48, padding: 0 }}
+                  onClick={removeGlobalBg}
+                >
+                  <Trash2 size={16} />
                 </button>
-              ))}
+              )}
             </div>
-            <button
-              className="btn btn-primary"
-              disabled={bgSaving}
-              onClick={saveGlobalBg}
-            >
-              {bgSaved ? '✅ Сохранено!' : bgSaving ? 'Сохраняем...' : '💾 Применить для всех учеников'}
-            </button>
+
+            {globalBg && (
+              <button
+                className="btn btn-primary"
+                disabled={bgSaving}
+                onClick={saveGlobalBg}
+              >
+                {bgSaved ? '✅ Сохранено для всех!' : bgSaving ? 'Сохраняем...' : '💾 Применить для всех учеников'}
+              </button>
+            )}
           </div>
         )}
 
@@ -420,7 +466,7 @@ function ActionBtn({ icon, label, badge, active, onClick, color }: {
       onClick={onClick}
       style={{
         position: 'relative',
-        background: active ? `rgba(45,212,160,0.15)` : 'rgba(20,45,30,0.5)',
+        background: active ? 'rgba(45,212,160,0.15)' : 'rgba(20,45,30,0.5)',
         border: `1.5px solid ${active ? 'rgba(45,212,160,0.5)' : 'rgba(45,212,160,0.2)'}`,
         borderRadius: 16, padding: '14px 12px',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
