@@ -19,6 +19,7 @@ import AskTeacher       from './screens/AskTeacher';
 import Statistics       from './screens/Statistics';
 import Profile          from './screens/Profile';
 import Settings         from './screens/Settings';
+import LessonScreen     from './screens/LessonScreen';
 import TeacherDashboard from './screens/TeacherDashboard';
 
 type Screen =
@@ -28,6 +29,7 @@ type Screen =
   | 'name_input'
   | 'dashboard'
   | 'volume'
+  | 'lesson'
   | 'tests'
   | 'umrah'
   | 'ask_teacher';
@@ -271,8 +273,21 @@ export default function App() {
         onStartLesson={(bookId, lesson) => {
           setSelectedBook(bookId);
           setSelectedLesson(lesson);
-          setScreen('tests');
+          setScreen('lesson');   // ← go to study first, then test
         }}
+      />
+    );
+  }
+
+  // Lesson study screen — shows word cards before the test
+  if (screen === 'lesson') {
+    return (
+      <LessonScreen
+        lang={lang}
+        bookId={selectedBook}
+        lesson={selectedLesson}
+        onBack={() => setScreen('volume')}
+        onStartTest={() => setScreen('tests')}
       />
     );
   }
@@ -339,7 +354,7 @@ export default function App() {
               onOpenTests={() => {
                 setSelectedBook(user.current_book);
                 setSelectedLesson(user.current_lesson);
-                setScreen('tests');
+                setScreen('lesson');  // ← study first, then test
               }}
               onOpenAskTeacher={() => setScreen('ask_teacher')}
               onOpenSettings={() => handleTabChange('settings')}
