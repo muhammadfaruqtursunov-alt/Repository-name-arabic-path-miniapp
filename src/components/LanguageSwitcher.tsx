@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Globe2 } from 'lucide-react';
 import { LANGS } from '../i18n';
 import type { Lang } from '../i18n';
@@ -14,7 +14,7 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
 
   return (
     <>
-      {/* Compact trigger button — shows globe + flag + code */}
+      {/* Compact trigger button â€” shows globe + flag + code */}
       <button
         className="lang-icon-btn"
         onClick={() => setOpen(v => !v)}
@@ -22,15 +22,15 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
         style={{
           display: 'flex', alignItems: 'center', gap: 5,
           padding: '5px 10px', borderRadius: 20,
-          background: 'rgba(45,212,160,0.10)',
-          border: '1.5px solid rgba(45,212,160,0.3)',
+          background: 'rgba(255,255,255,0.05)',
+          border: '1.5px solid rgba(192,150,60,0.25)',
           cursor: 'pointer', color: 'var(--accent-teal)',
         }}
       >
         <Globe2 size={14} />
         <span style={{ fontSize: 15 }}>{cur?.flag}</span>
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5 }}>{current.toUpperCase()}</span>
-        <span style={{ fontSize: 9, opacity: 0.7 }}>▾</span>
+        <span style={{ fontSize: 9, opacity: 0.7 }}>â–¾</span>
       </button>
 
       {/* Backdrop + dropdown */}
@@ -50,7 +50,7 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 12px', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
               <Globe2 size={14} color="var(--accent-teal)" />
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Выберите язык</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ ÑÐ·Ñ‹Ðº</span>
             </div>
             {LANGS.map(({ code, flag, label }) => (
               <button
@@ -59,7 +59,7 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   width: '100%', padding: '11px 14px',
-                  background: current === code ? 'rgba(45,212,160,0.15)' : 'transparent',
+                  background: current === code ? 'rgba(192,150,60,0.12)' : 'transparent',
                   border: 'none', borderRadius: 10,
                   color: current === code ? 'var(--accent-teal)' : 'var(--text-main)',
                   fontSize: 14, fontWeight: current === code ? 700 : 400,
@@ -72,8 +72,8 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
                 {current === code && (
                   <span style={{
                     fontSize: 10, fontWeight: 700, color: 'var(--accent-teal)',
-                    background: 'rgba(45,212,160,0.15)', borderRadius: 10, padding: '1px 7px',
-                  }}>✓</span>
+                    background: 'rgba(192,150,60,0.12)', borderRadius: 10, padding: '1px 7px',
+                  }}>âœ“</span>
                 )}
               </button>
             ))}
