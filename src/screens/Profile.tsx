@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Globe2, Layers, TrendingUp, Timer } from 'lucide-react';
-import { t, LANGS } from '../i18n';
+import { Layers, TrendingUp, Timer } from 'lucide-react';
+import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
 import type { Stats } from '../api/client';
 import type { UserProfile } from '../api/client';
 import { formatAppTime } from '../utils/formatTime';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 interface Props {
   lang: Lang;
@@ -13,8 +14,6 @@ interface Props {
   onLangChange: (lang: Lang) => void;
   onResetProgress: () => void;
 }
-
-const LANG_FLAGS: Record<string, string> = { ru: '🇷🇺', tj: '🇹🇯', en: '🇬🇧', ar: '🇸🇦', uz: '🇺🇿' };
 
 function getLevel(totalLearned: number, lang: Lang): string {
   if (totalLearned < 70)  return t(lang, 'level_beginner');
@@ -31,10 +30,9 @@ export default function Profile({ lang, user, onLangChange, onResetProgress }: P
   useEffect(() => { api.getStats().then(setStats).catch(() => {}); }, []);
 
   const rows = [
-    { icon: <Globe2 size={18} />, label: t(lang, 'lang_label'), value: `${LANG_FLAGS[user.lang] ?? ''} ${user.lang.toUpperCase()}` },
     { icon: <Layers size={18} />, label: t(lang, 'volume_label'), value: `📖 ${t(lang, `book_${user.current_book}` as 'book_1')}` },
     { icon: <TrendingUp size={18} />, label: t(lang, 'level_label'), value: getLevel(user.total_learned, lang) },
-    { icon: <Timer size={18} />, label: 'Время в приложении', value: stats ? formatAppTime(stats.total_app_time ?? 0) : '…' },
+    { icon: <Timer size={18} />, label: t(lang, 'time_in_app'), value: stats ? formatAppTime(stats.total_app_time ?? 0) : '…' },
   ];
 
   return (
@@ -70,20 +68,11 @@ export default function Profile({ lang, user, onLangChange, onResetProgress }: P
         ))}
       </div>
 
-      {/* Language change */}
+      {/* Language change — compact globe button */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
-        <p className="title-card" style={{ marginBottom: 12 }}>{t(lang, 'lang_label')}</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          {LANGS.map(({ code, flag, label }) => (
-            <button
-              key={code}
-              className={`btn ${lang === code ? 'btn-primary' : 'btn-ghost'}`}
-              style={{ height: 40, fontSize: 13 }}
-              onClick={() => onLangChange(code)}
-            >
-              {flag} {label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p className="title-card">{t(lang, 'lang_label')}</p>
+          <LanguageSwitcher current={lang} onChange={onLangChange} />
         </div>
       </div>
 

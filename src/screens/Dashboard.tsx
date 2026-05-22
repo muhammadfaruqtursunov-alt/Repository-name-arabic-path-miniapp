@@ -172,7 +172,7 @@ export default function Dashboard({
               <Eye size={22} color="var(--accent-teal)" />
               <PenLine size={22} color="var(--accent-teal)" />
             </div>
-            <div className="title-card" style={{ marginBottom: 2 }}>Тесты</div>
+            <div className="title-card" style={{ marginBottom: 2 }}>{t(lang, 'tests_title')}</div>
             <div className="text-muted" style={{ fontSize: 12 }}>
               {t(lang, 'tab_visual')} · {t(lang, 'tab_written')}
             </div>

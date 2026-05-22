@@ -97,4 +97,41 @@ export const ar = {
   error_generic: 'حدث خطأ ما',
   back: 'رجوع',
   of: 'من',
+
+  lesson_study: 'الدراسة',
+  lesson_show_trans: 'إظهار الترجمة',
+  lesson_tap_card: 'اضغط على البطاقة للكشف عن الترجمة',
+  next: 'التالي',
+  lesson_skip_test: 'الانتقال إلى الاختبار',
+  lesson_swipe_hint: 'اسحب للتنقل',
+  words_not_found: 'لم يتم العثور على الكلمات',
+
+  tests_title: 'الاختبارات',
+
+  notif_daily: 'التذكير اليومي',
+  notif_desc: 'سيرسل البوت رسالة تحفيزية كل يوم في الوقت المحدد — تذكير للعربية',
+  notif_tz_label: 'منطقتك الزمنية (تم الكشف تلقائياً)',
+  notif_time_label: 'وقت التذكير',
+  notif_save_btn: 'حفظ التذكير',
+  notif_saving: 'جار الحفظ...',
+  notif_saved_ok: 'تم الحفظ!',
+  notif_disable: 'تعطيل التذكيرات',
+  notif_on: 'مفعّل',
+
+  font_colors: 'الخط والألوان',
+  font_arabic_lbl: 'النص العربي',
+  font_trans_lbl: 'النسخ الصوتي',
+  font_translate_lbl: 'الترجمة',
+  style_bold: 'غامق',
+  style_italic: 'مائل',
+
+  bg_title: 'خلفيتي',
+  bg_only_you: 'لك فقط',
+  bg_desc_text: 'الخلفية مرئية لك فقط على جهازك',
+  bg_not_set: 'لم يتم تعيين خلفية',
+  bg_set_done: '✅ تم تعيين الخلفية',
+  bg_loading: 'جار التحميل...',
+  bg_select_btn: 'اختر من المعرض',
+
+  time_in_app: 'وقت استخدام التطبيق',
 };

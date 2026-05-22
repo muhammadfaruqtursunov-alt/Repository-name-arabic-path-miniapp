@@ -8,7 +8,6 @@ import type { UserProfile, VolumeInfo } from './api/client';
 import BottomNav from './components/BottomNav';
 import type { NavTab } from './components/BottomNav';
 
-import Welcome          from './screens/Welcome';
 import LanguageSelect   from './screens/LanguageSelect';
 import NameInput        from './screens/NameInput';
 import Dashboard        from './screens/Dashboard';
@@ -242,38 +241,51 @@ export default function App() {
   }
 
   if (screen === 'welcome') {
-    const hasTelegram = !!(window.Telegram?.WebApp?.initData);
+    // No initData — user opened the URL in a browser instead of Telegram.
+    // Show a minimal, clear instruction and nothing else.
     return (
-      <>
-        {!hasTelegram && window.Telegram?.WebApp?.platform === 'tdesktop' && (
-          <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999,
-            background: 'rgba(245,197,24,0.15)',
-            borderBottom: '1px solid rgba(245,197,24,0.4)',
-            padding: '10px 16px',
-            color: '#b8860b', fontSize: 12, textAlign: 'center',
-          }}>
-            🖥️ Нажмите кнопку «🌐 Открыть Mini App» внизу справа
-          </div>
+      <div style={{
+        minHeight: '100dvh',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '32px 24px', textAlign: 'center', gap: 24,
+      }}>
+        {/* Arabic title */}
+        <div className="text-arabic" style={{ fontSize: 32, color: 'var(--accent-gold)' }}>
+          الطريق العربي
+        </div>
+
+        {/* Instruction card */}
+        <div className="glass-card" style={{ maxWidth: 340, padding: '28px 24px' }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>👆</div>
+          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-main)', marginBottom: 12, lineHeight: 1.4 }}>
+            Нажмите синюю кнопку<br />«Открыть приложение» выше
+          </p>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+            Приложение работает только внутри Telegram.
+            Вернитесь в бот и нажмите кнопку в меню.
+          </p>
+        </div>
+
+        {/* Bot link */}
+        <a
+          href="https://t.me/arabskiy_put_bot"
+          style={{
+            color: 'var(--accent-teal)', fontSize: 14, fontWeight: 600,
+            textDecoration: 'none', padding: '10px 24px',
+            border: '1.5px solid rgba(45,212,160,0.4)',
+            borderRadius: 16, background: 'rgba(45,212,160,0.08)',
+          }}
+        >
+          → Открыть @arabskiy_put_bot
+        </a>
+
+        {initError && (
+          <p style={{ fontSize: 11, color: 'var(--danger)', maxWidth: 300, wordBreak: 'break-all' }}>
+            ⚠️ {initError}
+          </p>
         )}
-        {initError && hasTelegram && (
-          <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999,
-            background: 'rgba(224,85,85,0.15)',
-            borderBottom: '1px solid rgba(224,85,85,0.4)',
-            padding: '10px 16px',
-            color: 'var(--danger)', fontSize: 12,
-            wordBreak: 'break-all',
-          }}>
-            ⚠️ API error: {initError}
-          </div>
-        )}
-        <Welcome
-          lang={lang}
-          onStart={() => { setInitError(null); setScreen('lang_select'); }}
-          onLogin={() => init()}
-        />
-      </>
+      </div>
     );
   }
 

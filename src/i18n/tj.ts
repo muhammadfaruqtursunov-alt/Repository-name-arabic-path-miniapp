@@ -97,4 +97,41 @@ export const tj = {
   error_generic: 'Чизе хато рафт',
   back: 'Бозгашт',
   of: 'аз',
+
+  lesson_study: 'Омӯзиш',
+  lesson_show_trans: 'Тарҷумаро нишон деҳ',
+  lesson_tap_card: 'Барои кушодани тарҷума ба корт пахш кунед',
+  next: 'Давом',
+  lesson_skip_test: 'Ба санҷиш гузаштан',
+  lesson_swipe_hint: 'Барои навигатсия свайп кунед',
+  words_not_found: 'Калимаҳо ёфт нашуданд',
+
+  tests_title: 'Санҷишҳо',
+
+  notif_daily: 'Хабардории рӯзона',
+  notif_desc: 'Бот ҳар рӯз дар вақти интихобшуда паёми ҳавасмандкунанда мефиристад',
+  notif_tz_label: 'Минтақаи вақтии шумо (автоматӣ муайян шуд)',
+  notif_time_label: 'Вақти хабардорӣ',
+  notif_save_btn: 'Хабардориро захира кун',
+  notif_saving: 'Захира мешавад...',
+  notif_saved_ok: 'Захира шуд!',
+  notif_disable: 'Хабардориҳоро хомӯш кун',
+  notif_on: 'ВКЛ',
+
+  font_colors: 'Ҳарф ва рангҳо',
+  font_arabic_lbl: 'Матни арабӣ',
+  font_trans_lbl: 'Транскрипция',
+  font_translate_lbl: 'Тарҷума',
+  style_bold: 'Ғафс',
+  style_italic: 'Курсив',
+
+  bg_title: 'Замини ман',
+  bg_only_you: 'Танҳо барои шумо',
+  bg_desc_text: 'Замин танҳо дар дастгоҳи шумо намоён аст',
+  bg_not_set: 'Замин интихоб нашудааст',
+  bg_set_done: '✅ Замин муқаррар шуд',
+  bg_loading: 'Боргузорӣ...',
+  bg_select_btn: 'Аз галерея интихоб кун',
+
+  time_in_app: 'Вақт дар барнома',
 };

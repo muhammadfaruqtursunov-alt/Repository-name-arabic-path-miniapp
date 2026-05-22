@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useSwipe } from '../hooks/useSwipe';
 import {
   MessageCircleQuestion, Megaphone, Mail, ImageIcon,
   Send, Users, CheckCircle2, Camera, Trash2,
@@ -18,9 +19,22 @@ interface Props {
 
 type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | null;
 type TeacherTab = 'dashboard' | 'settings';
+const TAB_ORDER: TeacherTab[] = ['dashboard', 'settings'];
 
 export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Props) {
   const [tab, setTab] = useState<TeacherTab>('dashboard');
+
+  const handleSwipeLeft = useCallback(() => {
+    const idx = TAB_ORDER.indexOf(tab);
+    if (idx < TAB_ORDER.length - 1) setTab(TAB_ORDER[idx + 1]);
+  }, [tab]);
+
+  const handleSwipeRight = useCallback(() => {
+    const idx = TAB_ORDER.indexOf(tab);
+    if (idx > 0) setTab(TAB_ORDER[idx - 1]);
+  }, [tab]);
+
+  const swipeHandlers = useSwipe(handleSwipeLeft, handleSwipeRight);
   const [stats, setStats] = useState<TeacherStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [panel, setPanel] = useState<Panel>(null);
@@ -171,7 +185,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   // ── Settings tab ─────────────────────────────────────────────────
   if (tab === 'settings') {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }} {...swipeHandlers}>
         <Settings lang={lang} onLangChange={onLangChange} onBgChange={onBgChange} />
         <TeacherNav tab={tab} setTab={setTab} unanswered={stats?.unanswered_questions ?? 0} />
       </div>
@@ -188,7 +202,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   }
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }} {...swipeHandlers}>
       <div className="page-content" style={{ paddingTop: 24, paddingBottom: 90 }}>
         <h1 className="title-screen" style={{ marginBottom: 20 }}>👨‍🏫 Кабинет учителя</h1>
 

@@ -17,19 +17,21 @@ interface Props {
 function getTranslation(card: WordCard, lang: Lang): string {
   if (lang === 'en') return card.en  || card.ru || card.translation;
   if (lang === 'tj') return card.tj  || card.ru || card.translation;
+  if (lang === 'uz') return card.uz  || card.ru || card.translation;
   return card.ru || card.translation;
 }
 
 export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest }: Props) {
   const [words, setWords]       = useState<WordCard[]>([]);
   const [idx, setIdx]           = useState(0);
+  // revealed is sticky — once the user clicks once it stays ON for the whole lesson
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
     setLoading(true);
     setIdx(0);
-    setRevealed(false);
+    setRevealed(false); // only reset when a NEW lesson starts
     api.getLesson(bookId, lesson)
       .then(data => setWords(data.words))
       .finally(() => setLoading(false));
@@ -39,18 +41,13 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
   const card  = words[idx];
   const isLast = idx === total - 1;
 
+  // Navigation does NOT reset revealed — stays sticky
   function goNext() {
-    if (idx < total - 1) {
-      setIdx(idx + 1);
-      setRevealed(false);
-    }
+    if (idx < total - 1) setIdx(idx + 1);
   }
 
   function goPrev() {
-    if (idx > 0) {
-      setIdx(idx - 1);
-      setRevealed(false);
-    }
+    if (idx > 0) setIdx(idx - 1);
   }
 
   const handleSwipeLeft  = useCallback(() => goNext(), [idx, total]);
@@ -68,7 +65,7 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
   if (!card) {
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p className="text-muted">Слова не найдены</p>
+        <p className="text-muted">{t(lang, 'words_not_found')}</p>
       </div>
     );
   }
@@ -90,7 +87,7 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
           <ChevronLeft size={24} />
         </button>
         <h1 className="title-card" style={{ flex: 1 }}>
-          {t(lang, 'lesson_num')} {lesson} — {lang === 'en' ? 'Study' : 'Изучение'}
+          {t(lang, 'lesson_num')} {lesson} — {t(lang, 'lesson_study')}
         </h1>
         <span style={{ color: 'var(--accent-teal)', fontSize: 13, fontWeight: 700, minWidth: 36, textAlign: 'right' }}>
           {idx + 1}/{total}
@@ -160,15 +157,15 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
               onClick={e => { e.stopPropagation(); setRevealed(true); }}
             >
               <Eye size={14} />
-              {lang === 'en' ? 'Show translation' : 'Показать перевод'}
+              {t(lang, 'lesson_show_trans')}
             </button>
           )}
         </div>
 
-        {/* Tap hint */}
+        {/* Tap hint — only shown before first reveal */}
         {!revealed && (
           <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, marginTop: -10 }}>
-            👆 {lang === 'en' ? 'Tap the card to reveal' : 'Нажмите на карточку, чтобы открыть перевод'}
+            👆 {t(lang, 'lesson_tap_card')}
           </p>
         )}
 
@@ -181,7 +178,7 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
             disabled={idx === 0}
           >
             <ChevronLeft size={18} />
-            {lang === 'en' ? 'Back' : 'Назад'}
+            {t(lang, 'back')}
           </button>
 
           {isLast ? (
@@ -191,7 +188,7 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
               onClick={onStartTest}
             >
               <GraduationCap size={18} />
-              {lang === 'en' ? 'Start Test' : 'Начать тест'}
+              {t(lang, 'btn_start_test')}
             </button>
           ) : (
             <button
@@ -199,13 +196,13 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
               style={{ flex: 1 }}
               onClick={goNext}
             >
-              {lang === 'en' ? 'Next' : 'Далее'}
+              {t(lang, 'next')}
               <ChevronRight size={18} />
             </button>
           )}
         </div>
 
-        {/* Skip to test (always available) */}
+        {/* Skip to test (always available except on last card) */}
         {!isLast && (
           <button
             className="btn btn-gold"
@@ -213,13 +210,13 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
             onClick={onStartTest}
           >
             <GraduationCap size={16} />
-            {lang === 'en' ? 'Skip to test' : 'Перейти к тесту'}
+            {t(lang, 'lesson_skip_test')}
           </button>
         )}
 
         {/* Swipe hint */}
         <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', marginTop: 14, opacity: 0.7 }}>
-          ← → {lang === 'en' ? 'Swipe to navigate' : 'Свайп для навигации'}
+          ← → {t(lang, 'lesson_swipe_hint')}
         </p>
       </div>
     </div>

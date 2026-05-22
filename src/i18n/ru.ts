@@ -110,6 +110,49 @@ export const ru = {
   error_generic: 'Что-то пошло не так',
   back: 'Назад',
   of: 'из',
+
+  // Lesson screen
+  lesson_study: 'Изучение',
+  lesson_show_trans: 'Показать перевод',
+  lesson_tap_card: 'Нажмите на карточку, чтобы открыть перевод',
+  next: 'Далее',
+  lesson_skip_test: 'Перейти к тесту',
+  lesson_swipe_hint: 'Свайп для навигации',
+  words_not_found: 'Слова не найдены',
+
+  // Tests in dashboard
+  tests_title: 'Тесты',
+
+  // Settings notifications
+  notif_daily: 'Ежедневное напоминание',
+  notif_desc: 'Бот пришлёт мотивационное сообщение каждый день в выбранное время — напоминание об арабском',
+  notif_tz_label: 'Ваш часовой пояс (определён автоматически)',
+  notif_time_label: 'Время напоминания',
+  notif_save_btn: 'Сохранить напоминание',
+  notif_saving: 'Сохранение...',
+  notif_saved_ok: 'Сохранено!',
+  notif_disable: 'Отключить напоминания',
+  notif_on: 'ВКЛ',
+
+  // Settings font & colors
+  font_colors: 'Шрифт и цвета',
+  font_arabic_lbl: 'Арабский текст',
+  font_trans_lbl: 'Транскрипция',
+  font_translate_lbl: 'Перевод',
+  style_bold: 'Жирный',
+  style_italic: 'Курсив',
+
+  // Settings background
+  bg_title: 'Мой фон',
+  bg_only_you: 'Только для вас',
+  bg_desc_text: 'Фон виден только вам на вашем устройстве',
+  bg_not_set: 'Фон не выбран',
+  bg_set_done: '✅ Фон установлен',
+  bg_loading: 'Загрузка...',
+  bg_select_btn: 'Выбрать из галереи',
+
+  // Profile
+  time_in_app: 'Время в приложении',
 };
 
 export type TranslationKeys = keyof typeof ru;

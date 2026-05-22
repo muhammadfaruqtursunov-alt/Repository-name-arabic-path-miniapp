@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Globe2, Bell, BellOff, Type, ImageIcon, Camera, Trash2, CheckCircle2 } from 'lucide-react';
-import { t, LANGS } from '../i18n';
+import { Bell, BellOff, Type, ImageIcon, Camera, Trash2, CheckCircle2 } from 'lucide-react';
+import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
 import { resizeImageToDataUrl } from '../utils/imageResize';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 interface Props {
   lang: Lang;
@@ -25,11 +26,11 @@ function setCssVar(name: string, value: string) {
 
 // ── Color presets ─────────────────────────────────────────────────
 const COLOR_PRESETS = [
-  { id: 'white',  label: 'Белый',      hex: '#FFFFFF' },
-  { id: 'yellow', label: 'Жёлтый',     hex: '#FFD700' },
-  { id: 'red',    label: 'Красный',    hex: '#E05555' },
-  { id: 'black',  label: 'Чёрный',     hex: '#111118' },
-  { id: 'green',  label: 'Св.зелёный', hex: '#7AAF8A' },
+  { id: 'white',  hex: '#FFFFFF' },
+  { id: 'yellow', hex: '#FFD700' },
+  { id: 'red',    hex: '#E05555' },
+  { id: 'black',  hex: '#111118' },
+  { id: 'green',  hex: '#7AAF8A' },
 ];
 
 // ── Auto-detect user timezone ─────────────────────────────────────
@@ -49,9 +50,8 @@ function ColorSwatches({ current, onChange }: { current: string; onChange: (hex:
         <button
           key={c.id}
           onClick={() => onChange(c.hex)}
-          title={c.label}
           style={{
-            width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+            width: 28, height: 28, borderRadius: 7, flexShrink: 0,
             background: c.hex,
             border: current.toUpperCase() === c.hex.toUpperCase()
               ? '2.5px solid var(--accent-teal)'
@@ -67,6 +67,37 @@ function ColorSwatches({ current, onChange }: { current: string; onChange: (hex:
         />
       ))}
     </div>
+  );
+}
+
+// ── Style toggle buttons (bold / italic) ──────────────────────────
+function StyleToggle({ label, active, onClick, weight, italic }: {
+  label: string; active: boolean; onClick: () => void;
+  weight?: number; italic?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        height: 30, padding: '0 14px',
+        borderRadius: 8, cursor: 'pointer',
+        fontSize: 13,
+        fontWeight: weight ?? (active ? 700 : 400),
+        fontStyle: italic ? 'italic' : 'normal',
+        background: active
+          ? 'rgba(45,212,160,0.2)'
+          : 'rgba(255,255,255,0.06)',
+        color: active ? 'var(--accent-teal)' : 'var(--text-muted)',
+        border: active
+          ? '1px solid rgba(45,212,160,0.4)'
+          : '1px solid rgba(255,255,255,0.1)',
+        transition: 'all 150ms',
+        letterSpacing: 0.2,
+        flexShrink: 0,
+      }}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -111,13 +142,12 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
 
   // ── Notification / reminder ───────────────────────────────────────
   const detectedTz = detectTimezone();
-  const [reminderTime, setReminderTime] = useState<string>('');       // "HH:MM" or ''
-  const [reminderTz]  = useState<string>(detectedTz);                  // auto-detected, read-only
+  const [reminderTime, setReminderTime] = useState<string>('');
+  const [reminderTz]  = useState<string>(detectedTz);
   const [reminderSaved, setReminderSaved] = useState(false);
   const [reminderLoading, setReminderLoading] = useState(false);
   const [reminderEnabled, setReminderEnabled] = useState(false);
 
-  // Load existing reminder from server on mount
   useEffect(() => {
     api.getReminder().then(r => {
       if (r.reminder_time) {
@@ -194,7 +224,6 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     setReminderLoading(true);
     setReminderSaved(false);
     try {
-      // Request Telegram write access so bot can send messages when app is closed
       await new Promise<void>(resolve => {
         const tg = window.Telegram?.WebApp;
         if (tg?.requestWriteAccess) {
@@ -208,7 +237,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
       setReminderSaved(true);
       setTimeout(() => setReminderSaved(false), 3000);
     } catch {
-      alert('Ошибка сохранения. Попробуйте ещё раз.');
+      alert(t(lang, 'error_generic'));
     } finally {
       setReminderLoading(false);
     }
@@ -221,7 +250,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
       setReminderEnabled(false);
       setReminderTime('');
     } catch {
-      alert('Ошибка. Попробуйте ещё раз.');
+      alert(t(lang, 'error_generic'));
     } finally {
       setReminderLoading(false);
     }
@@ -236,7 +265,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
       setActiveBg(dataUrl);
       if (onBgChange) onBgChange(dataUrl);
     } catch {
-      alert('Не удалось загрузить фото');
+      alert(t(lang, 'error_generic'));
     } finally {
       setBgLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -253,23 +282,11 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     <div className="screen-enter page-content" style={{ paddingTop: 24 }}>
       <h1 className="title-screen" style={{ marginBottom: 24 }}>{t(lang, 'settings_title')}</h1>
 
-      {/* ── Language ──────────────────────────────────────────── */}
+      {/* ── Language ─────────────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <Globe2 size={18} color="var(--accent-teal)" />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span className="title-card">{t(lang, 'setting_lang')}</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          {LANGS.map(({ code, flag, label }) => (
-            <button
-              key={code}
-              className={`btn ${lang === code ? 'btn-primary' : 'btn-ghost'}`}
-              style={{ height: 42, fontSize: 13 }}
-              onClick={() => handleLangChange(code)}
-            >
-              {flag} {label}
-            </button>
-          ))}
+          <LanguageSwitcher current={lang} onChange={handleLangChange} />
         </div>
       </div>
 
@@ -279,18 +296,18 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           {reminderEnabled
             ? <Bell size={18} color="var(--accent-teal)" />
             : <BellOff size={18} color="var(--text-muted)" />}
-          <span className="title-card">Ежедневное напоминание</span>
+          <span className="title-card">{t(lang, 'notif_daily')}</span>
           {reminderEnabled && (
             <span style={{
               marginLeft: 'auto', fontSize: 10, fontWeight: 700,
               background: 'rgba(45,212,160,0.15)', color: 'var(--accent-teal)',
               padding: '2px 8px', borderRadius: 20,
-            }}>ВКЛ</span>
+            }}>{t(lang, 'notif_on')}</span>
           )}
         </div>
 
         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
-          Бот пришлёт мотивационное сообщение каждый день в выбранное время — напоминание об арабском
+          {t(lang, 'notif_desc')}
         </p>
 
         {/* Timezone — auto-detected */}
@@ -303,7 +320,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         }}>
           <span style={{ fontSize: 13 }}>🌍</span>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Ваш часовой пояс (определён автоматически)</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t(lang, 'notif_tz_label')}</div>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-teal)' }}>{reminderTz}</div>
           </div>
         </div>
@@ -311,7 +328,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         {/* Time picker */}
         <div style={{ marginBottom: 14 }}>
           <label style={{ fontSize: 13, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
-            Время напоминания
+            {t(lang, 'notif_time_label')}
           </label>
           <input
             type="time"
@@ -329,12 +346,13 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           disabled={!reminderTime || reminderLoading}
           onClick={handleSaveReminder}
         >
-          {reminderLoading ? '⏳ Сохранение...' : reminderSaved
-            ? <><CheckCircle2 size={16} /> Сохранено!</>
-            : '💾 Сохранить напоминание'}
+          {reminderLoading
+            ? `⏳ ${t(lang, 'notif_saving')}`
+            : reminderSaved
+            ? <><CheckCircle2 size={16} /> {t(lang, 'notif_saved_ok')}</>
+            : `💾 ${t(lang, 'notif_save_btn')}`}
         </button>
 
-        {/* Disable button — only if currently enabled */}
         {reminderEnabled && (
           <button
             className="btn btn-danger"
@@ -342,7 +360,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
             disabled={reminderLoading}
             onClick={handleDisableReminder}
           >
-            <BellOff size={14} /> Отключить напоминания
+            <BellOff size={14} /> {t(lang, 'notif_disable')}
           </button>
         )}
       </div>
@@ -351,13 +369,13 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <Type size={18} color="var(--accent-teal)" />
-          <span className="title-card">Шрифт и цвета</span>
+          <span className="title-card">{t(lang, 'font_colors')}</span>
         </div>
 
         {/* ─ Arabic ─ */}
         <div style={{ marginBottom: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Арабский текст</span>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t(lang, 'font_arabic_lbl')}</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-teal)' }}>{arabicSize}px</span>
           </div>
           <input type="range" min={16} max={36} step={1} value={arabicSize} onChange={e => setArabicSize(Number(e.target.value))} />
@@ -369,12 +387,25 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           </div>
         </div>
         <div style={{ marginBottom: 10 }}>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Цвет арабского текста</span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+            {t(lang, 'font_arabic_lbl')}
+          </span>
           <ColorSwatches current={arabicColor} onChange={setArabicColor} />
         </div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          <button className={arabicBold ? 'btn btn-primary' : 'btn btn-ghost'} style={{ height: 36, fontWeight: 900 }} onClick={() => setArabicBold(!arabicBold)}>Ж Жирный</button>
-          <button className={arabicItalic ? 'btn btn-primary' : 'btn btn-ghost'} style={{ height: 36, fontStyle: 'italic' }} onClick={() => setArabicItalic(!arabicItalic)}>К Курсив</button>
+        {/* Bold / Italic — sleek compact toggles */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+          <StyleToggle
+            label={t(lang, 'style_bold')}
+            active={arabicBold}
+            onClick={() => setArabicBold(!arabicBold)}
+            weight={700}
+          />
+          <StyleToggle
+            label={t(lang, 'style_italic')}
+            active={arabicItalic}
+            onClick={() => setArabicItalic(!arabicItalic)}
+            italic
+          />
         </div>
 
         <div style={{ height: 1, background: 'var(--border)', margin: '0 0 16px' }} />
@@ -382,7 +413,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         {/* ─ Transcription ─ */}
         <div style={{ marginBottom: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Транскрипция</span>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t(lang, 'font_trans_lbl')}</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-teal)' }}>{transSize}px</span>
           </div>
           <input type="range" min={11} max={22} step={1} value={transSize} onChange={e => setTransSize(Number(e.target.value))} />
@@ -391,11 +422,18 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           </div>
         </div>
         <div style={{ marginBottom: 10 }}>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Цвет транскрипции</span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+            {t(lang, 'font_trans_lbl')}
+          </span>
           <ColorSwatches current={transColor} onChange={setTransColor} />
         </div>
         <div style={{ marginBottom: 16 }}>
-          <button className={transItalic ? 'btn btn-primary' : 'btn btn-ghost'} style={{ height: 36, fontStyle: 'italic', width: 'auto', padding: '0 20px' }} onClick={() => setTransItalic(!transItalic)}>К Курсив</button>
+          <StyleToggle
+            label={t(lang, 'style_italic')}
+            active={transItalic}
+            onClick={() => setTransItalic(!transItalic)}
+            italic
+          />
         </div>
 
         <div style={{ height: 1, background: 'var(--border)', margin: '0 0 16px' }} />
@@ -403,15 +441,21 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         {/* ─ Translation ─ */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Перевод</span>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t(lang, 'font_translate_lbl')}</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-teal)' }}>{translationSize}px</span>
           </div>
           <input type="range" min={11} max={20} step={1} value={translationSize} onChange={e => setTranslationSize(Number(e.target.value))} />
           <div style={{ marginTop: 8, textAlign: 'center', fontSize: `${translationSize}px`, color: translationColor }}>
-            Во имя Аллаха, Милостивого, Милосердного
+            {lang === 'en' ? 'In the name of Allah, the Most Gracious' :
+             lang === 'uz' ? "Allohning nomi bilan, Mehribon va Rahimli" :
+             lang === 'tj' ? 'Бо номи Аллоҳ, Бахшандаи Меҳрубон' :
+             lang === 'ar' ? 'بسم الله الرحمن الرحيم' :
+             'Во имя Аллаха, Милостивого, Милосердного'}
           </div>
           <div style={{ marginTop: 10 }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Цвет перевода</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+              {t(lang, 'font_translate_lbl')}
+            </span>
             <ColorSwatches current={translationColor} onChange={setTranslationColor} />
           </div>
         </div>
@@ -421,28 +465,47 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <ImageIcon size={18} color="var(--accent-teal)" />
-          <span className="title-card">Мой фон</span>
-          <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, background: 'rgba(45,212,160,0.15)', color: 'var(--accent-teal)', padding: '2px 8px', borderRadius: 20 }}>Только для вас</span>
+          <span className="title-card">{t(lang, 'bg_title')}</span>
+          <span style={{
+            marginLeft: 'auto', fontSize: 10, fontWeight: 700,
+            background: 'rgba(45,212,160,0.15)', color: 'var(--accent-teal)',
+            padding: '2px 8px', borderRadius: 20,
+          }}>{t(lang, 'bg_only_you')}</span>
         </div>
         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
-          Фон виден только вам на вашем устройстве
+          {t(lang, 'bg_desc_text')}
         </p>
         {activeBg ? (
-          <div style={{ width: '100%', height: 120, borderRadius: 14, backgroundImage: `url(${activeBg})`, backgroundSize: 'cover', backgroundPosition: 'center', marginBottom: 12, position: 'relative', border: '1.5px solid rgba(45,212,160,0.3)' }}>
-            <div style={{ position: 'absolute', inset: 0, borderRadius: 14, background: 'linear-gradient(rgba(0,0,0,0.2),rgba(0,0,0,0.4))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>✅ Фон установлен</span>
+          <div style={{
+            width: '100%', height: 120, borderRadius: 14,
+            backgroundImage: `url(${activeBg})`, backgroundSize: 'cover', backgroundPosition: 'center',
+            marginBottom: 12, position: 'relative', border: '1.5px solid rgba(45,212,160,0.3)',
+          }}>
+            <div style={{
+              position: 'absolute', inset: 0, borderRadius: 14,
+              background: 'linear-gradient(rgba(0,0,0,0.2),rgba(0,0,0,0.4))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
+                {t(lang, 'bg_set_done')}
+              </span>
             </div>
           </div>
         ) : (
-          <div style={{ width: '100%', height: 80, borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(45,212,160,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: 'var(--text-muted)', fontSize: 13 }}>
-            Фон не выбран
+          <div style={{
+            width: '100%', height: 80, borderRadius: 14,
+            background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(45,212,160,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: 12, color: 'var(--text-muted)', fontSize: 13,
+          }}>
+            {t(lang, 'bg_not_set')}
           </div>
         )}
         <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-primary" style={{ flex: 1 }} disabled={bgLoading} onClick={() => fileInputRef.current?.click()}>
             <Camera size={16} />
-            {bgLoading ? 'Загрузка...' : '📷 Выбрать из галереи'}
+            {bgLoading ? t(lang, 'bg_loading') : `📷 ${t(lang, 'bg_select_btn')}`}
           </button>
           {activeBg && (
             <button className="btn btn-danger btn-sm" style={{ width: 48, padding: 0 }} onClick={removeBg}>

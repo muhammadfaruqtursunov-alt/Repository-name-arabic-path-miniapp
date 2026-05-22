@@ -97,4 +97,41 @@ export const en = {
   error_generic: 'Something went wrong',
   back: 'Back',
   of: 'of',
+
+  lesson_study: 'Study',
+  lesson_show_trans: 'Show translation',
+  lesson_tap_card: 'Tap the card to reveal translation',
+  next: 'Next',
+  lesson_skip_test: 'Skip to test',
+  lesson_swipe_hint: 'Swipe to navigate',
+  words_not_found: 'Words not found',
+
+  tests_title: 'Tests',
+
+  notif_daily: 'Daily Reminder',
+  notif_desc: 'The bot will send a motivational message every day at the selected time — an Arabic reminder',
+  notif_tz_label: 'Your timezone (auto-detected)',
+  notif_time_label: 'Reminder time',
+  notif_save_btn: 'Save reminder',
+  notif_saving: 'Saving...',
+  notif_saved_ok: 'Saved!',
+  notif_disable: 'Disable reminders',
+  notif_on: 'ON',
+
+  font_colors: 'Font & Colors',
+  font_arabic_lbl: 'Arabic text',
+  font_trans_lbl: 'Transcription',
+  font_translate_lbl: 'Translation',
+  style_bold: 'Bold',
+  style_italic: 'Italic',
+
+  bg_title: 'My Background',
+  bg_only_you: 'Only for you',
+  bg_desc_text: 'Background is visible only to you on your device',
+  bg_not_set: 'No background set',
+  bg_set_done: '✅ Background set',
+  bg_loading: 'Loading...',
+  bg_select_btn: 'Select from gallery',
+
+  time_in_app: 'App usage time',
 };

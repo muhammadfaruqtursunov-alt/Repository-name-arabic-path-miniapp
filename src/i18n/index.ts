@@ -3,17 +3,19 @@ import type { TranslationKeys } from './ru';
 import { tj } from './tj';
 import { en } from './en';
 import { ar } from './ar';
+import { uz } from './uz';
 
-export type Lang = 'ru' | 'tj' | 'en' | 'ar';
+export type Lang = 'ru' | 'tj' | 'en' | 'ar' | 'uz';
 
 export const LANGS: { code: Lang; label: string; flag: string; dir: 'ltr' | 'rtl' }[] = [
-  { code: 'tj', label: 'Тоҷ',  flag: '🇹🇯', dir: 'ltr' },
-  { code: 'ru', label: 'Рус',  flag: '🇷🇺', dir: 'ltr' },
-  { code: 'ar', label: 'عرب', flag: '🇸🇦', dir: 'rtl' },
-  { code: 'en', label: 'Eng',  flag: '🇬🇧', dir: 'ltr' },
+  { code: 'uz', label: "O'zbek", flag: '🇺🇿', dir: 'ltr' },
+  { code: 'tj', label: 'Тоҷик',  flag: '🇹🇯', dir: 'ltr' },
+  { code: 'ru', label: 'Русский',  flag: '🇷🇺', dir: 'ltr' },
+  { code: 'ar', label: 'عربي', flag: '🇸🇦', dir: 'rtl' },
+  { code: 'en', label: 'English',  flag: '🇬🇧', dir: 'ltr' },
 ];
 
-const translations: Record<Lang, Record<string, string>> = { ru, tj, en, ar };
+const translations: Record<Lang, Record<string, string>> = { ru, tj, en, ar, uz };
 
 export function t(lang: Lang, key: TranslationKeys): string {
   const dict = translations[lang] ?? translations.ru;
@@ -24,8 +26,8 @@ export function getLangDir(lang: Lang): 'ltr' | 'rtl' {
   return lang === 'ar' ? 'rtl' : 'ltr';
 }
 
-/** Map bot lang (ru/tj/en/uz) to miniapp lang (ru/tj/en/ar) */
+/** Map any bot lang to miniapp lang */
 export function normalizeLang(lang: string): Lang {
-  if (['ru', 'tj', 'en', 'ar'].includes(lang)) return lang as Lang;
+  if (['ru', 'tj', 'en', 'ar', 'uz'].includes(lang)) return lang as Lang;
   return 'ru';
 }
