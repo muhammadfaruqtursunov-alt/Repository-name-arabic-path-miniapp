@@ -31,6 +31,14 @@ type Screen =
   | 'umrah'
   | 'ask_teacher';
 
+// ── Background helpers ────────────────────────────────────────────
+const BG_STORAGE_KEY = 'ap_bg_url';
+
+function applyBackground(url: string) {
+  const el = document.getElementById('app-bg');
+  if (el) (el as HTMLElement).style.backgroundImage = url ? `url(${url})` : '';
+}
+
 export default function App() {
   const [screen, setScreen]   = useState<Screen>('loading');
   const [lang, setLang]       = useState<Lang>('ru');
@@ -41,6 +49,16 @@ export default function App() {
   const [selectedLesson, setSelectedLesson] = useState(1);
   const [onboardingLang, setOnboardingLang] = useState<Lang>('ru');
   const [initError, setInitError] = useState<string | null>(null);
+
+  // Restore font sizes + background from localStorage on mount
+  useEffect(() => {
+    const arabicSize = localStorage.getItem('ap_arabic_size');
+    const transSize  = localStorage.getItem('ap_trans_size');
+    if (arabicSize) document.documentElement.style.setProperty('--font-arabic-size', `${arabicSize}px`);
+    if (transSize)  document.documentElement.style.setProperty('--font-trans-size',  `${transSize}px`);
+    const localBg = localStorage.getItem(BG_STORAGE_KEY);
+    if (localBg) applyBackground(localBg);
+  }, []);
 
   // Apply RTL on lang change
   useEffect(() => {
@@ -84,6 +102,13 @@ export default function App() {
       setUser(profile);
       const vols = await api.getVolumes();
       setVolumes(vols);
+      // Apply global background (local override takes priority)
+      try {
+        const cfg = await api.getAppConfig();
+        const localBg = localStorage.getItem(BG_STORAGE_KEY);
+        const bgToApply = localBg !== null ? localBg : (cfg.bg_url || '');
+        applyBackground(bgToApply);
+      } catch {}
       setScreen('dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -123,6 +148,11 @@ export default function App() {
     setLang(newLang);
     try { await api.setLang(newLang); } catch {}
     if (user) setUser({ ...user, lang: newLang });
+  }
+
+  function handleBgChange(url: string) {
+    localStorage.setItem(BG_STORAGE_KEY, url);
+    applyBackground(url);
   }
 
   function handleTabChange(newTab: NavTab) {
@@ -241,9 +271,11 @@ export default function App() {
   // Teacher view
   if (user?.is_teacher) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-        <TeacherDashboard lang={lang} />
-      </div>
+      <TeacherDashboard
+        lang={lang}
+        onLangChange={handleLangChange}
+        onBgChange={handleBgChange}
+      />
     );
   }
 
@@ -286,7 +318,7 @@ export default function App() {
         )}
 
         {tab === 'settings' && (
-          <Settings lang={lang} onLangChange={handleLangChange} />
+          <Settings lang={lang} onLangChange={handleLangChange} onBgChange={handleBgChange} />
         )}
 
         <BottomNav active={tab} lang={lang} onChange={handleTabChange} />

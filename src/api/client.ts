@@ -123,6 +123,11 @@ export interface Question {
   answered: boolean; created_at: string | null;
 }
 
+export interface TeacherQuestion {
+  id: number; user_id: number; user_name: string;
+  question: string; created_at: string | null;
+}
+
 // ── API functions ─────────────────────────────────────────────────
 
 export const api = {
@@ -167,8 +172,20 @@ export const api = {
     request<GuideAnswerResult>('POST', '/api/webapp/umrah/quiz/answer',
       { correct_ref, lang, mode, chosen_ref, typed }),
 
+  // App config
+  getAppConfig: () => request<{ bg_url: string }>('GET', '/api/webapp/config'),
+
   // Teacher
   getTeacherStats: () => request<TeacherStats>('GET', '/api/webapp/teacher/stats'),
+  teacherGetQuestions: () => request<TeacherQuestion[]>('GET', '/api/webapp/teacher/questions'),
+  teacherAnswerQuestion: (id: number, answer: string) =>
+    request<{ ok: boolean }>('POST', `/api/webapp/teacher/answer/${id}`, { answer }),
+  teacherBroadcast: (message: string) =>
+    request<{ ok: boolean; sent: number; failed: number }>('POST', '/api/webapp/teacher/broadcast', { message }),
+  teacherPersonalMessage: (user_id: number, message: string) =>
+    request<{ ok: boolean }>('POST', '/api/webapp/teacher/message', { user_id, message }),
+  setGlobalBg: (bg_url: string) =>
+    request<{ ok: boolean }>('POST', '/api/webapp/teacher/config/bg', { bg_url }),
 
   // Stats
   getStats: () => request<Stats>('GET', '/api/webapp/stats'),
