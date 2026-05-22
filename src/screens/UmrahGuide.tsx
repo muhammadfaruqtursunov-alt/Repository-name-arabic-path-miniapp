@@ -110,7 +110,7 @@ export default function UmrahGuide({ lang, onBack }: Props) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {question.choices.map((ch, i) => (
                     <button key={i} className="btn btn-ghost"
-                      style={{ height: 'auto', padding: '14px', textAlign: 'left', justifyContent: 'flex-start' }}
+                      style={{ height: 'auto', padding: '14px', textAlign: 'left', justifyContent: 'flex-start', color: '#FFFFFF', fontWeight: 600 }}
                       disabled={!!feedback || loading}
                       onClick={() => handleVisualAnswer(ch.ref)}>
                       {ch.label}

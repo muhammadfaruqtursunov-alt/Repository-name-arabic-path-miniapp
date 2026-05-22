@@ -171,12 +171,12 @@ export default function Tests({ lang, bookId, lesson, onBack }: Props) {
                 {question.trans}
               </div>
               {mode === 'visual' && (
-                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 12 }}>
+                <p style={{ color: '#FFFFFF', fontSize: 13, marginTop: 12, opacity: 0.85 }}>
                   {t(lang, 'visual_question')}
                 </p>
               )}
               {mode === 'written' && (
-                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 12 }}>
+                <p style={{ color: '#FFFFFF', fontSize: 13, marginTop: 12, opacity: 0.85 }}>
                   {t(lang, 'written_question')}
                 </p>
               )}
@@ -215,7 +215,11 @@ export default function Tests({ lang, bookId, lesson, onBack }: Props) {
                   <button
                     key={i}
                     className="btn btn-ghost"
-                    style={{ height: 'auto', padding: '14px 20px', textAlign: 'left', justifyContent: 'flex-start' }}
+                    style={{
+                      height: 'auto', padding: '14px 20px',
+                      textAlign: 'left', justifyContent: 'flex-start',
+                      color: '#FFFFFF', fontSize: 15, fontWeight: 600,
+                    }}
                     disabled={!!feedback || loading}
                     onClick={() => handleVisualAnswer(ch.word_id)}
                   >
