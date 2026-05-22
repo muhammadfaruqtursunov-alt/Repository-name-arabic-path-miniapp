@@ -167,7 +167,7 @@ export default function Tests({ lang, bookId, lesson, onBack }: Props) {
             {/* Arabic word */}
             <div className="glass-card" style={{ textAlign: 'center', marginBottom: 24, padding: '28px 20px' }}>
               <div className="text-arabic-lg">{question.ar}</div>
-              <div className="text-trans" style={{ marginTop: 10, fontStyle: 'italic', color: 'var(--text-main)' }}>
+              <div className="text-trans" style={{ marginTop: 10 }}>
                 {question.trans}
               </div>
               {mode === 'visual' && (

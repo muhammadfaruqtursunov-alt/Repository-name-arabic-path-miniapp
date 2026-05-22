@@ -3,7 +3,6 @@ import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import type { UserProfile, VolumeInfo } from '../api/client';
 import ProgressBar from '../components/ProgressBar';
-import LanguageSwitcher from '../components/LanguageSwitcher';
 
 interface Props {
   lang: Lang;
@@ -26,7 +25,7 @@ function getLevel(totalLearned: number, lang: Lang): string {
 }
 
 export default function Dashboard({
-  lang, onLangChange, user, volumes, onOpenVolume,
+  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume,
   onOpenGuide, onOpenTests, onOpenAskTeacher, onOpenSettings,
 }: Props) {
   const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
@@ -42,11 +41,6 @@ export default function Dashboard({
           background: 'linear-gradient(180deg, rgba(13,31,26,0.9) 0%, transparent 100%)',
         }}
       >
-        {/* Language switcher */}
-        <div style={{ marginBottom: 16 }}>
-          <LanguageSwitcher current={lang} onChange={onLangChange} />
-        </div>
-
         {/* User row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

@@ -20,6 +20,14 @@
   --font-arabic-size: 22px;
   --font-trans-size:  15px;
 
+  /* Text colors — adjustable from Settings */
+  --arabic-color:      #FFFFFF;
+  --trans-color:       #C8D8D2;
+  --translation-color: #FFFFFF;
+  --arabic-weight:     400;
+  --arabic-style:      normal;
+  --trans-style:       italic;
+
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
   color: var(--text-main);
@@ -80,6 +88,9 @@ body {
 .text-arabic   {
   font-family: 'Noto Naskh Arabic', serif;
   font-size: var(--font-arabic-size);
+  color: var(--arabic-color);
+  font-weight: var(--arabic-weight);
+  font-style: var(--arabic-style);
   direction: rtl;
   unicode-bidi: bidi-override;
   line-height: 1.5;
@@ -87,12 +98,22 @@ body {
 .text-arabic-lg {
   font-family: 'Noto Naskh Arabic', serif;
   font-size: calc(var(--font-arabic-size) + 6px);
-  font-weight: 700;
+  color: var(--arabic-color);
+  font-weight: var(--arabic-weight);
+  font-style: var(--arabic-style);
   direction: rtl;
   unicode-bidi: bidi-override;
   line-height: 1.4;
 }
-.text-trans { font-size: var(--font-trans-size); }
+.text-trans {
+  font-size: var(--font-trans-size);
+  color: var(--trans-color);
+  font-style: var(--trans-style);
+}
+.text-translation {
+  font-size: 13px;
+  color: var(--translation-color);
+}
 .text-muted  { color: var(--text-muted); }
 .text-teal   { color: var(--accent-teal); }
 .text-gold   { color: var(--accent-gold); }
@@ -387,4 +408,49 @@ input[type=range]::-webkit-slider-thumb {
   background: linear-gradient(135deg, #35E5AC, #1AA882);
   box-shadow: 0 2px 8px rgba(45,212,160,0.4);
   cursor: pointer;
+}
+
+/* ─── Glass silver toggle (dark mode switch) ─────────────────── */
+.toggle-glass {
+  width: 52px;
+  height: 28px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #252535, #18181f);
+  border: 1.5px solid rgba(180, 180, 210, 0.22);
+  box-shadow:
+    0 3px 10px rgba(0,0,0,0.55),
+    0 1px 0 rgba(255,255,255,0.07) inset,
+    0 -1px 0 rgba(0,0,0,0.45) inset;
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 200ms, border-color 200ms, box-shadow 200ms;
+}
+.toggle-glass.on {
+  background: linear-gradient(145deg, #2e2e44, #1e1e2c);
+  border-color: rgba(200, 200, 240, 0.4);
+  box-shadow:
+    0 3px 14px rgba(80, 80, 160, 0.35),
+    0 1px 0 rgba(255,255,255,0.1) inset;
+}
+.toggle-glass__dot {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #9090b0, #5a5a78);
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.55),
+    0 1px 0 rgba(255,255,255,0.25) inset;
+  transition: left 200ms ease, background 200ms;
+}
+.toggle-glass.on .toggle-glass__dot {
+  left: 27px;
+  background: linear-gradient(135deg, #d4d4f0, #a8a8cc);
+  box-shadow:
+    0 2px 8px rgba(100,100,200,0.5),
+    0 1px 0 rgba(255,255,255,0.35) inset;
 }

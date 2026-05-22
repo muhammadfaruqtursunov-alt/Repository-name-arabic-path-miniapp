@@ -95,7 +95,7 @@ export default function UmrahGuide({ lang, onBack }: Props) {
             <>
               <div className="glass-card" style={{ textAlign: 'center', marginBottom: 20, padding: '28px 20px' }}>
                 <div className="text-arabic-lg">{question.ar}</div>
-                <div className="text-trans" style={{ marginTop: 10, fontStyle: 'italic', color: 'var(--text-main)' }}>{question.trans}</div>
+                <div className="text-trans" style={{ marginTop: 10 }}>{question.trans}</div>
               </div>
               {feedback && (
                 <div className={`glass-card ${feedback.correct ? 'flash-correct' : 'flash-wrong'}`}
@@ -149,13 +149,13 @@ export default function UmrahGuide({ lang, onBack }: Props) {
           {current.phrases.map((ph, i) => (
             <div key={i} style={{ marginBottom: 14 }}>
               <div className="glass-card">
-                <div className="text-arabic" style={{ fontSize: 20, marginBottom: 6, color: 'var(--text-main)' }}>
+                <div className="text-arabic" style={{ fontSize: 20, marginBottom: 6 }}>
                   {ph.ar}
                 </div>
-                <div style={{ color: 'var(--accent-teal)', fontSize: 13, fontStyle: 'italic', marginBottom: 4 }}>
+                <div className="text-trans" style={{ marginBottom: 4 }}>
                   {ph.trans}
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--text-main)' }}>{ph.translation}</div>
+                <div className="text-translation">{ph.translation}</div>
               </div>
             </div>
           ))}

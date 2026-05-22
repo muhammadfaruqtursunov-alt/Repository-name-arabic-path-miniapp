@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Globe2, Bell, Moon, ChevronRight, Type, ImageIcon, Camera, Trash2 } from 'lucide-react';
+import { Globe2, Bell, Moon, Type, ImageIcon, Camera, Trash2 } from 'lucide-react';
 import { t, LANGS } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
@@ -17,30 +17,91 @@ function getCssVar(name: string, fallback: number): number {
     const val = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     const n = parseInt(val);
     return isNaN(n) ? fallback : n;
-  } catch {
-    return fallback;
-  }
+  } catch { return fallback; }
 }
 function setCssVar(name: string, value: string) {
   document.documentElement.style.setProperty(name, value);
 }
 
+// ── Color presets ─────────────────────────────────────────────────
+const COLOR_PRESETS = [
+  { id: 'white',  label: 'Белый',      hex: '#FFFFFF' },
+  { id: 'yellow', label: 'Жёлтый',     hex: '#FFD700' },
+  { id: 'red',    label: 'Красный',    hex: '#E05555' },
+  { id: 'black',  label: 'Чёрный',     hex: '#111118' },
+  { id: 'green',  label: 'Св.зелёный', hex: '#7AAF8A' },
+];
+
+// ── Color swatches sub-component ──────────────────────────────────
+function ColorSwatches({ current, onChange }: { current: string; onChange: (hex: string) => void }) {
+  return (
+    <div style={{ display: 'flex', gap: 8 }}>
+      {COLOR_PRESETS.map(c => (
+        <button
+          key={c.id}
+          onClick={() => onChange(c.hex)}
+          title={c.label}
+          style={{
+            width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+            background: c.hex,
+            border: current.toUpperCase() === c.hex.toUpperCase()
+              ? '2.5px solid var(--accent-teal)'
+              : '2px solid rgba(255,255,255,0.18)',
+            cursor: 'pointer',
+            boxShadow: current.toUpperCase() === c.hex.toUpperCase()
+              ? '0 0 8px rgba(45,212,160,0.7)'
+              : '0 1px 4px rgba(0,0,0,0.5)',
+            transform: current.toUpperCase() === c.hex.toUpperCase() ? 'scale(1.18)' : 'scale(1)',
+            transition: 'all 150ms',
+            outline: c.hex === '#111118' ? '1px solid rgba(255,255,255,0.15)' : 'none',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function Settings({ lang, onLangChange, onBgChange }: Props) {
+  // ── Font sizes ───────────────────────────────────────────────────
   const [arabicSize, setArabicSize] = useState<number>(() => {
-    const stored = localStorage.getItem('ap_arabic_size');
-    return stored ? parseInt(stored) : getCssVar('--font-arabic-size', 22);
+    const s = localStorage.getItem('ap_arabic_size');
+    return s ? parseInt(s) : getCssVar('--font-arabic-size', 22);
   });
   const [transSize, setTransSize] = useState<number>(() => {
-    const stored = localStorage.getItem('ap_trans_size');
-    return stored ? parseInt(stored) : getCssVar('--font-trans-size', 15);
+    const s = localStorage.getItem('ap_trans_size');
+    return s ? parseInt(s) : getCssVar('--font-trans-size', 15);
   });
-  const [activeBg, setActiveBg] = useState<string>(() =>
-    localStorage.getItem('ap_bg_url') ?? ''
+
+  // ── Text colors ──────────────────────────────────────────────────
+  const [arabicColor, setArabicColor] = useState<string>(
+    () => localStorage.getItem('ap_arabic_color') ?? '#FFFFFF'
+  );
+  const [transColor, setTransColor] = useState<string>(
+    () => localStorage.getItem('ap_trans_color') ?? '#C8D8D2'
+  );
+  const [translationColor, setTranslationColor] = useState<string>(
+    () => localStorage.getItem('ap_translation_color') ?? '#FFFFFF'
+  );
+
+  // ── Text style toggles ───────────────────────────────────────────
+  const [arabicBold, setArabicBold] = useState<boolean>(
+    () => localStorage.getItem('ap_arabic_weight') === '700'
+  );
+  const [arabicItalic, setArabicItalic] = useState<boolean>(
+    () => localStorage.getItem('ap_arabic_style') === 'italic'
+  );
+  const [transItalic, setTransItalic] = useState<boolean>(
+    () => (localStorage.getItem('ap_trans_style') ?? 'italic') === 'italic'
+  );
+
+  // ── Background ───────────────────────────────────────────────────
+  const [activeBg, setActiveBg] = useState<string>(
+    () => localStorage.getItem('ap_bg_url') ?? ''
   );
   const [bgLoading, setBgLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Apply font size changes live
+  // ── Apply CSS vars live ──────────────────────────────────────────
   useEffect(() => {
     setCssVar('--font-arabic-size', `${arabicSize}px`);
     localStorage.setItem('ap_arabic_size', String(arabicSize));
@@ -51,6 +112,40 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     localStorage.setItem('ap_trans_size', String(transSize));
   }, [transSize]);
 
+  useEffect(() => {
+    setCssVar('--arabic-color', arabicColor);
+    localStorage.setItem('ap_arabic_color', arabicColor);
+  }, [arabicColor]);
+
+  useEffect(() => {
+    setCssVar('--trans-color', transColor);
+    localStorage.setItem('ap_trans_color', transColor);
+  }, [transColor]);
+
+  useEffect(() => {
+    setCssVar('--translation-color', translationColor);
+    localStorage.setItem('ap_translation_color', translationColor);
+  }, [translationColor]);
+
+  useEffect(() => {
+    const w = arabicBold ? '700' : '400';
+    setCssVar('--arabic-weight', w);
+    localStorage.setItem('ap_arabic_weight', w);
+  }, [arabicBold]);
+
+  useEffect(() => {
+    const s = arabicItalic ? 'italic' : 'normal';
+    setCssVar('--arabic-style', s);
+    localStorage.setItem('ap_arabic_style', s);
+  }, [arabicItalic]);
+
+  useEffect(() => {
+    const s = transItalic ? 'italic' : 'normal';
+    setCssVar('--trans-style', s);
+    localStorage.setItem('ap_trans_style', s);
+  }, [transItalic]);
+
+  // ── Handlers ─────────────────────────────────────────────────────
   async function handleLangChange(newLang: Lang) {
     onLangChange(newLang);
     try { await api.setLang(newLang); } catch {}
@@ -68,7 +163,6 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
       alert('Не удалось загрузить фото');
     } finally {
       setBgLoading(false);
-      // reset input so same file can be picked again
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   }
@@ -78,11 +172,12 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     if (onBgChange) onBgChange('');
   }
 
+  // ── Render ────────────────────────────────────────────────────────
   return (
     <div className="screen-enter page-content" style={{ paddingTop: 24 }}>
       <h1 className="title-screen" style={{ marginBottom: 24 }}>{t(lang, 'settings_title')}</h1>
 
-      {/* ── Language ─────────────────────────────────────────── */}
+      {/* ── Language ──────────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <Globe2 size={18} color="var(--accent-teal)" />
@@ -102,15 +197,15 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         </div>
       </div>
 
-      {/* ── Font sizes ───────────────────────────────────────── */}
+      {/* ── Font sizes + Colors + Style ───────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <Type size={18} color="var(--accent-teal)" />
-          <span className="title-card">Размер шрифта</span>
+          <span className="title-card">Шрифт и цвета</span>
         </div>
 
-        {/* Arabic size */}
-        <div style={{ marginBottom: 16 }}>
+        {/* ── Arabic text ── */}
+        <div style={{ marginBottom: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Арабский текст</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-teal)' }}>{arabicSize}px</span>
@@ -120,20 +215,51 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
             value={arabicSize}
             onChange={e => setArabicSize(Number(e.target.value))}
           />
+          {/* Live preview */}
           <div
             className="text-arabic"
-            style={{ marginTop: 8, textAlign: 'center', color: 'var(--accent-gold)', fontSize: `${arabicSize}px` }}
+            style={{ marginTop: 10, textAlign: 'center', fontSize: `${arabicSize}px`,
+              color: arabicColor,
+              fontWeight: arabicBold ? 700 : 400,
+              fontStyle: arabicItalic ? 'italic' : 'normal',
+            }}
           >
             بِسْمِ اللَّهِ
           </div>
         </div>
 
-        <div style={{ height: 1, background: 'var(--border)', margin: '4px 0 16px' }} />
+        {/* Arabic color */}
+        <div style={{ marginBottom: 10 }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+            Цвет арабского текста
+          </span>
+          <ColorSwatches current={arabicColor} onChange={setArabicColor} />
+        </div>
 
-        {/* Translation size */}
-        <div>
+        {/* Arabic bold / italic */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <button
+            className={arabicBold ? 'btn btn-primary' : 'btn btn-ghost'}
+            style={{ height: 36, fontSize: 14, fontWeight: 900 }}
+            onClick={() => setArabicBold(!arabicBold)}
+          >
+            Ж Жирный
+          </button>
+          <button
+            className={arabicItalic ? 'btn btn-primary' : 'btn btn-ghost'}
+            style={{ height: 36, fontSize: 14, fontStyle: 'italic' }}
+            onClick={() => setArabicItalic(!arabicItalic)}
+          >
+            К Курсив
+          </button>
+        </div>
+
+        <div style={{ height: 1, background: 'var(--border)', margin: '0 0 16px' }} />
+
+        {/* ── Transcription ── */}
+        <div style={{ marginBottom: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Перевод / транскрипция</span>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Транскрипция</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-teal)' }}>{transSize}px</span>
           </div>
           <input
@@ -141,15 +267,57 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
             value={transSize}
             onChange={e => setTransSize(Number(e.target.value))}
           />
-          <div
-            style={{ marginTop: 8, textAlign: 'center', color: 'var(--text-muted)', fontSize: `${transSize}px` }}
-          >
+          <div style={{
+            marginTop: 10, textAlign: 'center',
+            fontSize: `${transSize}px`,
+            color: transColor,
+            fontStyle: transItalic ? 'italic' : 'normal',
+          }}>
             Bismillāhi r-raḥmāni r-raḥīm
+          </div>
+        </div>
+
+        {/* Trans color */}
+        <div style={{ marginBottom: 10 }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+            Цвет транскрипции
+          </span>
+          <ColorSwatches current={transColor} onChange={setTransColor} />
+        </div>
+
+        {/* Trans italic toggle */}
+        <div style={{ marginBottom: 16 }}>
+          <button
+            className={transItalic ? 'btn btn-primary' : 'btn btn-ghost'}
+            style={{ height: 36, fontSize: 14, fontStyle: 'italic', width: 'auto', padding: '0 20px' }}
+            onClick={() => setTransItalic(!transItalic)}
+          >
+            К Курсив
+          </button>
+        </div>
+
+        <div style={{ height: 1, background: 'var(--border)', margin: '0 0 16px' }} />
+
+        {/* ── Translation ── */}
+        <div>
+          <span style={{ fontSize: 13, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+            Перевод
+          </span>
+          {/* color swatches */}
+          <div style={{ marginBottom: 10 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+              Цвет перевода
+            </span>
+            <ColorSwatches current={translationColor} onChange={setTranslationColor} />
+          </div>
+          {/* preview */}
+          <div style={{ fontSize: 13, color: translationColor, textAlign: 'center', marginTop: 6 }}>
+            Во имя Аллаха, Милостивого, Милосердного
           </div>
         </div>
       </div>
 
-      {/* ── Background photo ─────────────────────────────────── */}
+      {/* ── Background photo ──────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <ImageIcon size={18} color="var(--accent-teal)" />
@@ -164,12 +332,10 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           Фон виден только вам на вашем устройстве
         </p>
 
-        {/* Current background preview */}
         {activeBg ? (
           <div style={{
             width: '100%', height: 120, borderRadius: 14,
-            backgroundImage: `url(${activeBg})`,
-            backgroundSize: 'cover', backgroundPosition: 'center',
+            backgroundImage: `url(${activeBg})`, backgroundSize: 'cover', backgroundPosition: 'center',
             marginBottom: 12, position: 'relative',
             border: '1.5px solid rgba(45,212,160,0.3)',
           }}>
@@ -195,7 +361,6 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           </div>
         )}
 
-        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -226,27 +391,32 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         </div>
       </div>
 
-      {/* ── Other settings ───────────────────────────────────── */}
+      {/* ── Other settings ────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
-        {[
-          { icon: <Bell size={18} />, label: t(lang, 'setting_notif'), right: '—' },
-          { icon: <Moon size={18} />, label: t(lang, 'setting_theme'), right: '✓ Dark' },
-        ].map((row, i) => (
-          <div key={i}>
-            {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '10px 0' }} />}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ color: 'var(--text-muted)' }}>{row.icon}</span>
-              <span style={{ flex: 1, fontSize: 14 }}>{row.label}</span>
-              <span className="text-muted" style={{ fontSize: 13 }}>{row.right}</span>
-              <ChevronRight size={16} color="var(--text-muted)" />
-            </div>
-          </div>
-        ))}
+        {/* Notifications */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Bell size={18} color="var(--text-muted)" />
+          <span style={{ flex: 1, fontSize: 14 }}>{t(lang, 'setting_notif')}</span>
+          <span className="text-muted" style={{ fontSize: 13 }}>—</span>
+        </div>
+
+        <div style={{ height: 1, background: 'var(--border)', margin: '12px 0' }} />
+
+        {/* Dark mode — glass silver toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Moon size={18} color="var(--text-muted)" />
+          <span style={{ flex: 1, fontSize: 14 }}>{t(lang, 'setting_theme')}</span>
+          <button
+            className="toggle-glass on"
+            aria-label="Dark mode"
+            onClick={() => {/* app is always dark */}}
+          >
+            <div className="toggle-glass__dot" />
+          </button>
+        </div>
       </div>
 
-      <button className="btn btn-ghost">
-        {t(lang, 'support')}
-      </button>
+      <button className="btn btn-ghost">{t(lang, 'support')}</button>
     </div>
   );
 }

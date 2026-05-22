@@ -54,12 +54,20 @@ export default function App() {
   const [onboardingLang, setOnboardingLang] = useState<Lang>('ru');
   const [initError, setInitError] = useState<string | null>(null);
 
-  // Restore font sizes + background from localStorage on mount
+  // Restore font sizes, colors + background from localStorage on mount
   useEffect(() => {
-    const arabicSize = localStorage.getItem('ap_arabic_size');
-    const transSize  = localStorage.getItem('ap_trans_size');
-    if (arabicSize) document.documentElement.style.setProperty('--font-arabic-size', `${arabicSize}px`);
-    if (transSize)  document.documentElement.style.setProperty('--font-trans-size',  `${transSize}px`);
+    const set = (key: string, cssProp: string, suffix = '') => {
+      const v = localStorage.getItem(key);
+      if (v) document.documentElement.style.setProperty(cssProp, `${v}${suffix}`);
+    };
+    set('ap_arabic_size',      '--font-arabic-size', 'px');
+    set('ap_trans_size',       '--font-trans-size',  'px');
+    set('ap_arabic_color',     '--arabic-color');
+    set('ap_trans_color',      '--trans-color');
+    set('ap_translation_color','--translation-color');
+    set('ap_arabic_weight',    '--arabic-weight');
+    set('ap_arabic_style',     '--arabic-style');
+    set('ap_trans_style',      '--trans-style');
     const localBg = localStorage.getItem(BG_STORAGE_KEY);
     if (localBg) applyBackground(localBg);
   }, []);
@@ -126,7 +134,7 @@ export default function App() {
   }
 
   async function handleCreateUser(name: string): Promise<string | null> {
-    const initData = window.Telegram?.WebApp?.initData ?? '';
+    const initData = await waitForInitData();
     if (!initData) {
       return 'Откройте приложение через кнопку в Telegram боте';
     }
