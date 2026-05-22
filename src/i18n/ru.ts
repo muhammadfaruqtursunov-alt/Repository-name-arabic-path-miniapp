@@ -139,6 +139,7 @@ export const ru = {
   font_arabic_lbl: 'Арабский текст',
   font_trans_lbl: 'Транскрипция',
   font_translate_lbl: 'Перевод',
+  font_color_lbl: 'Цвет текста',
   style_bold: 'Жирный',
   style_italic: 'Курсив',
 

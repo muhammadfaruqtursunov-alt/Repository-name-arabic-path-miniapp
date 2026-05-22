@@ -6,7 +6,6 @@ import { api } from '../api/client';
 import type { Stats } from '../api/client';
 import type { UserProfile } from '../api/client';
 import { formatAppTime } from '../utils/formatTime';
-import LanguageSwitcher from '../components/LanguageSwitcher';
 
 interface Props {
   lang: Lang;
@@ -21,7 +20,7 @@ function getLevel(totalLearned: number, lang: Lang): string {
   return t(lang, 'level_advanced');
 }
 
-export default function Profile({ lang, user, onLangChange, onResetProgress }: Props) {
+export default function Profile({ lang, user, onLangChange: _onLangChange, onResetProgress }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
@@ -66,14 +65,6 @@ export default function Profile({ lang, user, onLangChange, onResetProgress }: P
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Language change — compact globe button */}
-      <div className="glass-card" style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p className="title-card">{t(lang, 'lang_label')}</p>
-          <LanguageSwitcher current={lang} onChange={onLangChange} />
-        </div>
       </div>
 
       {/* Reset progress */}

@@ -122,6 +122,7 @@ export const ar = {
   font_arabic_lbl: 'النص العربي',
   font_trans_lbl: 'النسخ الصوتي',
   font_translate_lbl: 'الترجمة',
+  font_color_lbl: 'لون النص',
   style_bold: 'غامق',
   style_italic: 'مائل',
 

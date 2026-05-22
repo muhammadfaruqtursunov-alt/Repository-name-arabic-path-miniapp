@@ -122,6 +122,7 @@ export const tj = {
   font_arabic_lbl: 'Матни арабӣ',
   font_trans_lbl: 'Транскрипция',
   font_translate_lbl: 'Тарҷума',
+  font_color_lbl: 'Ранги матн',
   style_bold: 'Ғафс',
   style_italic: 'Курсив',
 

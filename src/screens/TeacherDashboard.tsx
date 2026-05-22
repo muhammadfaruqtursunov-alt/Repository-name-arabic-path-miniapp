@@ -3,7 +3,7 @@ import { useSwipe } from '../hooks/useSwipe';
 import {
   MessageCircleQuestion, Megaphone, Mail, ImageIcon,
   Send, Users, CheckCircle2, Camera, Trash2,
-  ChevronDown, ChevronUp, History, RefreshCw, RotateCcw,
+  ChevronDown, ChevronUp, History, RefreshCw, RotateCcw, BarChart2,
 } from 'lucide-react';
 import { formatAppTime } from '../utils/formatTime';
 import { api } from '../api/client';
@@ -18,7 +18,7 @@ interface Props {
   onBgChange: (url: string) => void;
 }
 
-type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | null;
+type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | 'stats' | null;
 type TeacherTab = 'dashboard' | 'settings';
 const TAB_ORDER: TeacherTab[] = ['dashboard', 'settings'];
 
@@ -119,6 +119,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     setPanel(p);
     if (p === 'questions') loadQuestions();
     if (p === 'message' && stats?.students?.length) setMsgStudentId(stats.students[0].user_id);
+    if (p === 'stats') loadAllStudents();
   }
 
   // ── Question loaders ───────────────────────────────────────────
@@ -298,7 +299,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           ))}
         </div>
 
-        {/* ── Action buttons 2×2 ────────────────────────────────── */}
+        {/* ── Action buttons 2×2 + 1 full-width ───────────────── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
           <ActionBtn
             icon={<MessageCircleQuestion size={20} />}
@@ -329,6 +330,17 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
             onClick={() => togglePanel('bg')}
             color="var(--accent-sage)"
           />
+          {/* Full-width stats button */}
+          <div style={{ gridColumn: 'span 2' }}>
+            <ActionBtn
+              icon={<BarChart2 size={20} />}
+              label="📊 Статистика учеников"
+              active={panel === 'stats'}
+              onClick={() => togglePanel('stats')}
+              color="var(--accent-gold)"
+              wide
+            />
+          </div>
         </div>
 
         {/* ── Questions panel ───────────────────────────────────── */}
@@ -530,11 +542,75 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           </div>
         )}
 
-        {/* ── Students list ─────────────────────────────────────── */}
+        {/* ── Stats panel ───────────────────────────────────────── */}
+        {panel === 'stats' && (
+          <div className="glass-card" style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <BarChart2 size={16} color="var(--accent-gold)" />
+              <p className="title-card" style={{ flex: 1, margin: 0 }}>📊 Статистика учеников</p>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                {allStudents.length > 0 ? `${allStudents.length} чел.` : ''}
+              </span>
+            </div>
+
+            {!allStudentsLoaded ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Загрузка...</p>
+            ) : allStudents.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Нет учеников</p>
+            ) : (
+              allStudents.map((s, i) => {
+                const lvl = s.learned < 70
+                  ? { emoji: '🟢', label: 'Начинающий' }
+                  : s.learned < 200
+                  ? { emoji: '🟡', label: 'Средний' }
+                  : { emoji: '🔴', label: 'Продвинутый' };
+                const bookEmoji = s.current_book === 1 ? '📗' : s.current_book === 2 ? '📘' : '📕';
+                return (
+                  <div key={s.user_id}>
+                    {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '10px 0' }} />}
+                    {/* Row 1: rank + name + level badge */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+                      <span style={{ fontSize: 17, minWidth: 26, textAlign: 'center', flexShrink: 0 }}>
+                        {rankMedal(i)}
+                      </span>
+                      <span style={{ flex: 1, fontWeight: 600, fontSize: 14, color: 'var(--text-main)' }}>
+                        {s.name}
+                      </span>
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                        background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {lvl.emoji} {lvl.label}
+                      </span>
+                    </div>
+                    {/* Row 2: stats chips */}
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingLeft: 34 }}>
+                      <span style={{
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        fontSize: 12, fontWeight: 700, color: 'var(--accent-gold)',
+                      }}>
+                        📚 {s.learned} сл.
+                      </span>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                        {bookEmoji} Книга {s.current_book}, Ур. {s.current_lesson}
+                      </span>
+                      <span style={{ fontSize: 12, color: 'var(--accent-teal)' }}>
+                        ⏱ {formatAppTime(s.total_app_time ?? 0)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* ── Students list (management only) ───────────────────── */}
         <div className="glass-card" style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Users size={16} color="var(--accent-gold)" />
-            <p className="title-card" style={{ flex: 1, margin: 0 }}>🏆 Топ учеников</p>
+            <p className="title-card" style={{ flex: 1, margin: 0 }}>🏆 Управление учениками</p>
             <button
               onClick={() => showAllStudents ? setShowAllStudents(false) : loadAllStudents()}
               style={{
@@ -575,11 +651,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                     </span>
                     <span style={{ flex: 1, fontWeight: 500, fontSize: 13, color: isDone ? 'var(--text-muted)' : 'var(--text-main)' }}>
                       {s.name}
-                      {isDone && <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 6 }}>сброшен</span>}
-                    </span>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>К{s.current_book}·У{s.current_lesson}</span>
-                    <span style={{ fontSize: 12, color: 'var(--accent-gold)', fontWeight: 700, minWidth: 36, textAlign: 'right' }}>
-                      {s.learned} сл
+                      {isDone && <span style={{ fontSize: 10, color: 'var(--danger)', marginLeft: 6 }}>✓ сброшен</span>}
                     </span>
                     <span style={{ fontSize: 11, color: isExpanded ? 'var(--accent-teal)' : 'var(--text-muted)', marginLeft: 2 }}>
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -592,19 +664,6 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                       marginTop: 8, padding: '12px', background: 'rgba(45,212,160,0.06)',
                       borderRadius: 12, border: '1px solid rgba(45,212,160,0.15)',
                     }}>
-                      {/* Sub-stats */}
-                      <div style={{ display: 'flex', gap: 16, marginBottom: 10, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                          ⏱ {formatAppTime(s.total_app_time ?? 0)}
-                        </span>
-                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                          📖 Книга {s.current_book}, Урок {s.current_lesson}
-                        </span>
-                        <span style={{ fontSize: 11, color: 'var(--accent-gold)' }}>
-                          📚 {s.learned} слов
-                        </span>
-                      </div>
-
                       {/* Action buttons */}
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button
@@ -761,24 +820,29 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
 
 // ── Sub-components ─────────────────────────────────────────────────
 
-function ActionBtn({ icon, label, badge, active, onClick, color }: {
+function ActionBtn({ icon, label, badge, active, onClick, color, wide }: {
   icon: React.ReactNode; label: string; badge?: number;
-  active: boolean; onClick: () => void; color: string;
+  active: boolean; onClick: () => void; color: string; wide?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
       style={{
-        position: 'relative',
+        position: 'relative', width: '100%',
         background: active ? 'rgba(45,212,160,0.15)' : 'rgba(20,45,30,0.5)',
         border: `1.5px solid ${active ? 'rgba(45,212,160,0.5)' : 'rgba(45,212,160,0.2)'}`,
-        borderRadius: 16, padding: '14px 12px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+        borderRadius: 16,
+        padding: wide ? '12px 16px' : '14px 12px',
+        display: 'flex',
+        flexDirection: wide ? 'row' : 'column',
+        alignItems: 'center',
+        justifyContent: wide ? 'center' : undefined,
+        gap: wide ? 10 : 6,
         cursor: 'pointer', transition: 'all 150ms', color,
       }}
     >
       {icon}
-      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-main)', textAlign: 'center', lineHeight: 1.3 }}>
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)', textAlign: 'center', lineHeight: 1.3 }}>
         {label}
       </span>
       {badge != null && badge > 0 && (
@@ -792,9 +856,11 @@ function ActionBtn({ icon, label, badge, active, onClick, color }: {
           {badge}
         </span>
       )}
-      <span style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: -2 }}>
-        {active ? '▲' : '▾'}
-      </span>
+      {!wide && (
+        <span style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: -2 }}>
+          {active ? '▲' : '▾'}
+        </span>
+      )}
     </button>
   );
 }

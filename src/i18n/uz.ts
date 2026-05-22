@@ -139,6 +139,7 @@ export const uz = {
   font_arabic_lbl: 'Arab matni',
   font_trans_lbl: 'Transkripsiya',
   font_translate_lbl: 'Tarjima',
+  font_color_lbl: 'Matn rangi',
   style_bold: 'Qalin',
   style_italic: 'Kursiv',
 

@@ -122,6 +122,7 @@ export const en = {
   font_arabic_lbl: 'Arabic text',
   font_trans_lbl: 'Transcription',
   font_translate_lbl: 'Translation',
+  font_color_lbl: 'Text color',
   style_bold: 'Bold',
   style_italic: 'Italic',
 

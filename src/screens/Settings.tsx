@@ -26,11 +26,11 @@ function setCssVar(name: string, value: string) {
 
 // ── Color presets ─────────────────────────────────────────────────
 const COLOR_PRESETS = [
-  { id: 'white',  hex: '#FFFFFF' },
-  { id: 'yellow', hex: '#FFD700' },
-  { id: 'red',    hex: '#E05555' },
-  { id: 'black',  hex: '#111118' },
-  { id: 'green',  hex: '#7AAF8A' },
+  { id: 'white',   hex: '#FFFFFF' },
+  { id: 'yellow',  hex: '#FFD700' },
+  { id: 'teal',    hex: '#2DD4A0' },
+  { id: 'red',     hex: '#E05555' },
+  { id: 'muted',   hex: '#A0B8B0' },
 ];
 
 // ── Auto-detect user timezone ─────────────────────────────────────
@@ -388,7 +388,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         </div>
         <div style={{ marginBottom: 10 }}>
           <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
-            {t(lang, 'font_arabic_lbl')}
+            🎨 {t(lang, 'font_color_lbl')}
           </span>
           <ColorSwatches current={arabicColor} onChange={setArabicColor} />
         </div>
@@ -423,7 +423,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         </div>
         <div style={{ marginBottom: 10 }}>
           <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
-            {t(lang, 'font_trans_lbl')}
+            🎨 {t(lang, 'font_color_lbl')}
           </span>
           <ColorSwatches current={transColor} onChange={setTransColor} />
         </div>
@@ -454,7 +454,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           </div>
           <div style={{ marginTop: 10 }}>
             <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
-              {t(lang, 'font_translate_lbl')}
+              🎨 {t(lang, 'font_color_lbl')}
             </span>
             <ColorSwatches current={translationColor} onChange={setTranslationColor} />
           </div>
