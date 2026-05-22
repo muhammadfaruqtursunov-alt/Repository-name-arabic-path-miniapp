@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Globe2, Bell, Moon, Type, ImageIcon, Camera, Trash2 } from 'lucide-react';
+import { Globe2, Bell, Moon, Type, ImageIcon, Camera, Trash2, Clock } from 'lucide-react';
 import { t, LANGS } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
@@ -32,7 +32,20 @@ const COLOR_PRESETS = [
   { id: 'green',  label: 'Св.зелёный', hex: '#7AAF8A' },
 ];
 
-// ── Color swatches sub-component ──────────────────────────────────
+// ── World clock data ──────────────────────────────────────────────
+const CLOCKS = [
+  { name: 'Каир',       flag: '🇪🇬', tz: 'Africa/Cairo',       utc: '+2/+3' },
+  { name: 'Уфа',        flag: '🇷🇺', tz: 'Asia/Yekaterinburg',  utc: '+5'   },
+  { name: 'Дагестан',   flag: '🇷🇺', tz: 'Europe/Moscow',       utc: '+3'   },
+  { name: 'Чечня',      flag: '🇷🇺', tz: 'Europe/Moscow',       utc: '+3'   },
+  { name: 'Ингушетия',  flag: '🇷🇺', tz: 'Europe/Moscow',       utc: '+3'   },
+  { name: 'Астана',     flag: '🇰🇿', tz: 'Asia/Almaty',         utc: '+5'   },
+  { name: 'Алматы',     flag: '🇰🇿', tz: 'Asia/Almaty',         utc: '+5'   },
+  { name: 'ОАЭ',        flag: '🇦🇪', tz: 'Asia/Dubai',          utc: '+4'   },
+  { name: 'США',        flag: '🇺🇸', tz: 'America/New_York',    utc: 'NY'   },
+];
+
+// ── Color swatches ────────────────────────────────────────────────
 function ColorSwatches({ current, onChange }: { current: string; onChange: (hex: string) => void }) {
   return (
     <div style={{ display: 'flex', gap: 8 }}>
@@ -61,8 +74,46 @@ function ColorSwatches({ current, onChange }: { current: string; onChange: (hex:
   );
 }
 
+// ── World clocks widget ───────────────────────────────────────────
+function WorldClocks() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  function fmt(tz: string) {
+    try {
+      return now.toLocaleTimeString('ru-RU', {
+        timeZone: tz,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      });
+    } catch {
+      return '--:--:--';
+    }
+  }
+
+  return (
+    <div className="clock-grid">
+      {CLOCKS.map(c => (
+        <div key={c.name} className="clock-card">
+          <span className="clock-card__flag">{c.flag}</span>
+          <span className="clock-card__name">{c.name}</span>
+          <span className="clock-card__time">{fmt(c.tz)}</span>
+          <span className="clock-card__tz">UTC{c.utc}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Main Settings component ───────────────────────────────────────
 export default function Settings({ lang, onLangChange, onBgChange }: Props) {
-  // ── Font sizes ───────────────────────────────────────────────────
+
+  // Font sizes
   const [arabicSize, setArabicSize] = useState<number>(() => {
     const s = localStorage.getItem('ap_arabic_size');
     return s ? parseInt(s) : getCssVar('--font-arabic-size', 22);
@@ -71,8 +122,12 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     const s = localStorage.getItem('ap_trans_size');
     return s ? parseInt(s) : getCssVar('--font-trans-size', 15);
   });
+  const [translationSize, setTranslationSize] = useState<number>(() => {
+    const s = localStorage.getItem('ap_translation_size');
+    return s ? parseInt(s) : getCssVar('--translation-size', 13);
+  });
 
-  // ── Text colors ──────────────────────────────────────────────────
+  // Text colors
   const [arabicColor, setArabicColor] = useState<string>(
     () => localStorage.getItem('ap_arabic_color') ?? '#FFFFFF'
   );
@@ -83,7 +138,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     () => localStorage.getItem('ap_translation_color') ?? '#FFFFFF'
   );
 
-  // ── Text style toggles ───────────────────────────────────────────
+  // Text style toggles
   const [arabicBold, setArabicBold] = useState<boolean>(
     () => localStorage.getItem('ap_arabic_weight') === '700'
   );
@@ -94,14 +149,20 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     () => (localStorage.getItem('ap_trans_style') ?? 'italic') === 'italic'
   );
 
-  // ── Background ───────────────────────────────────────────────────
+  // Notifications
+  const [notifEnabled, setNotifEnabled] = useState<boolean>(
+    () => localStorage.getItem('ap_notif') === '1'
+  );
+  const [notifMsg, setNotifMsg] = useState<string>('');
+
+  // Background
   const [activeBg, setActiveBg] = useState<string>(
     () => localStorage.getItem('ap_bg_url') ?? ''
   );
   const [bgLoading, setBgLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Apply CSS vars live ──────────────────────────────────────────
+  // ── Live CSS var effects ──────────────────────────────────────
   useEffect(() => {
     setCssVar('--font-arabic-size', `${arabicSize}px`);
     localStorage.setItem('ap_arabic_size', String(arabicSize));
@@ -111,6 +172,11 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     setCssVar('--font-trans-size', `${transSize}px`);
     localStorage.setItem('ap_trans_size', String(transSize));
   }, [transSize]);
+
+  useEffect(() => {
+    setCssVar('--translation-size', `${translationSize}px`);
+    localStorage.setItem('ap_translation_size', String(translationSize));
+  }, [translationSize]);
 
   useEffect(() => {
     setCssVar('--arabic-color', arabicColor);
@@ -145,10 +211,37 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     localStorage.setItem('ap_trans_style', s);
   }, [transItalic]);
 
-  // ── Handlers ─────────────────────────────────────────────────────
+  // ── Handlers ─────────────────────────────────────────────────
   async function handleLangChange(newLang: Lang) {
     onLangChange(newLang);
     try { await api.setLang(newLang); } catch {}
+  }
+
+  function handleNotifToggle() {
+    if (notifEnabled) {
+      setNotifEnabled(false);
+      localStorage.setItem('ap_notif', '0');
+      setNotifMsg('');
+    } else {
+      const tg = window.Telegram?.WebApp;
+      if (tg?.requestWriteAccess) {
+        tg.requestWriteAccess((granted: boolean) => {
+          if (granted) {
+            setNotifEnabled(true);
+            localStorage.setItem('ap_notif', '1');
+            setNotifMsg('✅ Telegram разрешил уведомления');
+          } else {
+            setNotifMsg('❌ Telegram отклонил запрос');
+          }
+        });
+      } else {
+        // Telegram version doesn't support requestWriteAccess — enable anyway,
+        // the bot already has write access from user starting it
+        setNotifEnabled(true);
+        localStorage.setItem('ap_notif', '1');
+        setNotifMsg('✅ Уведомления включены');
+      }
+    }
   }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -172,7 +265,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     if (onBgChange) onBgChange('');
   }
 
-  // ── Render ────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────
   return (
     <div className="screen-enter page-content" style={{ paddingTop: 24 }}>
       <h1 className="title-screen" style={{ marginBottom: 24 }}>{t(lang, 'settings_title')}</h1>
@@ -197,122 +290,72 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         </div>
       </div>
 
-      {/* ── Font sizes + Colors + Style ───────────────────────── */}
+      {/* ── Font + Colors ─────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <Type size={18} color="var(--accent-teal)" />
           <span className="title-card">Шрифт и цвета</span>
         </div>
 
-        {/* ── Arabic text ── */}
+        {/* ─ Arabic ─ */}
         <div style={{ marginBottom: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Арабский текст</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-teal)' }}>{arabicSize}px</span>
           </div>
-          <input
-            type="range" min={16} max={36} step={1}
-            value={arabicSize}
-            onChange={e => setArabicSize(Number(e.target.value))}
-          />
-          {/* Live preview */}
-          <div
-            className="text-arabic"
-            style={{ marginTop: 10, textAlign: 'center', fontSize: `${arabicSize}px`,
-              color: arabicColor,
-              fontWeight: arabicBold ? 700 : 400,
-              fontStyle: arabicItalic ? 'italic' : 'normal',
-            }}
-          >
+          <input type="range" min={16} max={36} step={1} value={arabicSize} onChange={e => setArabicSize(Number(e.target.value))} />
+          <div className="text-arabic" style={{
+            marginTop: 10, textAlign: 'center', fontSize: `${arabicSize}px`,
+            color: arabicColor, fontWeight: arabicBold ? 700 : 400, fontStyle: arabicItalic ? 'italic' : 'normal',
+          }}>
             بِسْمِ اللَّهِ
           </div>
         </div>
-
-        {/* Arabic color */}
         <div style={{ marginBottom: 10 }}>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
-            Цвет арабского текста
-          </span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Цвет арабского текста</span>
           <ColorSwatches current={arabicColor} onChange={setArabicColor} />
         </div>
-
-        {/* Arabic bold / italic */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          <button
-            className={arabicBold ? 'btn btn-primary' : 'btn btn-ghost'}
-            style={{ height: 36, fontSize: 14, fontWeight: 900 }}
-            onClick={() => setArabicBold(!arabicBold)}
-          >
-            Ж Жирный
-          </button>
-          <button
-            className={arabicItalic ? 'btn btn-primary' : 'btn btn-ghost'}
-            style={{ height: 36, fontSize: 14, fontStyle: 'italic' }}
-            onClick={() => setArabicItalic(!arabicItalic)}
-          >
-            К Курсив
-          </button>
+          <button className={arabicBold ? 'btn btn-primary' : 'btn btn-ghost'} style={{ height: 36, fontWeight: 900 }} onClick={() => setArabicBold(!arabicBold)}>Ж Жирный</button>
+          <button className={arabicItalic ? 'btn btn-primary' : 'btn btn-ghost'} style={{ height: 36, fontStyle: 'italic' }} onClick={() => setArabicItalic(!arabicItalic)}>К Курсив</button>
         </div>
 
         <div style={{ height: 1, background: 'var(--border)', margin: '0 0 16px' }} />
 
-        {/* ── Transcription ── */}
+        {/* ─ Transcription ─ */}
         <div style={{ marginBottom: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Транскрипция</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-teal)' }}>{transSize}px</span>
           </div>
-          <input
-            type="range" min={11} max={22} step={1}
-            value={transSize}
-            onChange={e => setTransSize(Number(e.target.value))}
-          />
-          <div style={{
-            marginTop: 10, textAlign: 'center',
-            fontSize: `${transSize}px`,
-            color: transColor,
-            fontStyle: transItalic ? 'italic' : 'normal',
-          }}>
+          <input type="range" min={11} max={22} step={1} value={transSize} onChange={e => setTransSize(Number(e.target.value))} />
+          <div style={{ marginTop: 8, textAlign: 'center', fontSize: `${transSize}px`, color: transColor, fontStyle: transItalic ? 'italic' : 'normal' }}>
             Bismillāhi r-raḥmāni r-raḥīm
           </div>
         </div>
-
-        {/* Trans color */}
         <div style={{ marginBottom: 10 }}>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
-            Цвет транскрипции
-          </span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Цвет транскрипции</span>
           <ColorSwatches current={transColor} onChange={setTransColor} />
         </div>
-
-        {/* Trans italic toggle */}
         <div style={{ marginBottom: 16 }}>
-          <button
-            className={transItalic ? 'btn btn-primary' : 'btn btn-ghost'}
-            style={{ height: 36, fontSize: 14, fontStyle: 'italic', width: 'auto', padding: '0 20px' }}
-            onClick={() => setTransItalic(!transItalic)}
-          >
-            К Курсив
-          </button>
+          <button className={transItalic ? 'btn btn-primary' : 'btn btn-ghost'} style={{ height: 36, fontStyle: 'italic', width: 'auto', padding: '0 20px' }} onClick={() => setTransItalic(!transItalic)}>К Курсив</button>
         </div>
 
         <div style={{ height: 1, background: 'var(--border)', margin: '0 0 16px' }} />
 
-        {/* ── Translation ── */}
+        {/* ─ Translation ─ */}
         <div>
-          <span style={{ fontSize: 13, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
-            Перевод
-          </span>
-          {/* color swatches */}
-          <div style={{ marginBottom: 10 }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
-              Цвет перевода
-            </span>
-            <ColorSwatches current={translationColor} onChange={setTranslationColor} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Перевод</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-teal)' }}>{translationSize}px</span>
           </div>
-          {/* preview */}
-          <div style={{ fontSize: 13, color: translationColor, textAlign: 'center', marginTop: 6 }}>
+          <input type="range" min={11} max={20} step={1} value={translationSize} onChange={e => setTranslationSize(Number(e.target.value))} />
+          <div style={{ marginTop: 8, textAlign: 'center', fontSize: `${translationSize}px`, color: translationColor }}>
             Во имя Аллаха, Милостивого, Милосердного
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Цвет перевода</span>
+            <ColorSwatches current={translationColor} onChange={setTranslationColor} />
           </div>
         </div>
       </div>
@@ -322,95 +365,75 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <ImageIcon size={18} color="var(--accent-teal)" />
           <span className="title-card">Мой фон</span>
-          <span style={{
-            marginLeft: 'auto', fontSize: 10, fontWeight: 700,
-            background: 'rgba(45,212,160,0.15)', color: 'var(--accent-teal)',
-            padding: '2px 8px', borderRadius: 20,
-          }}>Только для вас</span>
+          <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, background: 'rgba(45,212,160,0.15)', color: 'var(--accent-teal)', padding: '2px 8px', borderRadius: 20 }}>Только для вас</span>
         </div>
         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
           Фон виден только вам на вашем устройстве
         </p>
-
         {activeBg ? (
-          <div style={{
-            width: '100%', height: 120, borderRadius: 14,
-            backgroundImage: `url(${activeBg})`, backgroundSize: 'cover', backgroundPosition: 'center',
-            marginBottom: 12, position: 'relative',
-            border: '1.5px solid rgba(45,212,160,0.3)',
-          }}>
-            <div style={{
-              position: 'absolute', inset: 0, borderRadius: 14,
-              background: 'linear-gradient(rgba(0,0,0,0.2),rgba(0,0,0,0.4))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
-                ✅ Фон установлен
-              </span>
+          <div style={{ width: '100%', height: 120, borderRadius: 14, backgroundImage: `url(${activeBg})`, backgroundSize: 'cover', backgroundPosition: 'center', marginBottom: 12, position: 'relative', border: '1.5px solid rgba(45,212,160,0.3)' }}>
+            <div style={{ position: 'absolute', inset: 0, borderRadius: 14, background: 'linear-gradient(rgba(0,0,0,0.2),rgba(0,0,0,0.4))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>✅ Фон установлен</span>
             </div>
           </div>
         ) : (
-          <div style={{
-            width: '100%', height: 80, borderRadius: 14,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1.5px dashed rgba(45,212,160,0.3)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: 12, color: 'var(--text-muted)', fontSize: 13,
-          }}>
+          <div style={{ width: '100%', height: 80, borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(45,212,160,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: 'var(--text-muted)', fontSize: 13 }}>
             Фон не выбран
           </div>
         )}
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={handleFileChange}
-        />
-
+        <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
         <div style={{ display: 'flex', gap: 10 }}>
-          <button
-            className="btn btn-primary"
-            style={{ flex: 1 }}
-            disabled={bgLoading}
-            onClick={() => fileInputRef.current?.click()}
-          >
+          <button className="btn btn-primary" style={{ flex: 1 }} disabled={bgLoading} onClick={() => fileInputRef.current?.click()}>
             <Camera size={16} />
             {bgLoading ? 'Загрузка...' : '📷 Выбрать из галереи'}
           </button>
           {activeBg && (
-            <button
-              className="btn btn-danger btn-sm"
-              style={{ width: 48, padding: 0 }}
-              onClick={removeBg}
-            >
+            <button className="btn btn-danger btn-sm" style={{ width: 48, padding: 0 }} onClick={removeBg}>
               <Trash2 size={16} />
             </button>
           )}
         </div>
       </div>
 
+      {/* ── World clocks ──────────────────────────────────────── */}
+      <div className="glass-card" style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <Clock size={18} color="var(--accent-teal)" />
+          <span className="title-card">Мировое время</span>
+        </div>
+        <WorldClocks />
+      </div>
+
       {/* ── Other settings ────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
+
         {/* Notifications */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Bell size={18} color="var(--text-muted)" />
-          <span style={{ flex: 1, fontSize: 14 }}>{t(lang, 'setting_notif')}</span>
-          <span className="text-muted" style={{ fontSize: 13 }}>—</span>
+          <Bell size={18} color={notifEnabled ? 'var(--accent-teal)' : 'var(--text-muted)'} />
+          <div style={{ flex: 1 }}>
+            <span style={{ fontSize: 14, display: 'block' }}>{t(lang, 'setting_notif')}</span>
+            {notifMsg && (
+              <span style={{ fontSize: 11, color: notifMsg.startsWith('✅') ? 'var(--accent-teal)' : 'var(--danger)', marginTop: 2, display: 'block' }}>
+                {notifMsg}
+              </span>
+            )}
+          </div>
+          <button
+            className={`toggle-glass${notifEnabled ? ' on' : ''}`}
+            onClick={handleNotifToggle}
+            aria-label="Toggle notifications"
+          >
+            <div className="toggle-glass__dot" />
+          </button>
         </div>
 
         <div style={{ height: 1, background: 'var(--border)', margin: '12px 0' }} />
 
-        {/* Dark mode — glass silver toggle */}
+        {/* Dark mode — always on */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Moon size={18} color="var(--text-muted)" />
           <span style={{ flex: 1, fontSize: 14 }}>{t(lang, 'setting_theme')}</span>
-          <button
-            className="toggle-glass on"
-            aria-label="Dark mode"
-            onClick={() => {/* app is always dark */}}
-          >
+          <button className="toggle-glass on" aria-label="Dark mode" onClick={() => {}}>
             <div className="toggle-glass__dot" />
           </button>
         </div>
