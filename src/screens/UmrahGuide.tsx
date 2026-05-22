@@ -95,7 +95,7 @@ export default function UmrahGuide({ lang, onBack }: Props) {
             <>
               <div className="glass-card" style={{ textAlign: 'center', marginBottom: 20, padding: '28px 20px' }}>
                 <div className="text-arabic-lg">{question.ar}</div>
-                <div className="text-muted" style={{ marginTop: 10, fontStyle: 'italic' }}>{question.trans}</div>
+                <div className="text-trans" style={{ marginTop: 10, fontStyle: 'italic', color: 'var(--text-main)' }}>{question.trans}</div>
               </div>
               {feedback && (
                 <div className={`glass-card ${feedback.correct ? 'flash-correct' : 'flash-wrong'}`}
@@ -155,7 +155,7 @@ export default function UmrahGuide({ lang, onBack }: Props) {
                 <div style={{ color: 'var(--accent-teal)', fontSize: 13, fontStyle: 'italic', marginBottom: 4 }}>
                   {ph.trans}
                 </div>
-                <div className="text-muted" style={{ fontSize: 13 }}>{ph.translation}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-main)' }}>{ph.translation}</div>
               </div>
             </div>
           ))}

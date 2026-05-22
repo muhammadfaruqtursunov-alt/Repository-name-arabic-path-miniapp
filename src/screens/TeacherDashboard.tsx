@@ -42,7 +42,8 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   const [msgResult, setMsgResult] = useState<string | null>(null);
 
   // Background panel
-  const [globalBg, setGlobalBg] = useState<string>('');
+  const [globalBg, setGlobalBg] = useState<string>('');        // full-size for local preview
+  const [globalBgSmall, setGlobalBgSmall] = useState<string>(''); // 600px/60% for server
   const [bgLoading, setBgLoading] = useState(false);
   const [bgSaving, setBgSaving] = useState(false);
   const [bgSaved, setBgSaved] = useState(false);
@@ -52,8 +53,15 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     api.getTeacherStats()
       .then(setStats)
       .finally(() => setLoading(false));
-    // Load current global bg
-    api.getAppConfig().then(cfg => setGlobalBg(cfg.bg_url || '')).catch(() => {});
+    // Load current global bg from server
+    api.getAppConfig()
+      .then(cfg => {
+        if (cfg.bg_url) {
+          setGlobalBg(cfg.bg_url);
+          setGlobalBgSmall(cfg.bg_url);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   function togglePanel(p: Panel) {
@@ -121,10 +129,14 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     if (!file) return;
     setBgLoading(true);
     try {
-      const dataUrl = await resizeImageToDataUrl(file, 1080, 0.72);
-      setGlobalBg(dataUrl);
-      // Also apply to teacher's own background immediately
-      onBgChange(dataUrl);
+      // Full size for local display
+      const full = await resizeImageToDataUrl(file, 1080, 0.75);
+      // Small compressed version for server storage (~50-100KB)
+      const small = await resizeImageToDataUrl(full, 600, 0.60);
+      setGlobalBg(full);
+      setGlobalBgSmall(small);
+      // Apply to teacher's own screen immediately
+      onBgChange(full);
     } catch {
       alert('Не удалось загрузить фото');
     } finally {
@@ -134,14 +146,15 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   }
 
   async function saveGlobalBg() {
+    if (!globalBgSmall) return;
     setBgSaving(true);
     setBgSaved(false);
     try {
-      await api.setGlobalBg(globalBg);
+      await api.setGlobalBg(globalBgSmall);
       setBgSaved(true);
       setTimeout(() => setBgSaved(false), 2500);
     } catch (e) {
-      alert('Ошибка сохранения: ' + String(e));
+      alert('Ошибка: ' + String(e));
     } finally {
       setBgSaving(false);
     }
@@ -149,6 +162,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
 
   async function removeGlobalBg() {
     setGlobalBg('');
+    setGlobalBgSmall('');
     onBgChange('');
     try { await api.setGlobalBg(''); } catch {}
   }
