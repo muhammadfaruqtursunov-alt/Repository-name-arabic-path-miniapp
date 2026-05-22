@@ -169,8 +169,8 @@ export default function Dashboard({
           {/* Tests */}
           <div className="glass-card" style={{ cursor: 'pointer' }} onClick={onOpenTests}>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <Eye size={22} color="var(--accent-teal)" />
-              <PenLine size={22} color="var(--accent-teal)" />
+              <Eye size={22} color="var(--accent-gold)" />
+              <PenLine size={22} color="var(--accent-gold)" />
             </div>
             <div className="title-card" style={{ marginBottom: 2 }}>{t(lang, 'tests_title')}</div>
             <div className="text-muted" style={{ fontSize: 12 }}>

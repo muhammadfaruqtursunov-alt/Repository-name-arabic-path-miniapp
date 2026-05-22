@@ -138,6 +138,22 @@ export interface TeacherQuestion {
   question: string; created_at: string | null;
 }
 
+export interface AllQuestion {
+  id: number; user_id: number; user_name: string;
+  question: string; answer: string | null;
+  answered: boolean; created_at: string | null;
+}
+
+export interface AllStudent {
+  user_id: number; name: string;
+  current_book: number; current_lesson: number;
+  learned: number; total_app_time: number;
+}
+
+export interface LazyStudent {
+  user_id: number; name: string; lang: string;
+}
+
 // ── API functions ─────────────────────────────────────────────────
 
 export const api = {
@@ -209,4 +225,11 @@ export const api = {
   askQuestion: (question: string) =>
     request<{ ok: boolean; id: number }>('POST', '/api/webapp/question', { question }),
   getQuestions: () => request<Question[]>('GET', '/api/webapp/questions'),
+
+  // Extended teacher
+  teacherGetAllStudents: () => request<AllStudent[]>('GET', '/api/webapp/teacher/students/all'),
+  teacherGetLazy: () => request<LazyStudent[]>('GET', '/api/webapp/teacher/lazy'),
+  teacherGetAllQuestions: () => request<AllQuestion[]>('GET', '/api/webapp/teacher/questions/all'),
+  teacherResetStudent: (user_id: number) =>
+    request<{ ok: boolean }>('POST', '/api/webapp/teacher/student/reset', { user_id }),
 };

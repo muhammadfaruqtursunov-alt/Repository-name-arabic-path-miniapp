@@ -3,10 +3,11 @@ import { useSwipe } from '../hooks/useSwipe';
 import {
   MessageCircleQuestion, Megaphone, Mail, ImageIcon,
   Send, Users, CheckCircle2, Camera, Trash2,
+  ChevronDown, ChevronUp, History, RefreshCw, RotateCcw,
 } from 'lucide-react';
 import { formatAppTime } from '../utils/formatTime';
 import { api } from '../api/client';
-import type { TeacherStats, TeacherQuestion } from '../api/client';
+import type { TeacherStats, TeacherQuestion, AllQuestion, AllStudent, LazyStudent } from '../api/client';
 import type { Lang } from '../i18n';
 import { resizeImageToDataUrl } from '../utils/imageResize';
 import Settings from './Settings';
@@ -20,6 +21,15 @@ interface Props {
 type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | null;
 type TeacherTab = 'dashboard' | 'settings';
 const TAB_ORDER: TeacherTab[] = ['dashboard', 'settings'];
+
+// ── Rank medal by position ────────────────────────────────────────
+function rankMedal(idx: number): string {
+  if (idx === 0) return '🥇';
+  if (idx === 1) return '🥈';
+  if (idx === 2) return '🥉';
+  if (idx <= 9)  return '🏅';
+  return `${idx + 1}.`;
+}
 
 export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Props) {
   const [tab, setTab] = useState<TeacherTab>('dashboard');
@@ -35,50 +45,75 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   }, [tab]);
 
   const swipeHandlers = useSwipe(handleSwipeLeft, handleSwipeRight);
-  const [stats, setStats] = useState<TeacherStats | null>(null);
+
+  // ── Core data ──────────────────────────────────────────────────
+  const [stats, setStats]   = useState<TeacherStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [panel, setPanel] = useState<Panel>(null);
+  const [panel, setPanel]   = useState<Panel>(null);
 
-  // Questions panel
-  const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
-  const [answerDraft, setAnswerDraft] = useState<Record<number, string>>({});
+  // ── Questions ──────────────────────────────────────────────────
+  const [questions, setQuestions]         = useState<TeacherQuestion[]>([]);
+  const [answeredIds, setAnsweredIds]     = useState<Set<number>>(new Set());
+  const [answerDraft, setAnswerDraft]     = useState<Record<number, string>>({});
   const [answerSending, setAnswerSending] = useState<number | null>(null);
-  const [answeredIds, setAnsweredIds] = useState<Set<number>>(new Set());
+  const [showQHistory, setShowQHistory]   = useState(false);
+  const [allQuestions, setAllQuestions]   = useState<AllQuestion[]>([]);
+  const [allQLoading, setAllQLoading]     = useState(false);
 
-  // Broadcast panel
-  const [broadcastMsg, setBroadcastMsg] = useState('');
+  // ── Student list ───────────────────────────────────────────────
+  const [allStudents, setAllStudents]         = useState<AllStudent[]>([]);
+  const [allStudentsLoaded, setAllStudentsLoaded] = useState(false);
+  const [showAllStudents, setShowAllStudents] = useState(false);
+  const [expandedStudent, setExpandedStudent] = useState<number | null>(null);
+
+  // Per-student inline message
+  const [studentMsgDraft, setStudentMsgDraft]   = useState<Record<number, string>>({});
+  const [studentMsgSending, setStudentMsgSending] = useState<number | null>(null);
+  const [studentMsgSent, setStudentMsgSent]     = useState<Set<number>>(new Set());
+  const [showMsgFor, setShowMsgFor]             = useState<number | null>(null);
+
+  // Per-student reset confirm
+  const [confirmReset, setConfirmReset] = useState<number | null>(null);
+  const [resetDone, setResetDone]       = useState<Set<number>>(new Set());
+  const [resetBusy, setResetBusy]       = useState(false);
+
+  // ── Lazy students ──────────────────────────────────────────────
+  const [lazyStudents, setLazyStudents]   = useState<LazyStudent[]>([]);
+  const [lazyLoaded, setLazyLoaded]       = useState(false);
+  const [showLazy, setShowLazy]           = useState(false);
+  const [lazyMsgFor, setLazyMsgFor]       = useState<number | null>(null);
+  const [lazyMsgDraft, setLazyMsgDraft]   = useState<Record<number, string>>({});
+  const [lazyMsgSending, setLazyMsgSending] = useState<number | null>(null);
+  const [lazyMsgSent, setLazyMsgSent]     = useState<Set<number>>(new Set());
+
+  // ── Broadcast panel ────────────────────────────────────────────
+  const [broadcastMsg, setBroadcastMsg]     = useState('');
   const [broadcastSending, setBroadcastSending] = useState(false);
-  const [broadcastResult, setBroadcastResult] = useState<string | null>(null);
+  const [broadcastResult, setBroadcastResult]   = useState<string | null>(null);
 
-  // Personal message panel
+  // ── Personal message panel ─────────────────────────────────────
   const [msgStudentId, setMsgStudentId] = useState<number | null>(null);
-  const [msgText, setMsgText] = useState('');
-  const [msgSending, setMsgSending] = useState(false);
-  const [msgResult, setMsgResult] = useState<string | null>(null);
+  const [msgText, setMsgText]           = useState('');
+  const [msgSending, setMsgSending]     = useState(false);
+  const [msgResult, setMsgResult]       = useState<string | null>(null);
 
-  // Background panel
-  const [globalBg, setGlobalBg] = useState<string>('');        // full-size for local preview
-  const [globalBgSmall, setGlobalBgSmall] = useState<string>(''); // 600px/60% for server
-  const [bgLoading, setBgLoading] = useState(false);
-  const [bgSaving, setBgSaving] = useState(false);
-  const [bgSaved, setBgSaved] = useState(false);
+  // ── Background panel ───────────────────────────────────────────
+  const [globalBg, setGlobalBg]           = useState('');
+  const [globalBgSmall, setGlobalBgSmall] = useState('');
+  const [bgLoading, setBgLoading]         = useState(false);
+  const [bgSaving, setBgSaving]           = useState(false);
+  const [bgSaved, setBgSaved]             = useState(false);
   const bgFileRef = useRef<HTMLInputElement>(null);
 
+  // ── Initial load ───────────────────────────────────────────────
   useEffect(() => {
-    api.getTeacherStats()
-      .then(setStats)
-      .finally(() => setLoading(false));
-    // Load current global bg from server
-    api.getAppConfig()
-      .then(cfg => {
-        if (cfg.bg_url) {
-          setGlobalBg(cfg.bg_url);
-          setGlobalBgSmall(cfg.bg_url);
-        }
-      })
-      .catch(() => {});
+    api.getTeacherStats().then(setStats).finally(() => setLoading(false));
+    api.getAppConfig().then(cfg => {
+      if (cfg.bg_url) { setGlobalBg(cfg.bg_url); setGlobalBgSmall(cfg.bg_url); }
+    }).catch(() => {});
   }, []);
 
+  // ── Panel toggle ───────────────────────────────────────────────
   function togglePanel(p: Panel) {
     if (panel === p) { setPanel(null); return; }
     setPanel(p);
@@ -86,11 +121,20 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     if (p === 'message' && stats?.students?.length) setMsgStudentId(stats.students[0].user_id);
   }
 
+  // ── Question loaders ───────────────────────────────────────────
   async function loadQuestions() {
-    try {
-      const rows = await api.teacherGetQuestions();
-      setQuestions(rows);
-    } catch {}
+    try { const rows = await api.teacherGetQuestions(); setQuestions(rows); } catch {}
+  }
+
+  async function loadAllQuestions() {
+    setAllQLoading(true);
+    try { setAllQuestions(await api.teacherGetAllQuestions()); } catch {}
+    setAllQLoading(false);
+  }
+
+  function toggleQHistory() {
+    if (!showQHistory && allQuestions.length === 0) loadAllQuestions();
+    setShowQHistory(v => !v);
   }
 
   async function sendAnswer(qId: number) {
@@ -102,87 +146,111 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
       setAnsweredIds(prev => new Set([...prev, qId]));
       setAnswerDraft(prev => ({ ...prev, [qId]: '' }));
       if (stats) setStats({ ...stats, unanswered_questions: Math.max(0, stats.unanswered_questions - 1) });
-    } catch (e) {
-      alert('Ошибка: ' + String(e));
-    } finally {
-      setAnswerSending(null);
-    }
+    } catch (e) { alert('Ошибка: ' + String(e)); }
+    finally { setAnswerSending(null); }
   }
 
+  // ── Student list helpers ───────────────────────────────────────
+  async function loadAllStudents() {
+    if (allStudentsLoaded) { setShowAllStudents(true); return; }
+    try {
+      const rows = await api.teacherGetAllStudents();
+      setAllStudents(rows);
+      setAllStudentsLoaded(true);
+      setShowAllStudents(true);
+    } catch {}
+  }
+
+  async function sendStudentMsg(userId: number, isLazy = false) {
+    const text = isLazy
+      ? (lazyMsgDraft[userId] || '').trim()
+      : (studentMsgDraft[userId] || '').trim();
+    if (!text) return;
+    if (isLazy) setLazyMsgSending(userId); else setStudentMsgSending(userId);
+    try {
+      await api.teacherPersonalMessage(userId, text);
+      if (isLazy) {
+        setLazyMsgSent(p => new Set([...p, userId]));
+        setLazyMsgDraft(p => ({ ...p, [userId]: '' }));
+        setLazyMsgFor(null);
+      } else {
+        setStudentMsgSent(p => new Set([...p, userId]));
+        setStudentMsgDraft(p => ({ ...p, [userId]: '' }));
+        setShowMsgFor(null);
+      }
+    } catch (e) { alert('Ошибка: ' + String(e)); }
+    finally { if (isLazy) setLazyMsgSending(null); else setStudentMsgSending(null); }
+  }
+
+  async function doResetStudent(userId: number) {
+    setResetBusy(true);
+    try {
+      await api.teacherResetStudent(userId);
+      setResetDone(p => new Set([...p, userId]));
+      setConfirmReset(null);
+      // Refresh stats
+      api.getTeacherStats().then(setStats).catch(() => {});
+    } catch (e) { alert('Ошибка: ' + String(e)); }
+    finally { setResetBusy(false); }
+  }
+
+  async function loadLazy() {
+    if (lazyLoaded) { setShowLazy(v => !v); return; }
+    try {
+      setLazyStudents(await api.teacherGetLazy());
+      setLazyLoaded(true);
+      setShowLazy(true);
+    } catch {}
+  }
+
+  // ── Broadcast ─────────────────────────────────────────────────
   async function sendBroadcast() {
     if (!broadcastMsg.trim()) return;
-    setBroadcastSending(true);
-    setBroadcastResult(null);
+    setBroadcastSending(true); setBroadcastResult(null);
     try {
       const res = await api.teacherBroadcast(broadcastMsg.trim());
       setBroadcastResult(`✅ Отправлено: ${res.sent}, ошибок: ${res.failed}`);
       setBroadcastMsg('');
-    } catch (e) {
-      setBroadcastResult('❌ Ошибка: ' + String(e));
-    } finally {
-      setBroadcastSending(false);
-    }
+    } catch (e) { setBroadcastResult('❌ Ошибка: ' + String(e)); }
+    finally { setBroadcastSending(false); }
   }
 
   async function sendPersonalMessage() {
     if (!msgStudentId || !msgText.trim()) return;
-    setMsgSending(true);
-    setMsgResult(null);
+    setMsgSending(true); setMsgResult(null);
     try {
       await api.teacherPersonalMessage(msgStudentId, msgText.trim());
-      setMsgResult('✅ Сообщение отправлено');
-      setMsgText('');
-    } catch (e) {
-      setMsgResult('❌ Ошибка: ' + String(e));
-    } finally {
-      setMsgSending(false);
-    }
+      setMsgResult('✅ Сообщение отправлено'); setMsgText('');
+    } catch (e) { setMsgResult('❌ Ошибка: ' + String(e)); }
+    finally { setMsgSending(false); }
   }
 
+  // ── Background ────────────────────────────────────────────────
   async function handleBgFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]; if (!file) return;
     setBgLoading(true);
     try {
-      // Full size for local display
-      const full = await resizeImageToDataUrl(file, 1080, 0.75);
-      // Small compressed version for server storage (~50-100KB)
+      const full  = await resizeImageToDataUrl(file, 1080, 0.75);
       const small = await resizeImageToDataUrl(full, 600, 0.60);
-      setGlobalBg(full);
-      setGlobalBgSmall(small);
-      // Apply to teacher's own screen immediately
-      onBgChange(full);
-    } catch {
-      alert('Не удалось загрузить фото');
-    } finally {
-      setBgLoading(false);
-      if (bgFileRef.current) bgFileRef.current.value = '';
-    }
+      setGlobalBg(full); setGlobalBgSmall(small); onBgChange(full);
+    } catch { alert('Не удалось загрузить фото'); }
+    finally { setBgLoading(false); if (bgFileRef.current) bgFileRef.current.value = ''; }
   }
 
   async function saveGlobalBg() {
     if (!globalBgSmall) return;
-    setBgSaving(true);
-    setBgSaved(false);
-    try {
-      await api.setGlobalBg(globalBgSmall);
-      setBgSaved(true);
-      setTimeout(() => setBgSaved(false), 2500);
-    } catch (e) {
-      alert('Ошибка: ' + String(e));
-    } finally {
-      setBgSaving(false);
-    }
+    setBgSaving(true); setBgSaved(false);
+    try { await api.setGlobalBg(globalBgSmall); setBgSaved(true); setTimeout(() => setBgSaved(false), 2500); }
+    catch (e) { alert('Ошибка: ' + String(e)); }
+    finally { setBgSaving(false); }
   }
 
   async function removeGlobalBg() {
-    setGlobalBg('');
-    setGlobalBgSmall('');
-    onBgChange('');
+    setGlobalBg(''); setGlobalBgSmall(''); onBgChange('');
     try { await api.setGlobalBg(''); } catch {}
   }
 
-  // ── Settings tab ─────────────────────────────────────────────────
+  // ── Settings tab ──────────────────────────────────────────────
   if (tab === 'settings') {
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }} {...swipeHandlers}>
@@ -192,7 +260,6 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     );
   }
 
-  // ── Dashboard tab ─────────────────────────────────────────────────
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
@@ -201,12 +268,19 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     );
   }
 
+  // Students to show in main list
+  const topStudents = stats?.students ?? [];
+  const studentsToShow = showAllStudents ? allStudents : topStudents;
+
+  // Unanswered questions (filtered)
+  const pendingQs = questions.filter(q => !answeredIds.has(q.id));
+
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }} {...swipeHandlers}>
       <div className="page-content" style={{ paddingTop: 24, paddingBottom: 90 }}>
         <h1 className="title-screen" style={{ marginBottom: 20 }}>👨‍🏫 Кабинет учителя</h1>
 
-        {/* Summary cards */}
+        {/* ── Summary cards 2×2 ─────────────────────────────────── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
           {[
             { label: 'Учеников',      value: stats?.total_students ?? 0,      emoji: '📋' },
@@ -224,7 +298,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           ))}
         </div>
 
-        {/* Action buttons */}
+        {/* ── Action buttons 2×2 ────────────────────────────────── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
           <ActionBtn
             icon={<MessageCircleQuestion size={20} />}
@@ -257,58 +331,113 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           />
         </div>
 
-        {/* ── Questions panel ────────────────────────────────── */}
+        {/* ── Questions panel ───────────────────────────────────── */}
         {panel === 'questions' && (
           <div className="glass-card" style={{ marginBottom: 16 }}>
-            <p className="title-card" style={{ marginBottom: 12 }}>❓ Вопросы учеников</p>
-            {questions.length === 0 ? (
+            {/* Header row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <p className="title-card" style={{ flex: 1, margin: 0 }}>
+                ❓ Вопросы без ответа
+                {pendingQs.length > 0 && (
+                  <span style={{
+                    marginLeft: 8, background: 'var(--danger)', color: '#fff',
+                    borderRadius: 10, fontSize: 11, padding: '1px 7px', fontWeight: 700,
+                  }}>{pendingQs.length}</span>
+                )}
+              </p>
+              {/* History toggle */}
+              <button
+                onClick={toggleQHistory}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  background: showQHistory ? 'rgba(45,212,160,0.15)' : 'rgba(255,255,255,0.06)',
+                  border: `1px solid ${showQHistory ? 'rgba(45,212,160,0.4)' : 'rgba(255,255,255,0.12)'}`,
+                  borderRadius: 10, padding: '5px 10px', cursor: 'pointer',
+                  color: showQHistory ? 'var(--accent-teal)' : 'var(--text-muted)', fontSize: 12,
+                }}
+              >
+                <History size={13} />
+                История
+              </button>
+            </div>
+
+            {/* Unanswered questions */}
+            {pendingQs.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Нет новых вопросов 🎉</p>
             ) : (
-              questions.map(q => {
-                const done = answeredIds.has(q.id);
-                return (
-                  <div key={q.id} style={{ marginBottom: 16 }}>
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                      <span style={{ fontSize: 12, color: 'var(--accent-gold)', fontWeight: 700 }}>
-                        {q.user_name}
-                      </span>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {q.created_at ? new Date(q.created_at).toLocaleDateString('ru') : ''}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: 14, marginBottom: 8, color: 'var(--text-main)' }}>{q.question}</p>
-                    {done ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent-teal)', fontSize: 13 }}>
-                        <CheckCircle2 size={14} /> Ответ отправлен
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <textarea
-                          className="input-field"
-                          placeholder="Введите ответ..."
-                          value={answerDraft[q.id] ?? ''}
-                          onChange={e => setAnswerDraft(p => ({ ...p, [q.id]: e.target.value }))}
-                          style={{ flex: 1, minHeight: 70, fontSize: 13 }}
-                        />
-                        <button
-                          className="btn btn-primary btn-sm"
-                          style={{ width: 44, padding: 0 }}
-                          disabled={answerSending === q.id}
-                          onClick={() => sendAnswer(q.id)}
-                        >
-                          {answerSending === q.id ? '...' : <Send size={16} />}
-                        </button>
-                      </div>
-                    )}
-                    <div style={{ height: 1, background: 'var(--border)', marginTop: 12 }} />
+              pendingQs.map(q => (
+                <div key={q.id} style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
+                    <span style={{ fontSize: 12, color: 'var(--accent-gold)', fontWeight: 700 }}>{q.user_name}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                      {q.created_at ? new Date(q.created_at).toLocaleDateString('ru') : ''}
+                    </span>
                   </div>
-                );
-              })
+                  <p style={{ fontSize: 14, marginBottom: 8, color: 'var(--text-main)' }}>{q.question}</p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <textarea
+                      className="input-field"
+                      placeholder="Введите ответ..."
+                      value={answerDraft[q.id] ?? ''}
+                      onChange={e => setAnswerDraft(p => ({ ...p, [q.id]: e.target.value }))}
+                      style={{ flex: 1, minHeight: 60, fontSize: 13 }}
+                    />
+                    <button
+                      className="btn btn-primary btn-sm"
+                      style={{ width: 44, padding: 0 }}
+                      disabled={answerSending === q.id}
+                      onClick={() => sendAnswer(q.id)}
+                    >
+                      {answerSending === q.id ? '...' : <Send size={16} />}
+                    </button>
+                  </div>
+                  <div style={{ height: 1, background: 'var(--border)', marginTop: 12 }} />
+                </div>
+              ))
+            )}
+
+            {/* History sub-section */}
+            {showQHistory && (
+              <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 10 }}>
+                  📜 История вопросов
+                </p>
+                {allQLoading ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Загрузка...</p>
+                ) : allQuestions.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Нет вопросов</p>
+                ) : (
+                  allQuestions.map(q => (
+                    <div key={q.id} style={{ marginBottom: 12, opacity: q.answered ? 0.7 : 1 }}>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 3 }}>
+                        <span style={{ fontSize: 11, color: 'var(--accent-gold)', fontWeight: 700 }}>{q.user_name}</span>
+                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                          {q.created_at ? new Date(q.created_at).toLocaleDateString('ru') : ''}
+                        </span>
+                        {q.answered && (
+                          <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--accent-teal)', fontWeight: 600 }}>
+                            <CheckCircle2 size={10} style={{ display: 'inline', marginRight: 3 }} />отвечено
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ fontSize: 13, color: 'var(--text-main)', marginBottom: q.answered ? 4 : 0 }}>
+                        ❓ {q.question}
+                      </p>
+                      {q.answered && q.answer && (
+                        <p style={{ fontSize: 12, color: 'var(--accent-teal)', paddingLeft: 8, borderLeft: '2px solid var(--accent-teal)', marginTop: 4 }}>
+                          💬 {q.answer}
+                        </p>
+                      )}
+                      <div style={{ height: 1, background: 'var(--border)', marginTop: 8 }} />
+                    </div>
+                  ))
+                )}
+              </div>
             )}
           </div>
         )}
 
-        {/* ── Broadcast panel ────────────────────────────────── */}
+        {/* ── Broadcast panel ───────────────────────────────────── */}
         {panel === 'broadcast' && (
           <div className="glass-card" style={{ marginBottom: 16 }}>
             <p className="title-card" style={{ marginBottom: 12 }}>📢 Рассылка всем ученикам</p>
@@ -319,20 +448,14 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
               onChange={e => setBroadcastMsg(e.target.value)}
               style={{ marginBottom: 10 }}
             />
-            <button
-              className="btn btn-gold"
-              disabled={broadcastSending || !broadcastMsg.trim()}
-              onClick={sendBroadcast}
-            >
+            <button className="btn btn-gold" disabled={broadcastSending || !broadcastMsg.trim()} onClick={sendBroadcast}>
               {broadcastSending ? 'Отправка...' : '📢 Отправить всем'}
             </button>
-            {broadcastResult && (
-              <p style={{ marginTop: 10, fontSize: 13, color: 'var(--accent-teal)' }}>{broadcastResult}</p>
-            )}
+            {broadcastResult && <p style={{ marginTop: 10, fontSize: 13, color: 'var(--accent-teal)' }}>{broadcastResult}</p>}
           </div>
         )}
 
-        {/* ── Personal message panel ─────────────────────────── */}
+        {/* ── Personal message panel ────────────────────────────── */}
         {panel === 'message' && (
           <div className="glass-card" style={{ marginBottom: 16 }}>
             <p className="title-card" style={{ marginBottom: 12 }}>✉️ Личное сообщение</p>
@@ -340,142 +463,293 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
               <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Нет учеников</p>
             ) : (
               <>
-                <select
-                  className="input-field"
-                  style={{ marginBottom: 10 }}
-                  value={msgStudentId ?? ''}
-                  onChange={e => setMsgStudentId(Number(e.target.value))}
-                >
+                <select className="input-field" style={{ marginBottom: 10 }}
+                  value={msgStudentId ?? ''} onChange={e => setMsgStudentId(Number(e.target.value))}>
                   {stats.students.map(s => (
                     <option key={s.user_id} value={s.user_id}>
                       {s.name} (Кн.{s.current_book} Ур.{s.current_lesson})
                     </option>
                   ))}
                 </select>
-                <textarea
-                  className="input-field"
-                  placeholder="Введите сообщение..."
-                  value={msgText}
-                  onChange={e => setMsgText(e.target.value)}
-                  style={{ marginBottom: 10 }}
-                />
-                <button
-                  className="btn btn-primary"
-                  disabled={msgSending || !msgText.trim()}
-                  onClick={sendPersonalMessage}
-                >
+                <textarea className="input-field" placeholder="Введите сообщение..."
+                  value={msgText} onChange={e => setMsgText(e.target.value)} style={{ marginBottom: 10 }} />
+                <button className="btn btn-primary" disabled={msgSending || !msgText.trim()} onClick={sendPersonalMessage}>
                   {msgSending ? 'Отправка...' : '✉️ Отправить'}
                 </button>
-                {msgResult && (
-                  <p style={{ marginTop: 10, fontSize: 13, color: 'var(--accent-teal)' }}>{msgResult}</p>
-                )}
+                {msgResult && <p style={{ marginTop: 10, fontSize: 13, color: 'var(--accent-teal)' }}>{msgResult}</p>}
               </>
             )}
           </div>
         )}
 
-        {/* ── Background panel ───────────────────────────────── */}
+        {/* ── Background panel ──────────────────────────────────── */}
         {panel === 'bg' && (
           <div className="glass-card" style={{ marginBottom: 16 }}>
             <p className="title-card" style={{ marginBottom: 4 }}>🖼️ Фон для всех учеников</p>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
               Загрузите фото — ученики увидят его при следующем открытии приложения
             </p>
-
-            {/* Preview */}
             {globalBg ? (
               <div style={{
-                width: '100%', height: 130, borderRadius: 14,
-                backgroundImage: `url(${globalBg})`,
-                backgroundSize: 'cover', backgroundPosition: 'center',
-                marginBottom: 12, position: 'relative',
-                border: '1.5px solid rgba(45,212,160,0.4)',
+                width: '100%', height: 130, borderRadius: 14, backgroundImage: `url(${globalBg})`,
+                backgroundSize: 'cover', backgroundPosition: 'center', marginBottom: 12,
+                position: 'relative', border: '1.5px solid rgba(45,212,160,0.4)',
               }}>
                 <div style={{
                   position: 'absolute', inset: 0, borderRadius: 14,
                   background: 'linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.45))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-                    📸 Фото выбрано
-                  </span>
+                  <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>📸 Фото выбрано</span>
                 </div>
               </div>
             ) : (
               <div style={{
-                width: '100%', height: 90, borderRadius: 14,
-                background: 'rgba(255,255,255,0.03)',
+                width: '100%', height: 90, borderRadius: 14, background: 'rgba(255,255,255,0.03)',
                 border: '1.5px dashed rgba(45,212,160,0.3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 marginBottom: 12, color: 'var(--text-muted)', fontSize: 13,
-              }}>
-                Фото не выбрано
-              </div>
+              }}>Фото не выбрано</div>
             )}
-
-            {/* Hidden file input */}
-            <input
-              ref={bgFileRef}
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={handleBgFileChange}
-            />
-
+            <input ref={bgFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBgFileChange} />
             <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-              <button
-                className="btn btn-ghost"
-                style={{ flex: 1 }}
-                disabled={bgLoading}
-                onClick={() => bgFileRef.current?.click()}
-              >
-                <Camera size={16} />
-                {bgLoading ? 'Загрузка...' : '📷 Выбрать из галереи'}
+              <button className="btn btn-ghost" style={{ flex: 1 }} disabled={bgLoading} onClick={() => bgFileRef.current?.click()}>
+                <Camera size={16} /> {bgLoading ? 'Загрузка...' : '📷 Выбрать из галереи'}
               </button>
               {globalBg && (
-                <button
-                  className="btn btn-danger btn-sm"
-                  style={{ width: 48, padding: 0 }}
-                  onClick={removeGlobalBg}
-                >
+                <button className="btn btn-danger btn-sm" style={{ width: 48, padding: 0 }} onClick={removeGlobalBg}>
                   <Trash2 size={16} />
                 </button>
               )}
             </div>
-
             {globalBg && (
-              <button
-                className="btn btn-primary"
-                disabled={bgSaving}
-                onClick={saveGlobalBg}
-              >
+              <button className="btn btn-primary" disabled={bgSaving} onClick={saveGlobalBg}>
                 {bgSaved ? '✅ Сохранено для всех!' : bgSaving ? 'Сохраняем...' : '💾 Применить для всех учеников'}
               </button>
             )}
           </div>
         )}
 
-        {/* Students list */}
-        <div className="glass-card">
+        {/* ── Students list ─────────────────────────────────────── */}
+        <div className="glass-card" style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Users size={16} color="var(--accent-teal)" />
-            <p className="title-card">Топ учеников</p>
+            <Users size={16} color="var(--accent-gold)" />
+            <p className="title-card" style={{ flex: 1, margin: 0 }}>🏆 Топ учеников</p>
+            <button
+              onClick={() => showAllStudents ? setShowAllStudents(false) : loadAllStudents()}
+              style={{
+                fontSize: 11, fontWeight: 600, color: 'var(--accent-teal)',
+                background: 'rgba(45,212,160,0.1)', border: '1px solid rgba(45,212,160,0.3)',
+                borderRadius: 8, padding: '4px 10px', cursor: 'pointer',
+              }}
+            >
+              {showAllStudents ? '▲ Свернуть' : `Все (${stats?.total_students ?? '…'})`}
+            </button>
           </div>
-          {(stats?.students ?? []).length === 0 ? (
+
+          {studentsToShow.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Пока нет учеников</p>
           ) : (
-            (stats?.students ?? []).map((s, i) => (
-              <div key={s.user_id}>
-                {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '8px 0' }} />}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: 12, width: 20 }}>{i + 1}.</span>
-                  <span style={{ flex: 1, fontWeight: 500, fontSize: 13 }}>{s.name}</span>
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Т{s.current_book} У{s.current_lesson}</span>
-                  <span style={{ fontSize: 12, color: 'var(--accent-gold)', fontWeight: 600 }}>{s.learned} сл.</span>
-                  <span style={{ fontSize: 11, color: 'var(--accent-teal)', fontWeight: 500 }}>⏱ {formatAppTime(s.total_app_time ?? 0)}</span>
+            studentsToShow.map((s, i) => {
+              const isExpanded = expandedStudent === s.user_id;
+              const isDone = resetDone.has(s.user_id);
+              const msgSent = studentMsgSent.has(s.user_id);
+              const showMsg = showMsgFor === s.user_id;
+
+              return (
+                <div key={s.user_id}>
+                  {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '6px 0' }} />}
+
+                  {/* Main row — tap to expand */}
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '4px 0' }}
+                    onClick={() => {
+                      setExpandedStudent(isExpanded ? null : s.user_id);
+                      setShowMsgFor(null);
+                      setConfirmReset(null);
+                    }}
+                  >
+                    {/* Medal / rank */}
+                    <span style={{ fontSize: 16, width: 24, textAlign: 'center', flexShrink: 0 }}>
+                      {rankMedal(i)}
+                    </span>
+                    <span style={{ flex: 1, fontWeight: 500, fontSize: 13, color: isDone ? 'var(--text-muted)' : 'var(--text-main)' }}>
+                      {s.name}
+                      {isDone && <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 6 }}>сброшен</span>}
+                    </span>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>К{s.current_book}·У{s.current_lesson}</span>
+                    <span style={{ fontSize: 12, color: 'var(--accent-gold)', fontWeight: 700, minWidth: 36, textAlign: 'right' }}>
+                      {s.learned} сл
+                    </span>
+                    <span style={{ fontSize: 11, color: isExpanded ? 'var(--accent-teal)' : 'var(--text-muted)', marginLeft: 2 }}>
+                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </span>
+                  </div>
+
+                  {/* Expanded management row */}
+                  {isExpanded && (
+                    <div style={{
+                      marginTop: 8, padding: '12px', background: 'rgba(45,212,160,0.06)',
+                      borderRadius: 12, border: '1px solid rgba(45,212,160,0.15)',
+                    }}>
+                      {/* Sub-stats */}
+                      <div style={{ display: 'flex', gap: 16, marginBottom: 10, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          ⏱ {formatAppTime(s.total_app_time ?? 0)}
+                        </span>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          📖 Книга {s.current_book}, Урок {s.current_lesson}
+                        </span>
+                        <span style={{ fontSize: 11, color: 'var(--accent-gold)' }}>
+                          📚 {s.learned} слов
+                        </span>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button
+                          className={`btn btn-ghost btn-sm ${showMsg ? 'btn-primary' : ''}`}
+                          style={{ flex: 1, fontSize: 12 }}
+                          onClick={e => {
+                            e.stopPropagation();
+                            setShowMsgFor(showMsg ? null : s.user_id);
+                            setConfirmReset(null);
+                          }}
+                        >
+                          {msgSent ? '✅ Отправлено' : '✉️ Написать'}
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          style={{ flex: 1, fontSize: 12 }}
+                          onClick={e => {
+                            e.stopPropagation();
+                            setConfirmReset(confirmReset === s.user_id ? null : s.user_id);
+                            setShowMsgFor(null);
+                          }}
+                        >
+                          <RotateCcw size={12} /> Сбросить
+                        </button>
+                      </div>
+
+                      {/* Inline message */}
+                      {showMsg && (
+                        <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                          <textarea
+                            className="input-field"
+                            placeholder="Введите сообщение..."
+                            value={studentMsgDraft[s.user_id] ?? ''}
+                            onChange={ev => setStudentMsgDraft(p => ({ ...p, [s.user_id]: ev.target.value }))}
+                            style={{ flex: 1, minHeight: 56, fontSize: 12 }}
+                            onClick={e => e.stopPropagation()}
+                          />
+                          <button
+                            className="btn btn-primary btn-sm"
+                            style={{ width: 42, padding: 0 }}
+                            disabled={studentMsgSending === s.user_id}
+                            onClick={e => { e.stopPropagation(); sendStudentMsg(s.user_id); }}
+                          >
+                            {studentMsgSending === s.user_id ? '...' : <Send size={15} />}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Reset confirm */}
+                      {confirmReset === s.user_id && (
+                        <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(224,85,85,0.12)', borderRadius: 10 }}>
+                          <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>
+                            ⚠️ Сбросить весь прогресс {s.name}? Это нельзя отменить.
+                          </p>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button className="btn btn-ghost btn-sm" style={{ flex: 1 }}
+                              onClick={e => { e.stopPropagation(); setConfirmReset(null); }}>
+                              Отмена
+                            </button>
+                            <button className="btn btn-danger btn-sm" style={{ flex: 1 }}
+                              disabled={resetBusy}
+                              onClick={e => { e.stopPropagation(); doResetStudent(s.user_id); }}>
+                              {resetBusy ? '...' : <><RefreshCw size={11} /> Сбросить</>}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
+          )}
+        </div>
+
+        {/* ── Lazy students ─────────────────────────────────────── */}
+        <div className="glass-card" style={{ marginBottom: 12 }}>
+          <button
+            onClick={loadLazy}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            }}
+          >
+            <span style={{ fontSize: 18 }}>😴</span>
+            <p className="title-card" style={{ flex: 1, margin: 0 }}>
+              Лентяи
+              {lazyLoaded && (
+                <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>
+                  ({lazyStudents.length})
+                </span>
+              )}
+            </p>
+            {showLazy ? <ChevronUp size={16} color="var(--text-muted)" /> : <ChevronDown size={16} color="var(--text-muted)" />}
+          </button>
+
+          {showLazy && (
+            <div style={{ marginTop: 12 }}>
+              {lazyStudents.length === 0 ? (
+                <p style={{ color: 'var(--accent-teal)', fontSize: 13 }}>🎉 Лентяев нет! Все учатся.</p>
+              ) : (
+                lazyStudents.map((s, i) => {
+                  const isExpanded = lazyMsgFor === s.user_id;
+                  const sent = lazyMsgSent.has(s.user_id);
+                  return (
+                    <div key={s.user_id}>
+                      {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '8px 0' }} />}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 13, color: 'var(--text-muted)', minWidth: 20, textAlign: 'center' }}>
+                          {i + 1}.😴
+                        </span>
+                        <span style={{ flex: 1, fontSize: 13, color: 'var(--text-main)' }}>{s.name}</span>
+                        <span style={{ fontSize: 10, color: 'var(--text-muted)', marginRight: 4 }}>🌐 {s.lang.toUpperCase()}</span>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          style={{ fontSize: 11, padding: '4px 10px' }}
+                          onClick={() => setLazyMsgFor(isExpanded ? null : s.user_id)}
+                        >
+                          {sent ? '✅' : '✉️'}
+                        </button>
+                      </div>
+                      {isExpanded && (
+                        <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                          <textarea
+                            className="input-field"
+                            placeholder="Напишите ленивому ученику..."
+                            value={lazyMsgDraft[s.user_id] ?? ''}
+                            onChange={e => setLazyMsgDraft(p => ({ ...p, [s.user_id]: e.target.value }))}
+                            style={{ flex: 1, minHeight: 56, fontSize: 12 }}
+                          />
+                          <button
+                            className="btn btn-primary btn-sm"
+                            style={{ width: 42, padding: 0 }}
+                            disabled={lazyMsgSending === s.user_id}
+                            onClick={() => sendStudentMsg(s.user_id, true)}
+                          >
+                            {lazyMsgSending === s.user_id ? '...' : <Send size={15} />}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -526,16 +800,11 @@ function ActionBtn({ icon, label, badge, active, onClick, color }: {
 }
 
 function TeacherNav({ tab, setTab, unanswered }: {
-  tab: TeacherTab;
-  setTab: (t: TeacherTab) => void;
-  unanswered: number;
+  tab: TeacherTab; setTab: (t: TeacherTab) => void; unanswered: number;
 }) {
   return (
     <nav className="bottom-nav">
-      <button
-        className={`bottom-nav__item${tab === 'dashboard' ? ' active' : ''}`}
-        onClick={() => setTab('dashboard')}
-      >
+      <button className={`bottom-nav__item${tab === 'dashboard' ? ' active' : ''}`} onClick={() => setTab('dashboard')}>
         <Users size={20} />
         <span>Кабинет</span>
       </button>
