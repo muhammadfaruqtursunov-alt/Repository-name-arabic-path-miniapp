@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Globe2 } from 'lucide-react';
 import { LANGS } from '../i18n';
 import type { Lang } from '../i18n';
 
@@ -9,15 +10,17 @@ interface Props {
 
 export default function LanguageSwitcher({ current, onChange }: Props) {
   const [open, setOpen] = useState(false);
-  const cur = LANGS.find(l => l.code === current);
 
   return (
     <>
-      {/* Compact trigger button */}
-      <button className="lang-icon-btn" onClick={() => setOpen(true)}>
-        <span>{cur?.flag ?? '🌐'}</span>
-        <span>{current.toUpperCase()}</span>
-        <span style={{ fontSize: 9, opacity: 0.7 }}>▾</span>
+      {/* Globe trigger */}
+      <button
+        className="lang-icon-btn"
+        onClick={() => setOpen(true)}
+        style={{ padding: '6px 10px' }}
+        aria-label="Change language"
+      >
+        <Globe2 size={17} />
       </button>
 
       {/* Backdrop + dropdown */}
@@ -25,14 +28,14 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 200,
-            display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end',
-            padding: '56px 16px 0',
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start',
+            padding: '56px 0 0 16px',
           }}
           onClick={() => setOpen(false)}
         >
           <div
             className="glass-card"
-            style={{ minWidth: 170, padding: 6 }}
+            style={{ minWidth: 175, padding: 6 }}
             onClick={e => e.stopPropagation()}
           >
             {LANGS.map(({ code, flag, label }) => (

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useSwipe } from './hooks/useSwipe';
 import { t, normalizeLang, getLangDir } from './i18n';
 import type { Lang } from './i18n';
 import { api } from './api/client';
@@ -39,12 +40,15 @@ function applyBackground(url: string) {
   if (el) (el as HTMLElement).style.backgroundImage = url ? `url(${url})` : '';
 }
 
+const TAB_ORDER: NavTab[] = ['home', 'stats', 'profile', 'settings'];
+
 export default function App() {
   const [screen, setScreen]   = useState<Screen>('loading');
   const [lang, setLang]       = useState<Lang>('ru');
   const [user, setUser]       = useState<UserProfile | null>(null);
   const [volumes, setVolumes] = useState<VolumeInfo[]>([]);
   const [tab, setTab]         = useState<NavTab>('home');
+  const [slideDir, setSlideDir] = useState<'left' | 'right' | null>(null);
   const [selectedBook, setSelectedBook] = useState(1);
   const [selectedLesson, setSelectedLesson] = useState(1);
   const [onboardingLang, setOnboardingLang] = useState<Lang>('ru');
@@ -155,10 +159,29 @@ export default function App() {
     applyBackground(url);
   }
 
-  function handleTabChange(newTab: NavTab) {
+  function handleTabChange(newTab: NavTab, dir?: 'left' | 'right') {
+    if (newTab === tab) return;
+    const fromIdx = TAB_ORDER.indexOf(tab);
+    const toIdx   = TAB_ORDER.indexOf(newTab);
+    const direction = dir ?? (toIdx > fromIdx ? 'left' : 'right');
+    setSlideDir(direction);
     setTab(newTab);
     if (newTab === 'home') setScreen('dashboard');
+    // Reset animation class after it plays
+    setTimeout(() => setSlideDir(null), 300);
   }
+
+  const handleSwipeLeft = useCallback(() => {
+    const idx = TAB_ORDER.indexOf(tab);
+    if (idx < TAB_ORDER.length - 1) handleTabChange(TAB_ORDER[idx + 1], 'left');
+  }, [tab]);
+
+  const handleSwipeRight = useCallback(() => {
+    const idx = TAB_ORDER.indexOf(tab);
+    if (idx > 0) handleTabChange(TAB_ORDER[idx - 1], 'right');
+  }, [tab]);
+
+  const swipeHandlers = useSwipe(handleSwipeLeft, handleSwipeRight);
 
   // ── Screen routing ────────────────────────────────────────────
 
@@ -281,45 +304,54 @@ export default function App() {
 
   // Dashboard + bottom nav tabs
   if (user) {
+    const slideClass = slideDir === 'left'
+      ? 'screen-slide-left'
+      : slideDir === 'right'
+      ? 'screen-slide-right'
+      : '';
+
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-        {tab === 'home' && (
-          <Dashboard
-            lang={lang}
-            onLangChange={handleLangChange}
-            user={user}
-            volumes={volumes}
-            onOpenVolume={(bookId) => {
-              setSelectedBook(bookId || user.current_book);
-              setScreen('volume');
-            }}
-            onOpenGuide={() => setScreen('umrah')}
-            onOpenTests={() => {
-              setSelectedBook(user.current_book);
-              setSelectedLesson(user.current_lesson);
-              setScreen('tests');
-            }}
-            onOpenAskTeacher={() => setScreen('ask_teacher')}
-            onOpenSettings={() => setTab('settings')}
-          />
-        )}
+      <div
+        style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}
+        {...swipeHandlers}
+      >
+        <div key={tab} className={slideClass} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {tab === 'home' && (
+            <Dashboard
+              lang={lang}
+              onLangChange={handleLangChange}
+              user={user}
+              volumes={volumes}
+              onOpenVolume={(bookId) => {
+                setSelectedBook(bookId || user.current_book);
+                setScreen('volume');
+              }}
+              onOpenGuide={() => setScreen('umrah')}
+              onOpenTests={() => {
+                setSelectedBook(user.current_book);
+                setSelectedLesson(user.current_lesson);
+                setScreen('tests');
+              }}
+              onOpenAskTeacher={() => setScreen('ask_teacher')}
+              onOpenSettings={() => handleTabChange('settings')}
+            />
+          )}
 
-        {tab === 'stats' && <Statistics lang={lang} />}
+          {tab === 'stats' && <Statistics lang={lang} />}
 
-        {tab === 'profile' && (
-          <Profile
-            lang={lang}
-            user={user}
-            onLangChange={handleLangChange}
-            onResetProgress={async () => {
-              await init();
-            }}
-          />
-        )}
+          {tab === 'profile' && (
+            <Profile
+              lang={lang}
+              user={user}
+              onLangChange={handleLangChange}
+              onResetProgress={async () => { await init(); }}
+            />
+          )}
 
-        {tab === 'settings' && (
-          <Settings lang={lang} onLangChange={handleLangChange} onBgChange={handleBgChange} />
-        )}
+          {tab === 'settings' && (
+            <Settings lang={lang} onLangChange={handleLangChange} onBgChange={handleBgChange} />
+          )}
+        </div>
 
         <BottomNav active={tab} lang={lang} onChange={handleTabChange} />
       </div>
