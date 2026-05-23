@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, CheckCircle2, XCircle, Flame, BookOpen, RotateCcw } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, XCircle, Flame, BookOpen, RotateCcw, Volume2 } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
 import type { QuizQuestion, QuizAnswerResult } from '../api/client';
+import { speakArabic } from '../utils/speak';
+import { checkAchievements } from '../utils/achievements';
+import AchievementPopup from '../components/AchievementPopup';
+import type { Achievement } from '../utils/achievements';
 
 type Mode = 'visual' | 'written';
 
@@ -102,6 +106,13 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
   const [correctVal, setCorrectVal] = useState(0);
   const [totalVal, setTotalVal]     = useState(0);
 
+  // Wrong-answer review
+  const [wrongAnswers, setWrongAnswers] = useState<{ar: string; trans: string; correct: string}[]>([]);
+
+  // Achievements
+  const [achQueue, setAchQueue] = useState<Achievement[]>([]);
+  const [currentAch, setCurrentAch] = useState<Achievement | null>(null);
+
   async function startQuiz(m: Mode) {
     setLoading(true);
     setDone(false);
@@ -113,6 +124,7 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
     setStreakVal(0);
     setCorrectVal(0);
     setTotalVal(0);
+    setWrongAnswers([]);
     try {
       const q = await api.startQuiz(bookId, lesson, m);
       setQuestion(q);
@@ -157,6 +169,10 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
     } else {
       setFlashClass('flash-wrong');
       setStreakVal(0);
+      // record for error-review screen
+      if (question) {
+        setWrongAnswers(prev => [...prev, { ar: question.ar, trans: question.trans, correct: res.feedback }]);
+      }
 
       // Count errors — at MAX_ERRORS show the fail screen
       setErrorCount(prev => {
@@ -176,7 +192,15 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
     setFeedback({ correct: res.correct, msg: res.feedback });
     if (res.motivation) setMotivation(res.motivation);
 
-    if (res.done) { setDone(true); return; }
+    if (res.done) {
+      setDone(true);
+      // check perfect test
+      const isPerfect = (errorCount === 0 && !res.correct === false);
+      const newAchs = checkAchievements({ totalLearned: 0, streak: 0, questionsAsked: 1, perfectTest: wrongAnswers.length === 0 && res.correct });
+      if (newAchs.length > 0) setAchQueue(q => [...q, ...newAchs]);
+      void isPerfect;
+      return;
+    }
     if (res.next && !failed) {
       setTimeout(() => {
         setQuestion(res.next!);
@@ -203,7 +227,16 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
     );
   }
 
+  // Drain the achievement queue one by one
+  useEffect(() => {
+    if (currentAch || achQueue.length === 0) return;
+    setCurrentAch(achQueue[0]);
+    setAchQueue(q => q.slice(1));
+  }, [achQueue, currentAch]);
+
   return (
+    <>
+    <AchievementPopup achievement={currentAch} onDone={() => setCurrentAch(null)} />
     <div className="screen-enter" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <div className="page-header" style={{ background: 'var(--bg-card)' }}>
@@ -318,12 +351,74 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
           <p className="text-muted" style={{ textAlign: 'center', marginTop: 40 }}>{t(lang, 'loading')}</p>
 
         ) : done ? (
-          <div style={{ textAlign: 'center', marginTop: 60 }}>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🎉</div>
-            <h2 className="title-screen">{t(lang, 'done_title')}</h2>
-            <p className="text-muted" style={{ marginTop: 12 }}>{t(lang, 'done_msg')}</p>
-            <button className="btn btn-primary" style={{ marginTop: 32 }} onClick={() => startQuiz(mode)}>
-              ↺ Повторить
+          <div style={{ paddingBottom: 24 }}>
+            {/* Result header */}
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ fontSize: 56, marginBottom: 12 }}>
+                {wrongAnswers.length === 0 ? '🎉' : '✅'}
+              </div>
+              <h2 className="title-screen">{t(lang, 'done_title')}</h2>
+              <p className="text-muted" style={{ marginTop: 8, fontSize: 14 }}>{t(lang, 'done_msg')}</p>
+
+              {/* Score pill */}
+              <div style={{
+                display: 'inline-flex', gap: 16, marginTop: 16, padding: '10px 20px',
+                background: 'rgba(192,150,60,0.10)', border: '1px solid rgba(192,150,60,0.25)',
+                borderRadius: 14,
+              }}>
+                <span style={{ color: 'var(--success)', fontWeight: 700, fontSize: 15 }}>
+                  ✓ {correctVal}
+                </span>
+                <span style={{ color: 'var(--text-muted)' }}>·</span>
+                <span style={{ color: 'var(--danger)', fontWeight: 700, fontSize: 15 }}>
+                  ✗ {wrongAnswers.length}
+                </span>
+                <span style={{ color: 'var(--text-muted)' }}>·</span>
+                <span style={{ color: 'var(--accent-gold)', fontWeight: 700, fontSize: 15 }}>
+                  {totalVal > 0 ? Math.round((correctVal / totalVal) * 100) : 0}%
+                </span>
+              </div>
+            </div>
+
+            {/* Error review */}
+            {wrongAnswers.length > 0 && (
+              <div className="glass-card" style={{ marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <XCircle size={16} color="var(--danger)" />
+                  <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--danger)' }}>
+                    {t(lang, 'fail_errors_warn')} ({wrongAnswers.length})
+                  </span>
+                </div>
+                {wrongAnswers.map((w, i) => (
+                  <div key={i}>
+                    {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '10px 0' }} />}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <button
+                        onClick={() => speakArabic(w.ar)}
+                        style={{
+                          background: 'rgba(192,150,60,0.10)', border: '1px solid rgba(192,150,60,0.25)',
+                          borderRadius: 8, padding: '4px 7px', cursor: 'pointer',
+                          color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', flexShrink: 0,
+                        }}
+                      >
+                        <Volume2 size={13} />
+                      </button>
+                      <div style={{ flex: 1 }}>
+                        <div className="text-arabic" style={{ fontSize: 18, lineHeight: 1.4 }}>{w.ar}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>{w.trans}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>{w.correct}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button className="btn btn-primary" onClick={() => startQuiz(mode)}>
+              <RotateCcw size={16} />
+              {t(lang, 'btn_retry_test')}
             </button>
           </div>
 
@@ -344,7 +439,20 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
             </div>
 
             {/* Arabic word card */}
-            <div className="glass-card" style={{ textAlign: 'center', marginBottom: 24, padding: '28px 20px' }}>
+            <div className="glass-card" style={{ textAlign: 'center', marginBottom: 24, padding: '28px 20px', position: 'relative' }}>
+              <button
+                onClick={() => speakArabic(question.ar)}
+                style={{
+                  position: 'absolute', top: 12, right: 12,
+                  background: 'rgba(192,150,60,0.12)',
+                  border: '1px solid rgba(192,150,60,0.30)',
+                  borderRadius: 10, padding: '5px 8px',
+                  cursor: 'pointer', color: 'var(--accent-gold)',
+                  display: 'flex', alignItems: 'center',
+                }}
+              >
+                <Volume2 size={15} />
+              </button>
               <div className="text-arabic-lg">{question.ar}</div>
               <div className="text-trans" style={{ marginTop: 10 }}>{question.trans}</div>
               {mode === 'visual' && (
@@ -440,5 +548,6 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
         ) : null}
       </div>
     </div>
+    </>
   );
 }

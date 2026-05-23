@@ -140,4 +140,5 @@ export const ar = {
   btn_repeat_lesson: 'مراجعة الدرس',
   btn_retry_test: 'إعادة الاختبار',
   fail_errors_warn: 'خطأ',
+  achievements_title: 'الإنجازات',
 };

@@ -159,4 +159,5 @@ export const uz = {
   btn_repeat_lesson: "Darsni takrorlash",
   btn_retry_test: "Testni qayta sinab ko'rish",
   fail_errors_warn: 'Xato',
+  achievements_title: 'Yutuqlar',
 };

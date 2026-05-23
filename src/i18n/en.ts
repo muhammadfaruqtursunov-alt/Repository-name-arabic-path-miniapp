@@ -140,4 +140,5 @@ export const en = {
   btn_repeat_lesson: 'Review lesson',
   btn_retry_test: 'Retry test',
   fail_errors_warn: 'Wrong',
+  achievements_title: 'Achievements',
 };

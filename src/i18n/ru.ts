@@ -161,6 +161,7 @@ export const ru = {
   btn_repeat_lesson: 'Повторить урок',
   btn_retry_test: 'Попробовать тест снова',
   fail_errors_warn: 'Ошибка',
+  achievements_title: 'Достижения',
 };
 
 export type TranslationKeys = keyof typeof ru;

@@ -140,4 +140,5 @@ export const tj = {
   btn_repeat_lesson: 'Дарсро такрор кун',
   btn_retry_test: 'Санҷишро дубора иҷро кун',
   fail_errors_warn: 'Хато',
+  achievements_title: 'Дастовардҳо',
 };

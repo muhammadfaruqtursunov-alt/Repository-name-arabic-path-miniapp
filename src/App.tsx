@@ -7,6 +7,9 @@ import type { UserProfile, VolumeInfo } from './api/client';
 
 import BottomNav from './components/BottomNav';
 import type { NavTab } from './components/BottomNav';
+import AchievementPopup from './components/AchievementPopup';
+import { checkAchievements } from './utils/achievements';
+import type { Achievement } from './utils/achievements';
 
 import LanguageSelect   from './screens/LanguageSelect';
 import NameInput        from './screens/NameInput';
@@ -55,6 +58,16 @@ export default function App() {
   const [selectedLesson, setSelectedLesson] = useState(1);
   const [onboardingLang, setOnboardingLang] = useState<Lang>('ru');
   const [initError, setInitError] = useState<string | null>(null);
+
+  // Achievements
+  const [achQueue, setAchQueue] = useState<Achievement[]>([]);
+  const [currentAch, setCurrentAch] = useState<Achievement | null>(null);
+
+  useEffect(() => {
+    if (currentAch || achQueue.length === 0) return;
+    setCurrentAch(achQueue[0]);
+    setAchQueue(q => q.slice(1));
+  }, [achQueue, currentAch]);
 
   // ── Session time tracking ─────────────────────────────────────────
   const sessionStart = useRef<number>(Date.now());
@@ -149,6 +162,16 @@ export default function App() {
       const appLang = normalizeLang(profile.lang);
       setLang(appLang);
       setUser(profile);
+      // Check achievements on load
+      try {
+        const stats = await api.getStats();
+        const newAchs = checkAchievements({
+          totalLearned: stats.total_learned,
+          streak: stats.streak,
+          questionsAsked: stats.questions_asked,
+        });
+        if (newAchs.length > 0) setAchQueue(q => [...q, ...newAchs]);
+      } catch {}
       const vols = await api.getVolumes();
       setVolumes(vols);
       // Apply global background (local override takes priority)
@@ -436,6 +459,7 @@ export default function App() {
         style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}
         {...swipeHandlers}
       >
+        <AchievementPopup achievement={currentAch} onDone={() => setCurrentAch(null)} />
         <div key={tab} className={slideClass} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {tab === 'home' && (
             <Dashboard

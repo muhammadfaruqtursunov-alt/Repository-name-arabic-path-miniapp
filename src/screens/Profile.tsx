@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Layers, TrendingUp, Timer } from 'lucide-react';
+import { ACHIEVEMENTS, getUnlocked } from '../utils/achievements';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
@@ -23,6 +24,7 @@ function getLevel(totalLearned: number, lang: Lang): string {
 export default function Profile({ lang, user, onLangChange: _onLangChange, onResetProgress }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
+  const unlockedIds = getUnlocked();
   const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const avatarUrl = tgUser?.photo_url;
 
@@ -65,6 +67,42 @@ export default function Profile({ lang, user, onLangChange: _onLangChange, onRes
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Achievements */}
+      <div className="glass-card" style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <span style={{ fontSize: 18 }}>🏆</span>
+          <span className="title-card">{t(lang, 'achievements_title')}</span>
+          <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--accent-gold)', fontWeight: 700 }}>
+            {unlockedIds.length}/{ACHIEVEMENTS.length}
+          </span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+          {ACHIEVEMENTS.map(ach => {
+            const unlocked = unlockedIds.includes(ach.id);
+            return (
+              <div
+                key={ach.id}
+                title={ach.title}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  padding: '10px 4px',
+                  background: unlocked ? 'rgba(192,150,60,0.10)' : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${unlocked ? 'rgba(192,150,60,0.30)' : 'rgba(255,255,255,0.07)'}`,
+                  borderRadius: 12,
+                  opacity: unlocked ? 1 : 0.35,
+                  transition: 'opacity 200ms',
+                }}
+              >
+                <span style={{ fontSize: 24 }}>{ach.emoji}</span>
+                <span style={{ fontSize: 9, fontWeight: 600, color: unlocked ? 'var(--accent-gold)' : 'var(--text-muted)', textAlign: 'center', lineHeight: 1.2 }}>
+                  {ach.title}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Reset progress */}

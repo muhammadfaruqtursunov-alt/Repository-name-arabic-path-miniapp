@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, GraduationCap, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GraduationCap, Eye, Volume2 } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
 import type { WordCard } from '../api/client';
 import { useSwipe } from '../hooks/useSwipe';
+import { speakArabic } from '../utils/speak';
 
 interface Props {
   lang: Lang;
@@ -123,9 +124,22 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
           }}
           onClick={() => !revealed && setRevealed(true)}
         >
-          {/* Arabic word */}
-          <div className="text-arabic-lg" style={{ marginBottom: 10 }}>
-            {card.ar}
+          {/* Arabic word + speak button */}
+          <div style={{ position: 'relative', width: '100%', marginBottom: 10 }}>
+            <div className="text-arabic-lg">{card.ar}</div>
+            <button
+              onClick={e => { e.stopPropagation(); speakArabic(card.ar); }}
+              style={{
+                position: 'absolute', top: 0, right: 0,
+                background: 'rgba(192,150,60,0.12)',
+                border: '1px solid rgba(192,150,60,0.30)',
+                borderRadius: 10, padding: '5px 8px',
+                cursor: 'pointer', color: 'var(--accent-gold)',
+                display: 'flex', alignItems: 'center',
+              }}
+            >
+              <Volume2 size={15} />
+            </button>
           </div>
 
           {/* Transcription */}
