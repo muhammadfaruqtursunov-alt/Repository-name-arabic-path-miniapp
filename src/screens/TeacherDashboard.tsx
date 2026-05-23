@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSwipe } from '../hooks/useSwipe';
 import {
   MessageCircleQuestion, Megaphone, Mail, ImageIcon,
@@ -22,12 +22,12 @@ type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | 'stats' | null;
 type TeacherTab = 'dashboard' | 'settings';
 const TAB_ORDER: TeacherTab[] = ['dashboard', 'settings'];
 
-// â”€â”€ Rank medal by position â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Rank medal by position ────────────────────────────────────────
 function rankMedal(idx: number): string {
-  if (idx === 0) return 'ðŸ¥‡';
-  if (idx === 1) return 'ðŸ¥ˆ';
-  if (idx === 2) return 'ðŸ¥‰';
-  if (idx <= 9)  return 'ðŸ…';
+  if (idx === 0) return '🥇';
+  if (idx === 1) return '🥈';
+  if (idx === 2) return '🥉';
+  if (idx <= 9)  return '🏅';
   return `${idx + 1}.`;
 }
 
@@ -46,12 +46,12 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
 
   const swipeHandlers = useSwipe(handleSwipeLeft, handleSwipeRight);
 
-  // â”€â”€ Core data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Core data ──────────────────────────────────────────────────
   const [stats, setStats]   = useState<TeacherStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [panel, setPanel]   = useState<Panel>(null);
 
-  // â”€â”€ Questions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Questions ──────────────────────────────────────────────────
   const [questions, setQuestions]         = useState<TeacherQuestion[]>([]);
   const [answeredIds, setAnsweredIds]     = useState<Set<number>>(new Set());
   const [answerDraft, setAnswerDraft]     = useState<Record<number, string>>({});
@@ -60,7 +60,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   const [allQuestions, setAllQuestions]   = useState<AllQuestion[]>([]);
   const [allQLoading, setAllQLoading]     = useState(false);
 
-  // â”€â”€ Student list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Student list ───────────────────────────────────────────────
   const [allStudents, setAllStudents]         = useState<AllStudent[]>([]);
   const [allStudentsLoaded, setAllStudentsLoaded] = useState(false);
   const [showAllStudents, setShowAllStudents] = useState(false);
@@ -77,7 +77,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   const [resetDone, setResetDone]       = useState<Set<number>>(new Set());
   const [resetBusy, setResetBusy]       = useState(false);
 
-  // â”€â”€ Lazy students â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Lazy students ──────────────────────────────────────────────
   const [lazyStudents, setLazyStudents]   = useState<LazyStudent[]>([]);
   const [lazyLoaded, setLazyLoaded]       = useState(false);
   const [showLazy, setShowLazy]           = useState(false);
@@ -86,18 +86,18 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   const [lazyMsgSending, setLazyMsgSending] = useState<number | null>(null);
   const [lazyMsgSent, setLazyMsgSent]     = useState<Set<number>>(new Set());
 
-  // â”€â”€ Broadcast panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Broadcast panel ────────────────────────────────────────────
   const [broadcastMsg, setBroadcastMsg]     = useState('');
   const [broadcastSending, setBroadcastSending] = useState(false);
   const [broadcastResult, setBroadcastResult]   = useState<string | null>(null);
 
-  // â”€â”€ Personal message panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Personal message panel ─────────────────────────────────────
   const [msgStudentId, setMsgStudentId] = useState<number | null>(null);
   const [msgText, setMsgText]           = useState('');
   const [msgSending, setMsgSending]     = useState(false);
   const [msgResult, setMsgResult]       = useState<string | null>(null);
 
-  // â”€â”€ Background panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Background panel ───────────────────────────────────────────
   const [globalBg, setGlobalBg]           = useState('');
   const [globalBgSmall, setGlobalBgSmall] = useState('');
   const [bgLoading, setBgLoading]         = useState(false);
@@ -105,7 +105,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   const [bgSaved, setBgSaved]             = useState(false);
   const bgFileRef = useRef<HTMLInputElement>(null);
 
-  // â”€â”€ Initial load â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Initial load ───────────────────────────────────────────────
   useEffect(() => {
     api.getTeacherStats().then(setStats).finally(() => setLoading(false));
     api.getAppConfig().then(cfg => {
@@ -113,7 +113,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     }).catch(() => {});
   }, []);
 
-  // â”€â”€ Panel toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Panel toggle ───────────────────────────────────────────────
   function togglePanel(p: Panel) {
     if (panel === p) { setPanel(null); return; }
     setPanel(p);
@@ -122,7 +122,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     if (p === 'stats') loadAllStudents();
   }
 
-  // â”€â”€ Question loaders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Question loaders ───────────────────────────────────────────
   async function loadQuestions() {
     try { const rows = await api.teacherGetQuestions(); setQuestions(rows); } catch {}
   }
@@ -147,11 +147,11 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
       setAnsweredIds(prev => new Set([...prev, qId]));
       setAnswerDraft(prev => ({ ...prev, [qId]: '' }));
       if (stats) setStats({ ...stats, unanswered_questions: Math.max(0, stats.unanswered_questions - 1) });
-    } catch (e) { alert('ÐžÑˆÐ¸Ð±ÐºÐ°: ' + String(e)); }
+    } catch (e) { alert('Ошибка: ' + String(e)); }
     finally { setAnswerSending(null); }
   }
 
-  // â”€â”€ Student list helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Student list helpers ───────────────────────────────────────
   async function loadAllStudents() {
     if (allStudentsLoaded) { setShowAllStudents(true); return; }
     try {
@@ -179,7 +179,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
         setStudentMsgDraft(p => ({ ...p, [userId]: '' }));
         setShowMsgFor(null);
       }
-    } catch (e) { alert('ÐžÑˆÐ¸Ð±ÐºÐ°: ' + String(e)); }
+    } catch (e) { alert('Ошибка: ' + String(e)); }
     finally { if (isLazy) setLazyMsgSending(null); else setStudentMsgSending(null); }
   }
 
@@ -191,7 +191,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
       setConfirmReset(null);
       // Refresh stats
       api.getTeacherStats().then(setStats).catch(() => {});
-    } catch (e) { alert('ÐžÑˆÐ¸Ð±ÐºÐ°: ' + String(e)); }
+    } catch (e) { alert('Ошибка: ' + String(e)); }
     finally { setResetBusy(false); }
   }
 
@@ -204,15 +204,15 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     } catch {}
   }
 
-  // â”€â”€ Broadcast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Broadcast ─────────────────────────────────────────────────
   async function sendBroadcast() {
     if (!broadcastMsg.trim()) return;
     setBroadcastSending(true); setBroadcastResult(null);
     try {
       const res = await api.teacherBroadcast(broadcastMsg.trim());
-      setBroadcastResult(`âœ… ÐžÑ‚Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¾: ${res.sent}, Ð¾ÑˆÐ¸Ð±Ð¾Ðº: ${res.failed}`);
+      setBroadcastResult(`✅ Отправлено: ${res.sent}, ошибок: ${res.failed}`);
       setBroadcastMsg('');
-    } catch (e) { setBroadcastResult('âŒ ÐžÑˆÐ¸Ð±ÐºÐ°: ' + String(e)); }
+    } catch (e) { setBroadcastResult('❌ Ошибка: ' + String(e)); }
     finally { setBroadcastSending(false); }
   }
 
@@ -221,12 +221,12 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     setMsgSending(true); setMsgResult(null);
     try {
       await api.teacherPersonalMessage(msgStudentId, msgText.trim());
-      setMsgResult('âœ… Ð¡Ð¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¾'); setMsgText('');
-    } catch (e) { setMsgResult('âŒ ÐžÑˆÐ¸Ð±ÐºÐ°: ' + String(e)); }
+      setMsgResult('✅ Сообщение отправлено'); setMsgText('');
+    } catch (e) { setMsgResult('❌ Ошибка: ' + String(e)); }
     finally { setMsgSending(false); }
   }
 
-  // â”€â”€ Background â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Background ────────────────────────────────────────────────
   async function handleBgFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]; if (!file) return;
     setBgLoading(true);
@@ -234,7 +234,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
       const full  = await resizeImageToDataUrl(file, 1080, 0.75);
       const small = await resizeImageToDataUrl(full, 600, 0.60);
       setGlobalBg(full); setGlobalBgSmall(small); onBgChange(full);
-    } catch { alert('ÐÐµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ Ð·Ð°Ð³Ñ€ÑƒÐ·Ð¸Ñ‚ÑŒ Ñ„Ð¾Ñ‚Ð¾'); }
+    } catch { alert('Не удалось загрузить фото'); }
     finally { setBgLoading(false); if (bgFileRef.current) bgFileRef.current.value = ''; }
   }
 
@@ -242,7 +242,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     if (!globalBgSmall) return;
     setBgSaving(true); setBgSaved(false);
     try { await api.setGlobalBg(globalBgSmall); setBgSaved(true); setTimeout(() => setBgSaved(false), 2500); }
-    catch (e) { alert('ÐžÑˆÐ¸Ð±ÐºÐ°: ' + String(e)); }
+    catch (e) { alert('Ошибка: ' + String(e)); }
     finally { setBgSaving(false); }
   }
 
@@ -251,7 +251,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     try { await api.setGlobalBg(''); } catch {}
   }
 
-  // â”€â”€ Settings tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Settings tab ──────────────────────────────────────────────
   if (tab === 'settings') {
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }} {...swipeHandlers}>
@@ -264,7 +264,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <p style={{ color: 'var(--text-muted)' }}>Ð—Ð°Ð³Ñ€ÑƒÐ·ÐºÐ°...</p>
+        <p style={{ color: 'var(--text-muted)' }}>Загрузка...</p>
       </div>
     );
   }
@@ -279,15 +279,15 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }} {...swipeHandlers}>
       <div className="page-content" style={{ paddingTop: 24, paddingBottom: 90 }}>
-        <h1 className="title-screen" style={{ marginBottom: 20 }}>ðŸ‘¨â€ðŸ« ÐšÐ°Ð±Ð¸Ð½ÐµÑ‚ ÑƒÑ‡Ð¸Ñ‚ÐµÐ»Ñ</h1>
+        <h1 className="title-screen" style={{ marginBottom: 20 }}>👨‍🏫 Кабинет учителя</h1>
 
-        {/* â”€â”€ Summary cards 2Ã—2 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Summary cards 2×2 ─────────────────────────────────── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
           {[
-            { label: 'Ð£Ñ‡ÐµÐ½Ð¸ÐºÐ¾Ð²',      value: stats?.total_students ?? 0,      emoji: 'ðŸ“‹' },
-            { label: 'ÐÐºÑ‚Ð¸Ð²Ð½Ñ‹Ñ…',      value: stats?.active_students ?? 0,      emoji: 'âœ…' },
-            { label: 'Ð¡Ð»Ð¾Ð² Ð²Ñ‹ÑƒÑ‡ÐµÐ½Ð¾',  value: stats?.total_words_learned ?? 0,  emoji: 'ðŸ“š' },
-            { label: 'Ð’Ð¾Ð¿Ñ€Ð¾ÑÐ¾Ð²',      value: stats?.unanswered_questions ?? 0, emoji: 'â“' },
+            { label: 'Учеников',      value: stats?.total_students ?? 0,      emoji: '📋' },
+            { label: 'Активных',      value: stats?.active_students ?? 0,      emoji: '✅' },
+            { label: 'Слов выучено',  value: stats?.total_words_learned ?? 0,  emoji: '📚' },
+            { label: 'Вопросов',      value: stats?.unanswered_questions ?? 0, emoji: '❓' },
           ].map(card => (
             <div key={card.label} className="glass-card" style={{ textAlign: 'center', padding: 16 }}>
               <div style={{ fontSize: 26 }}>{card.emoji}</div>
@@ -299,11 +299,11 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           ))}
         </div>
 
-        {/* â”€â”€ Action buttons 2Ã—2 + 1 full-width â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Action buttons 2×2 + 1 full-width ───────────────── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
           <ActionBtn
             icon={<MessageCircleQuestion size={20} />}
-            label="Ð’Ð¾Ð¿Ñ€Ð¾ÑÑ‹"
+            label="Вопросы"
             badge={stats?.unanswered_questions ?? 0}
             active={panel === 'questions'}
             onClick={() => togglePanel('questions')}
@@ -311,21 +311,21 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           />
           <ActionBtn
             icon={<Megaphone size={20} />}
-            label="Ð Ð°ÑÑÑ‹Ð»ÐºÐ°"
+            label="Рассылка"
             active={panel === 'broadcast'}
             onClick={() => togglePanel('broadcast')}
             color="var(--accent-gold)"
           />
           <ActionBtn
             icon={<Mail size={20} />}
-            label="Ð›Ð¸Ñ‡Ð½Ð¾Ðµ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ"
+            label="Личное сообщение"
             active={panel === 'message'}
             onClick={() => togglePanel('message')}
             color="var(--accent-teal)"
           />
           <ActionBtn
             icon={<ImageIcon size={20} />}
-            label="Ð¤Ð¾Ð½ ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ¾Ð²"
+            label="Фон учеников"
             active={panel === 'bg'}
             onClick={() => togglePanel('bg')}
             color="var(--accent-sage)"
@@ -334,7 +334,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           <div style={{ gridColumn: 'span 2' }}>
             <ActionBtn
               icon={<BarChart2 size={20} />}
-              label="ðŸ“Š Ð¡Ñ‚Ð°Ñ‚Ð¸ÑÑ‚Ð¸ÐºÐ° ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ¾Ð²"
+              label="📊 Статистика учеников"
               active={panel === 'stats'}
               onClick={() => togglePanel('stats')}
               color="var(--accent-gold)"
@@ -343,13 +343,13 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           </div>
         </div>
 
-        {/* â”€â”€ Questions panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Questions panel ───────────────────────────────────── */}
         {panel === 'questions' && (
           <div className="glass-card" style={{ marginBottom: 16 }}>
             {/* Header row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <p className="title-card" style={{ flex: 1, margin: 0 }}>
-                â“ Ð’Ð¾Ð¿Ñ€Ð¾ÑÑ‹ Ð±ÐµÐ· Ð¾Ñ‚Ð²ÐµÑ‚Ð°
+                ❓ Вопросы без ответа
                 {pendingQs.length > 0 && (
                   <span style={{
                     marginLeft: 8, background: 'var(--danger)', color: '#fff',
@@ -369,13 +369,13 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                 }}
               >
                 <History size={13} />
-                Ð˜ÑÑ‚Ð¾Ñ€Ð¸Ñ
+                История
               </button>
             </div>
 
             {/* Unanswered questions */}
             {pendingQs.length === 0 ? (
-              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>ÐÐµÑ‚ Ð½Ð¾Ð²Ñ‹Ñ… Ð²Ð¾Ð¿Ñ€Ð¾ÑÐ¾Ð² ðŸŽ‰</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Нет новых вопросов 🎉</p>
             ) : (
               pendingQs.map(q => (
                 <div key={q.id} style={{ marginBottom: 16 }}>
@@ -389,7 +389,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                   <div style={{ display: 'flex', gap: 8 }}>
                     <textarea
                       className="input-field"
-                      placeholder="Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¾Ñ‚Ð²ÐµÑ‚..."
+                      placeholder="Введите ответ..."
                       value={answerDraft[q.id] ?? ''}
                       onChange={e => setAnswerDraft(p => ({ ...p, [q.id]: e.target.value }))}
                       style={{ flex: 1, minHeight: 60, fontSize: 13 }}
@@ -412,12 +412,12 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
             {showQHistory && (
               <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 10 }}>
-                  ðŸ“œ Ð˜ÑÑ‚Ð¾Ñ€Ð¸Ñ Ð²Ð¾Ð¿Ñ€Ð¾ÑÐ¾Ð²
+                  📜 История вопросов
                 </p>
                 {allQLoading ? (
-                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Ð—Ð°Ð³Ñ€ÑƒÐ·ÐºÐ°...</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Загрузка...</p>
                 ) : allQuestions.length === 0 ? (
-                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>ÐÐµÑ‚ Ð²Ð¾Ð¿Ñ€Ð¾ÑÐ¾Ð²</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Нет вопросов</p>
                 ) : (
                   allQuestions.map(q => (
                     <div key={q.id} style={{ marginBottom: 12, opacity: q.answered ? 0.7 : 1 }}>
@@ -428,16 +428,16 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                         </span>
                         {q.answered && (
                           <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--accent-teal)', fontWeight: 600 }}>
-                            <CheckCircle2 size={10} style={{ display: 'inline', marginRight: 3 }} />Ð¾Ñ‚Ð²ÐµÑ‡ÐµÐ½Ð¾
+                            <CheckCircle2 size={10} style={{ display: 'inline', marginRight: 3 }} />отвечено
                           </span>
                         )}
                       </div>
                       <p style={{ fontSize: 13, color: 'var(--text-main)', marginBottom: q.answered ? 4 : 0 }}>
-                        â“ {q.question}
+                        ❓ {q.question}
                       </p>
                       {q.answered && q.answer && (
                         <p style={{ fontSize: 12, color: 'var(--accent-teal)', paddingLeft: 8, borderLeft: '2px solid var(--accent-teal)', marginTop: 4 }}>
-                          ðŸ’¬ {q.answer}
+                          💬 {q.answer}
                         </p>
                       )}
                       <div style={{ height: 1, background: 'var(--border)', marginTop: 8 }} />
@@ -449,44 +449,44 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           </div>
         )}
 
-        {/* â”€â”€ Broadcast panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Broadcast panel ───────────────────────────────────── */}
         {panel === 'broadcast' && (
           <div className="glass-card" style={{ marginBottom: 16 }}>
-            <p className="title-card" style={{ marginBottom: 12 }}>ðŸ“¢ Ð Ð°ÑÑÑ‹Ð»ÐºÐ° Ð²ÑÐµÐ¼ ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ°Ð¼</p>
+            <p className="title-card" style={{ marginBottom: 12 }}>📢 Рассылка всем ученикам</p>
             <textarea
               className="input-field"
-              placeholder="Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ Ð´Ð»Ñ Ñ€Ð°ÑÑÑ‹Ð»ÐºÐ¸..."
+              placeholder="Введите сообщение для рассылки..."
               value={broadcastMsg}
               onChange={e => setBroadcastMsg(e.target.value)}
               style={{ marginBottom: 10 }}
             />
             <button className="btn btn-gold" disabled={broadcastSending || !broadcastMsg.trim()} onClick={sendBroadcast}>
-              {broadcastSending ? 'ÐžÑ‚Ð¿Ñ€Ð°Ð²ÐºÐ°...' : 'ðŸ“¢ ÐžÑ‚Ð¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ Ð²ÑÐµÐ¼'}
+              {broadcastSending ? 'Отправка...' : '📢 Отправить всем'}
             </button>
             {broadcastResult && <p style={{ marginTop: 10, fontSize: 13, color: 'var(--accent-teal)' }}>{broadcastResult}</p>}
           </div>
         )}
 
-        {/* â”€â”€ Personal message panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Personal message panel ────────────────────────────── */}
         {panel === 'message' && (
           <div className="glass-card" style={{ marginBottom: 16 }}>
-            <p className="title-card" style={{ marginBottom: 12 }}>âœ‰ï¸ Ð›Ð¸Ñ‡Ð½Ð¾Ðµ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ</p>
+            <p className="title-card" style={{ marginBottom: 12 }}>✉️ Личное сообщение</p>
             {!stats?.students?.length ? (
-              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>ÐÐµÑ‚ ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ¾Ð²</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Нет учеников</p>
             ) : (
               <>
                 <select className="input-field" style={{ marginBottom: 10 }}
                   value={msgStudentId ?? ''} onChange={e => setMsgStudentId(Number(e.target.value))}>
                   {stats.students.map(s => (
                     <option key={s.user_id} value={s.user_id}>
-                      {s.name} (ÐšÐ½.{s.current_book} Ð£Ñ€.{s.current_lesson})
+                      {s.name} (Кн.{s.current_book} Ур.{s.current_lesson})
                     </option>
                   ))}
                 </select>
-                <textarea className="input-field" placeholder="Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ..."
+                <textarea className="input-field" placeholder="Введите сообщение..."
                   value={msgText} onChange={e => setMsgText(e.target.value)} style={{ marginBottom: 10 }} />
                 <button className="btn btn-primary" disabled={msgSending || !msgText.trim()} onClick={sendPersonalMessage}>
-                  {msgSending ? 'ÐžÑ‚Ð¿Ñ€Ð°Ð²ÐºÐ°...' : 'âœ‰ï¸ ÐžÑ‚Ð¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ'}
+                  {msgSending ? 'Отправка...' : '✉️ Отправить'}
                 </button>
                 {msgResult && <p style={{ marginTop: 10, fontSize: 13, color: 'var(--accent-teal)' }}>{msgResult}</p>}
               </>
@@ -494,12 +494,12 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           </div>
         )}
 
-        {/* â”€â”€ Background panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Background panel ──────────────────────────────────── */}
         {panel === 'bg' && (
           <div className="glass-card" style={{ marginBottom: 16 }}>
-            <p className="title-card" style={{ marginBottom: 4 }}>ðŸ–¼ï¸ Ð¤Ð¾Ð½ Ð´Ð»Ñ Ð²ÑÐµÑ… ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ¾Ð²</p>
+            <p className="title-card" style={{ marginBottom: 4 }}>🖼️ Фон для всех учеников</p>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
-              Ð—Ð°Ð³Ñ€ÑƒÐ·Ð¸Ñ‚Ðµ Ñ„Ð¾Ñ‚Ð¾ â€” ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ¸ ÑƒÐ²Ð¸Ð´ÑÑ‚ ÐµÐ³Ð¾ Ð¿Ñ€Ð¸ ÑÐ»ÐµÐ´ÑƒÑŽÑ‰ÐµÐ¼ Ð¾Ñ‚ÐºÑ€Ñ‹Ñ‚Ð¸Ð¸ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ
+              Загрузите фото — ученики увидят его при следующем открытии приложения
             </p>
             {globalBg ? (
               <div style={{
@@ -512,7 +512,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                   background: 'linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.45))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>ðŸ“¸ Ð¤Ð¾Ñ‚Ð¾ Ð²Ñ‹Ð±Ñ€Ð°Ð½Ð¾</span>
+                  <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>📸 Фото выбрано</span>
                 </div>
               </div>
             ) : (
@@ -521,12 +521,12 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                 border: '1.5px dashed rgba(192,150,60,0.25)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 marginBottom: 12, color: 'var(--text-muted)', fontSize: 13,
-              }}>Ð¤Ð¾Ñ‚Ð¾ Ð½Ðµ Ð²Ñ‹Ð±Ñ€Ð°Ð½Ð¾</div>
+              }}>Фото не выбрано</div>
             )}
             <input ref={bgFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBgFileChange} />
             <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} disabled={bgLoading} onClick={() => bgFileRef.current?.click()}>
-                <Camera size={16} /> {bgLoading ? 'Ð—Ð°Ð³Ñ€ÑƒÐ·ÐºÐ°...' : 'ðŸ“· Ð’Ñ‹Ð±Ñ€Ð°Ñ‚ÑŒ Ð¸Ð· Ð³Ð°Ð»ÐµÑ€ÐµÐ¸'}
+                <Camera size={16} /> {bgLoading ? 'Загрузка...' : '📷 Выбрать из галереи'}
               </button>
               {globalBg && (
                 <button className="btn btn-danger btn-sm" style={{ width: 48, padding: 0 }} onClick={removeGlobalBg}>
@@ -536,35 +536,35 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
             </div>
             {globalBg && (
               <button className="btn btn-primary" disabled={bgSaving} onClick={saveGlobalBg}>
-                {bgSaved ? 'âœ… Ð¡Ð¾Ñ…Ñ€Ð°Ð½ÐµÐ½Ð¾ Ð´Ð»Ñ Ð²ÑÐµÑ…!' : bgSaving ? 'Ð¡Ð¾Ñ…Ñ€Ð°Ð½ÑÐµÐ¼...' : 'ðŸ’¾ ÐŸÑ€Ð¸Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ð´Ð»Ñ Ð²ÑÐµÑ… ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ¾Ð²'}
+                {bgSaved ? '✅ Сохранено для всех!' : bgSaving ? 'Сохраняем...' : '💾 Применить для всех учеников'}
               </button>
             )}
           </div>
         )}
 
-        {/* â”€â”€ Stats panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Stats panel ───────────────────────────────────────── */}
         {panel === 'stats' && (
           <div className="glass-card" style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <BarChart2 size={16} color="var(--accent-gold)" />
-              <p className="title-card" style={{ flex: 1, margin: 0 }}>ðŸ“Š Ð¡Ñ‚Ð°Ñ‚Ð¸ÑÑ‚Ð¸ÐºÐ° ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ¾Ð²</p>
+              <p className="title-card" style={{ flex: 1, margin: 0 }}>📊 Статистика учеников</p>
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                {allStudents.length > 0 ? `${allStudents.length} Ñ‡ÐµÐ».` : ''}
+                {allStudents.length > 0 ? `${allStudents.length} чел.` : ''}
               </span>
             </div>
 
             {!allStudentsLoaded ? (
-              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Ð—Ð°Ð³Ñ€ÑƒÐ·ÐºÐ°...</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Загрузка...</p>
             ) : allStudents.length === 0 ? (
-              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>ÐÐµÑ‚ ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ¾Ð²</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Нет учеников</p>
             ) : (
               allStudents.map((s, i) => {
                 const lvl = s.learned < 70
-                  ? { emoji: 'ðŸŸ¢', label: 'ÐÐ°Ñ‡Ð¸Ð½Ð°ÑŽÑ‰Ð¸Ð¹' }
+                  ? { emoji: '🟢', label: 'Начинающий' }
                   : s.learned < 200
-                  ? { emoji: 'ðŸŸ¡', label: 'Ð¡Ñ€ÐµÐ´Ð½Ð¸Ð¹' }
-                  : { emoji: 'ðŸ”´', label: 'ÐŸÑ€Ð¾Ð´Ð²Ð¸Ð½ÑƒÑ‚Ñ‹Ð¹' };
-                const bookEmoji = s.current_book === 1 ? 'ðŸ“—' : s.current_book === 2 ? 'ðŸ“˜' : 'ðŸ“•';
+                  ? { emoji: '🟡', label: 'Средний' }
+                  : { emoji: '🔴', label: 'Продвинутый' };
+                const bookEmoji = s.current_book === 1 ? '📗' : s.current_book === 2 ? '📘' : '📕';
                 return (
                   <div key={s.user_id}>
                     {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '10px 0' }} />}
@@ -590,13 +590,13 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                         display: 'flex', alignItems: 'center', gap: 4,
                         fontSize: 12, fontWeight: 700, color: 'var(--accent-gold)',
                       }}>
-                        ðŸ“š {s.learned} ÑÐ».
+                        📚 {s.learned} сл.
                       </span>
                       <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        {bookEmoji} ÐšÐ½Ð¸Ð³Ð° {s.current_book}, Ð£Ñ€. {s.current_lesson}
+                        {bookEmoji} Книга {s.current_book}, Ур. {s.current_lesson}
                       </span>
                       <span style={{ fontSize: 12, color: 'var(--accent-teal)' }}>
-                        â± {formatAppTime(s.total_app_time ?? 0)}
+                        ⏱ {formatAppTime(s.total_app_time ?? 0)}
                       </span>
                     </div>
                   </div>
@@ -606,25 +606,25 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           </div>
         )}
 
-        {/* â”€â”€ Students list (management only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Students list (management only) ───────────────────── */}
         <div className="glass-card" style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Users size={16} color="var(--accent-gold)" />
-            <p className="title-card" style={{ flex: 1, margin: 0 }}>ðŸ† Ð£Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ°Ð¼Ð¸</p>
+            <p className="title-card" style={{ flex: 1, margin: 0 }}>🏆 Управление учениками</p>
             <button
               onClick={() => showAllStudents ? setShowAllStudents(false) : loadAllStudents()}
               style={{
                 fontSize: 11, fontWeight: 600, color: 'var(--accent-teal)',
-                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(192,150,60,0.25)',
+                background: 'rgba(45,212,160,0.1)', border: '1px solid rgba(192,150,60,0.25)',
                 borderRadius: 8, padding: '4px 10px', cursor: 'pointer',
               }}
             >
-              {showAllStudents ? 'â–² Ð¡Ð²ÐµÑ€Ð½ÑƒÑ‚ÑŒ' : `Ð’ÑÐµ (${stats?.total_students ?? 'â€¦'})`}
+              {showAllStudents ? '▲ Свернуть' : `Все (${stats?.total_students ?? '…'})`}
             </button>
           </div>
 
           {studentsToShow.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>ÐŸÐ¾ÐºÐ° Ð½ÐµÑ‚ ÑƒÑ‡ÐµÐ½Ð¸ÐºÐ¾Ð²</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Пока нет учеников</p>
           ) : (
             studentsToShow.map((s, i) => {
               const isExpanded = expandedStudent === s.user_id;
@@ -636,7 +636,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                 <div key={s.user_id}>
                   {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '6px 0' }} />}
 
-                  {/* Main row â€” tap to expand */}
+                  {/* Main row — tap to expand */}
                   <div
                     style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '4px 0' }}
                     onClick={() => {
@@ -651,7 +651,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                     </span>
                     <span style={{ flex: 1, fontWeight: 500, fontSize: 13, color: isDone ? 'var(--text-muted)' : 'var(--text-main)' }}>
                       {s.name}
-                      {isDone && <span style={{ fontSize: 10, color: 'var(--danger)', marginLeft: 6 }}>âœ“ ÑÐ±Ñ€Ð¾ÑˆÐµÐ½</span>}
+                      {isDone && <span style={{ fontSize: 10, color: 'var(--danger)', marginLeft: 6 }}>✓ сброшен</span>}
                     </span>
                     <span style={{ fontSize: 11, color: isExpanded ? 'var(--accent-teal)' : 'var(--text-muted)', marginLeft: 2 }}>
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -675,7 +675,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                             setConfirmReset(null);
                           }}
                         >
-                          {msgSent ? 'âœ… ÐžÑ‚Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¾' : 'âœ‰ï¸ ÐÐ°Ð¿Ð¸ÑÐ°Ñ‚ÑŒ'}
+                          {msgSent ? '✅ Отправлено' : '✉️ Написать'}
                         </button>
                         <button
                           className="btn btn-danger btn-sm"
@@ -686,7 +686,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                             setShowMsgFor(null);
                           }}
                         >
-                          <RotateCcw size={12} /> Ð¡Ð±Ñ€Ð¾ÑÐ¸Ñ‚ÑŒ
+                          <RotateCcw size={12} /> Сбросить
                         </button>
                       </div>
 
@@ -695,7 +695,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                           <textarea
                             className="input-field"
-                            placeholder="Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ..."
+                            placeholder="Введите сообщение..."
                             value={studentMsgDraft[s.user_id] ?? ''}
                             onChange={ev => setStudentMsgDraft(p => ({ ...p, [s.user_id]: ev.target.value }))}
                             style={{ flex: 1, minHeight: 56, fontSize: 12 }}
@@ -716,17 +716,17 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                       {confirmReset === s.user_id && (
                         <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(224,85,85,0.12)', borderRadius: 10 }}>
                           <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>
-                            âš ï¸ Ð¡Ð±Ñ€Ð¾ÑÐ¸Ñ‚ÑŒ Ð²ÐµÑÑŒ Ð¿Ñ€Ð¾Ð³Ñ€ÐµÑÑ {s.name}? Ð­Ñ‚Ð¾ Ð½ÐµÐ»ÑŒÐ·Ñ Ð¾Ñ‚Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ.
+                            ⚠️ Сбросить весь прогресс {s.name}? Это нельзя отменить.
                           </p>
                           <div style={{ display: 'flex', gap: 8 }}>
                             <button className="btn btn-ghost btn-sm" style={{ flex: 1 }}
                               onClick={e => { e.stopPropagation(); setConfirmReset(null); }}>
-                              ÐžÑ‚Ð¼ÐµÐ½Ð°
+                              Отмена
                             </button>
                             <button className="btn btn-danger btn-sm" style={{ flex: 1 }}
                               disabled={resetBusy}
                               onClick={e => { e.stopPropagation(); doResetStudent(s.user_id); }}>
-                              {resetBusy ? '...' : <><RefreshCw size={11} /> Ð¡Ð±Ñ€Ð¾ÑÐ¸Ñ‚ÑŒ</>}
+                              {resetBusy ? '...' : <><RefreshCw size={11} /> Сбросить</>}
                             </button>
                           </div>
                         </div>
@@ -739,7 +739,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           )}
         </div>
 
-        {/* â”€â”€ Lazy students â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Lazy students ─────────────────────────────────────── */}
         <div className="glass-card" style={{ marginBottom: 12 }}>
           <button
             onClick={loadLazy}
@@ -748,9 +748,9 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
             }}
           >
-            <span style={{ fontSize: 18 }}>ðŸ˜´</span>
+            <span style={{ fontSize: 18 }}>😴</span>
             <p className="title-card" style={{ flex: 1, margin: 0 }}>
-              Ð›ÐµÐ½Ñ‚ÑÐ¸
+              Лентяи
               {lazyLoaded && (
                 <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>
                   ({lazyStudents.length})
@@ -763,7 +763,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           {showLazy && (
             <div style={{ marginTop: 12 }}>
               {lazyStudents.length === 0 ? (
-                <p style={{ color: 'var(--accent-teal)', fontSize: 13 }}>ðŸŽ‰ Ð›ÐµÐ½Ñ‚ÑÐµÐ² Ð½ÐµÑ‚! Ð’ÑÐµ ÑƒÑ‡Ð°Ñ‚ÑÑ.</p>
+                <p style={{ color: 'var(--accent-teal)', fontSize: 13 }}>🎉 Лентяев нет! Все учатся.</p>
               ) : (
                 lazyStudents.map((s, i) => {
                   const isExpanded = lazyMsgFor === s.user_id;
@@ -773,23 +773,23 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                       {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '8px 0' }} />}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 13, color: 'var(--text-muted)', minWidth: 20, textAlign: 'center' }}>
-                          {i + 1}.ðŸ˜´
+                          {i + 1}.😴
                         </span>
                         <span style={{ flex: 1, fontSize: 13, color: 'var(--text-main)' }}>{s.name}</span>
-                        <span style={{ fontSize: 10, color: 'var(--text-muted)', marginRight: 4 }}>ðŸŒ {s.lang.toUpperCase()}</span>
+                        <span style={{ fontSize: 10, color: 'var(--text-muted)', marginRight: 4 }}>🌐 {s.lang.toUpperCase()}</span>
                         <button
                           className="btn btn-ghost btn-sm"
                           style={{ fontSize: 11, padding: '4px 10px' }}
                           onClick={() => setLazyMsgFor(isExpanded ? null : s.user_id)}
                         >
-                          {sent ? 'âœ…' : 'âœ‰ï¸'}
+                          {sent ? '✅' : '✉️'}
                         </button>
                       </div>
                       {isExpanded && (
                         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                           <textarea
                             className="input-field"
-                            placeholder="ÐÐ°Ð¿Ð¸ÑˆÐ¸Ñ‚Ðµ Ð»ÐµÐ½Ð¸Ð²Ð¾Ð¼Ñƒ ÑƒÑ‡ÐµÐ½Ð¸ÐºÑƒ..."
+                            placeholder="Напишите ленивому ученику..."
                             value={lazyMsgDraft[s.user_id] ?? ''}
                             onChange={e => setLazyMsgDraft(p => ({ ...p, [s.user_id]: e.target.value }))}
                             style={{ flex: 1, minHeight: 56, fontSize: 12 }}
@@ -818,7 +818,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   );
 }
 
-// â”€â”€ Sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Sub-components ─────────────────────────────────────────────────
 
 function ActionBtn({ icon, label, badge, active, onClick, color, wide }: {
   icon: React.ReactNode; label: string; badge?: number;
@@ -830,7 +830,7 @@ function ActionBtn({ icon, label, badge, active, onClick, color, wide }: {
       style={{
         position: 'relative', width: '100%',
         background: active ? 'rgba(192,150,60,0.12)' : 'rgba(13,14,24,0.65)',
-        border: `1.5px solid ${active ? 'rgba(192,150,60,0.40)' : 'rgba(192,150,60,0.15)'}`,
+        border: `1.5px solid ${active ? 'rgba(192,150,60,0.40)' : 'rgba(45,212,160,0.2)'}`,
         borderRadius: 16,
         padding: wide ? '12px 16px' : '14px 12px',
         display: 'flex',
@@ -858,7 +858,7 @@ function ActionBtn({ icon, label, badge, active, onClick, color, wide }: {
       )}
       {!wide && (
         <span style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: -2 }}>
-          {active ? 'â–²' : 'â–¾'}
+          {active ? '▲' : '▾'}
         </span>
       )}
     </button>
@@ -872,7 +872,7 @@ function TeacherNav({ tab, setTab, unanswered }: {
     <nav className="bottom-nav">
       <button className={`bottom-nav__item${tab === 'dashboard' ? ' active' : ''}`} onClick={() => setTab('dashboard')}>
         <Users size={20} />
-        <span>ÐšÐ°Ð±Ð¸Ð½ÐµÑ‚</span>
+        <span>Кабинет</span>
       </button>
       <button
         className={`bottom-nav__item${tab === 'settings' ? ' active' : ''}`}
@@ -891,7 +891,7 @@ function TeacherNav({ tab, setTab, unanswered }: {
           </span>
         )}
         <MessageCircleQuestion size={20} />
-        <span>ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸</span>
+        <span>Настройки</span>
       </button>
     </nav>
   );

@@ -15,7 +15,7 @@
 
   /* Text */
   --text-main:   #E4E5EC;
-  --text-muted:  #52535E;
+  --text-muted:  #8A8C9A;
 
   /* Borders — neutral, no color tint */
   --border:      rgba(255, 255, 255, 0.07);
@@ -62,6 +62,21 @@ body {
   background: var(--bg-deep);
   min-height: 100dvh;
   overflow-x: hidden;
+}
+
+/* ─── Vignette — dark edges, lighter center ──────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    transparent 38%,
+    rgba(0, 0, 0, 0.30) 68%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
 }
 
 /* ─── Full-screen background ─────────────────────────────────── */
@@ -194,28 +209,40 @@ body {
 .btn-primary {
   background: linear-gradient(145deg, #D4A93E, #9A7028);
   color: #07080E;
-  box-shadow: 0 4px 18px rgba(192, 150, 60, 0.28);
+  box-shadow:
+    0 4px 18px rgba(192, 150, 60, 0.30),
+    0 8px 28px rgba(0, 0, 0, 0.50),
+    0 1px 0 rgba(255, 255, 255, 0.12) inset;
 }
 
 /* Gold outline */
 .btn-gold {
-  background: rgba(192, 150, 60, 0.10);
+  background: linear-gradient(145deg, rgba(192,150,60,0.14), rgba(192,150,60,0.06));
   color: var(--accent-gold);
   border: 1px solid rgba(192, 150, 60, 0.35);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.45),
+    0 1px 0 rgba(255, 255, 255, 0.07) inset;
 }
 
-/* Ghost — near-invisible */
+/* Ghost — dark glass */
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(228, 229, 236, 0.75);
+  background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  color: rgba(228, 229, 236, 0.80);
   border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.50),
+    0 1px 0 rgba(255, 255, 255, 0.07) inset;
 }
 
 /* Danger */
 .btn-danger {
-  background: rgba(192, 57, 43, 0.10);
+  background: linear-gradient(145deg, rgba(192,57,43,0.16), rgba(192,57,43,0.06));
   color: var(--danger);
   border: 1px solid rgba(192, 57, 43, 0.28);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.45),
+    0 1px 0 rgba(255, 255, 255, 0.05) inset;
 }
 
 .btn-sm {

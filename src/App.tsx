@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSwipe } from './hooks/useSwipe';
 import { t, normalizeLang, getLangDir } from './i18n';
 import type { Lang } from './i18n';
@@ -34,7 +34,7 @@ type Screen =
   | 'umrah'
   | 'ask_teacher';
 
-// â”€â”€ Background helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Background helpers ────────────────────────────────────────────
 const BG_STORAGE_KEY = 'ap_bg_url';
 
 function applyBackground(url: string) {
@@ -56,7 +56,7 @@ export default function App() {
   const [onboardingLang, setOnboardingLang] = useState<Lang>('ru');
   const [initError, setInitError] = useState<string | null>(null);
 
-  // â”€â”€ Session time tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Session time tracking ─────────────────────────────────────────
   const sessionStart = useRef<number>(Date.now());
   useEffect(() => {
     function flushSession() {
@@ -76,7 +76,7 @@ export default function App() {
       if (document.visibilityState === 'hidden') {
         flushSession();
       } else {
-        // App came back to foreground â€” reset start
+        // App came back to foreground — reset start
         sessionStart.current = Date.now();
       }
     }
@@ -139,7 +139,7 @@ export default function App() {
 
     const initData = await waitForInitData();
     if (!initData) {
-      // Not inside Telegram (browser) â€” show "open via Telegram" message
+      // Not inside Telegram (browser) — show "open via Telegram" message
       setScreen('welcome');
       return;
     }
@@ -163,19 +163,19 @@ export default function App() {
       const msg = err instanceof Error ? err.message : String(err);
 
       if (msg.includes('404') || msg.includes('not found')) {
-        // New user â€” go to onboarding (was wrongly showing "click button" before)
+        // New user — go to onboarding (was wrongly showing "click button" before)
         setScreen('lang_select');
       } else if (msg.includes('hash') || msg.includes('401')) {
         // Invalid Telegram session signature
         setScreen('welcome');
       } else {
         // Network/server error (Railway sleeping, timeout, 502, etc.)
-        // Auto-retry once â€” Railway needs ~2s to wake up from sleep
+        // Auto-retry once — Railway needs ~2s to wake up from sleep
         if (retryCount === 0) {
           await new Promise(r => setTimeout(r, 2500));
           return init(1);
         }
-        // Second failure â€” show retry screen with button
+        // Second failure — show retry screen with button
         setInitError(msg);
         setScreen('error_retry');
       }
@@ -185,7 +185,7 @@ export default function App() {
   async function handleCreateUser(name: string): Promise<string | null> {
     const initData = await waitForInitData();
     if (!initData) {
-      return 'ÐžÑ‚ÐºÑ€Ð¾Ð¹Ñ‚Ðµ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ðµ Ñ‡ÐµÑ€ÐµÐ· ÐºÐ½Ð¾Ð¿ÐºÑƒ Ð² Telegram Ð±Ð¾Ñ‚Ðµ';
+      return 'Откройте приложение через кнопку в Telegram боте';
     }
     try {
       const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
@@ -240,14 +240,14 @@ export default function App() {
 
   const swipeHandlers = useSwipe(handleSwipeLeft, handleSwipeRight);
 
-  // â”€â”€ Screen routing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Screen routing ────────────────────────────────────────────
 
   if (screen === 'loading') {
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
         <div style={{ textAlign: 'center' }}>
           <div className="text-arabic" style={{ fontSize: 28, color: 'var(--accent-gold)', marginBottom: 16 }}>
-            Ø§Ù„Ø·Ø±ÙŠÙ‚ Ø§Ù„Ø¹Ø±Ø¨ÙŠ
+            الطريق العربي
           </div>
           <p>{t(lang, 'loading')}</p>
         </div>
@@ -256,7 +256,7 @@ export default function App() {
   }
 
   if (screen === 'welcome') {
-    // No initData â€” user opened the URL in a browser instead of Telegram.
+    // No initData — user opened the URL in a browser instead of Telegram.
     // Show a minimal, clear instruction and nothing else.
     return (
       <div style={{
@@ -267,18 +267,18 @@ export default function App() {
       }}>
         {/* Arabic title */}
         <div className="text-arabic" style={{ fontSize: 32, color: 'var(--accent-gold)' }}>
-          Ø§Ù„Ø·Ø±ÙŠÙ‚ Ø§Ù„Ø¹Ø±Ø¨ÙŠ
+          الطريق العربي
         </div>
 
         {/* Instruction card */}
         <div className="glass-card" style={{ maxWidth: 340, padding: '28px 24px' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>ðŸ‘†</div>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>👆</div>
           <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-main)', marginBottom: 12, lineHeight: 1.4 }}>
-            ÐÐ°Ð¶Ð¼Ð¸Ñ‚Ðµ ÑÐ¸Ð½ÑŽÑŽ ÐºÐ½Ð¾Ð¿ÐºÑƒ<br />Â«ÐžÑ‚ÐºÑ€Ñ‹Ñ‚ÑŒ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸ÐµÂ» Ð²Ñ‹ÑˆÐµ
+            Нажмите синюю кнопку<br />«Открыть приложение» выше
           </p>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            ÐŸÑ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ðµ Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð²Ð½ÑƒÑ‚Ñ€Ð¸ Telegram.
-            Ð’ÐµÑ€Ð½Ð¸Ñ‚ÐµÑÑŒ Ð² Ð±Ð¾Ñ‚ Ð¸ Ð½Ð°Ð¶Ð¼Ð¸Ñ‚Ðµ ÐºÐ½Ð¾Ð¿ÐºÑƒ Ð² Ð¼ÐµÐ½ÑŽ.
+            Приложение работает только внутри Telegram.
+            Вернитесь в бот и нажмите кнопку в меню.
           </p>
         </div>
 
@@ -288,23 +288,23 @@ export default function App() {
           style={{
             color: 'var(--accent-teal)', fontSize: 14, fontWeight: 600,
             textDecoration: 'none', padding: '10px 24px',
-            border: '1.5px solid rgba(192,150,60,0.35)',
-            borderRadius: 16, background: 'rgba(255,255,255,0.05)',
+            border: '1.5px solid rgba(45,212,160,0.4)',
+            borderRadius: 16, background: 'rgba(45,212,160,0.08)',
           }}
         >
-          â†’ ÐžÑ‚ÐºÑ€Ñ‹Ñ‚ÑŒ @arabskiy_put_bot
+          → Открыть @arabskiy_put_bot
         </a>
 
         {initError && (
           <p style={{ fontSize: 11, color: 'var(--danger)', maxWidth: 300, wordBreak: 'break-all' }}>
-            âš ï¸ {initError}
+            ⚠️ {initError}
           </p>
         )}
       </div>
     );
   }
 
-  // â”€â”€ Error + Retry screen (network/server errors inside Telegram) â”€â”€
+  // ── Error + Retry screen (network/server errors inside Telegram) ──
   if (screen === 'error_retry') {
     return (
       <div style={{
@@ -313,16 +313,16 @@ export default function App() {
         padding: '32px 24px', textAlign: 'center', gap: 20,
       }}>
         <div className="text-arabic" style={{ fontSize: 32, color: 'var(--accent-gold)' }}>
-          Ø§Ù„Ø·Ø±ÙŠÙ‚ Ø§Ù„Ø¹Ø±Ø¨ÙŠ
+          الطريق العربي
         </div>
 
         <div className="glass-card" style={{ maxWidth: 340, padding: '28px 24px' }}>
-          <div style={{ fontSize: 42, marginBottom: 14 }}>ðŸ“¡</div>
+          <div style={{ fontSize: 42, marginBottom: 14 }}>📡</div>
           <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main)', marginBottom: 10, lineHeight: 1.4 }}>
-            ÐÐµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ Ð¿Ð¾Ð´ÐºÐ»ÑŽÑ‡Ð¸Ñ‚ÑŒÑÑ
+            Не удалось подключиться
           </p>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 20 }}>
-            ÐŸÑ€Ð¾Ð²ÐµÑ€ÑŒÑ‚Ðµ Ð¸Ð½Ñ‚ÐµÑ€Ð½ÐµÑ‚-ÑÐ¾ÐµÐ´Ð¸Ð½ÐµÐ½Ð¸Ðµ Ð¸ Ð¿Ð¾Ð¿Ñ€Ð¾Ð±ÑƒÐ¹Ñ‚Ðµ ÑÐ½Ð¾Ð²Ð°. Ð¡ÐµÑ€Ð²ÐµÑ€ Ð¼Ð¾Ð³ Ð²Ñ€ÐµÐ¼ÐµÐ½Ð½Ð¾ Ð½Ðµ Ð¾Ñ‚Ð²ÐµÑ‡Ð°Ñ‚ÑŒ.
+            Проверьте интернет-соединение и попробуйте снова. Сервер мог временно не отвечать.
           </p>
           {initError && (
             <p style={{ fontSize: 10, color: 'var(--danger)', wordBreak: 'break-all', marginBottom: 16, opacity: 0.8 }}>
@@ -334,7 +334,7 @@ export default function App() {
             style={{ width: '100%' }}
             onClick={() => init()}
           >
-            ðŸ”„ ÐŸÐ¾Ð¿Ñ€Ð¾Ð±Ð¾Ð²Ð°Ñ‚ÑŒ ÑÐ½Ð¾Ð²Ð°
+            🔄 Попробовать снова
           </button>
         </div>
       </div>
@@ -369,13 +369,13 @@ export default function App() {
         onStartLesson={(bookId, lesson) => {
           setSelectedBook(bookId);
           setSelectedLesson(lesson);
-          setScreen('lesson');   // â† go to study first, then test
+          setScreen('lesson');   // ← go to study first, then test
         }}
       />
     );
   }
 
-  // Lesson study screen â€” shows word cards before the test
+  // Lesson study screen — shows word cards before the test
   if (screen === 'lesson') {
     return (
       <LessonScreen
@@ -451,7 +451,7 @@ export default function App() {
               onOpenTests={() => {
                 setSelectedBook(user.current_book);
                 setSelectedLesson(user.current_lesson);
-                setScreen('lesson');  // â† study first, then test
+                setScreen('lesson');  // ← study first, then test
               }}
               onOpenAskTeacher={() => setScreen('ask_teacher')}
               onOpenSettings={() => handleTabChange('settings')}
