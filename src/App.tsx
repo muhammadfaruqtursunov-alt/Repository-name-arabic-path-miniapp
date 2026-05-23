@@ -451,7 +451,10 @@ export default function App() {
 
   if (screen === 'themes') {
     return (
-      <Themes lang={lang} onBack={() => { setTab('settings'); setScreen('dashboard'); }} />
+      <Themes lang={lang} onBack={() => {
+        if (user?.is_teacher) { setScreen('dashboard'); }
+        else { setTab('settings'); setScreen('dashboard'); }
+      }} />
     );
   }
 
@@ -462,6 +465,7 @@ export default function App() {
         lang={lang}
         onLangChange={handleLangChange}
         onBgChange={handleBgChange}
+        onOpenThemes={() => setScreen('themes')}
       />
     );
   }
@@ -500,6 +504,7 @@ export default function App() {
               onOpenAskTeacher={() => setScreen('ask_teacher')}
               onOpenReview={() => setScreen('review')}
               onOpenSettings={() => handleTabChange('settings')}
+              onOpenThemes={() => setScreen('themes')}
             />
           )}
 

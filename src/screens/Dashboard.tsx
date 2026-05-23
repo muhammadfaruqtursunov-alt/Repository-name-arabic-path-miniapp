@@ -1,4 +1,4 @@
-import { BookOpen, Compass, PenLine, Eye, MessageCircleQuestion, SlidersHorizontal, Layers, Flame, TrendingUp, RotateCcw } from 'lucide-react';
+import { BookOpen, Compass, PenLine, Eye, MessageCircleQuestion, Palette, Layers, Flame, TrendingUp, RotateCcw } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import type { UserProfile, VolumeInfo } from '../api/client';
@@ -14,6 +14,7 @@ interface Props {
   onOpenTests: () => void;
   onOpenAskTeacher: () => void;
   onOpenSettings: () => void;
+  onOpenThemes: () => void;
   onOpenReview: () => void;
 }
 
@@ -27,7 +28,7 @@ function getLevel(totalLearned: number, lang: Lang): string {
 
 export default function Dashboard({
   lang, onLangChange: _onLangChange, user, volumes, onOpenVolume,
-  onOpenGuide, onOpenTests, onOpenAskTeacher, onOpenSettings, onOpenReview,
+  onOpenGuide, onOpenTests, onOpenAskTeacher, onOpenSettings: _onOpenSettings, onOpenThemes, onOpenReview,
 }: Props) {
   const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const avatarUrl = tgUser?.photo_url;
@@ -68,10 +69,13 @@ export default function Dashboard({
             </div>
           </div>
           <button
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 8 }}
-            onClick={onOpenSettings}
+            onClick={onOpenThemes}
+            style={{
+              width: 36, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer',
+              background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
           >
-            <SlidersHorizontal size={20} />
+            <Palette size={18} color="var(--on-accent)" />
           </button>
         </div>
       </div>

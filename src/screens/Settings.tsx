@@ -322,9 +322,14 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
         }}
         onClick={onOpenThemes}
       >
-        <Palette size={18} color="var(--accent)" />
+        <div style={{
+          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+          background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Palette size={18} color="var(--on-accent)" />
+        </div>
         <div style={{ flex: 1 }}>
-          <div className="title-card">Тема</div>
+          <div className="title-card" style={{ color: '#fff', fontWeight: 700 }}>Тема</div>
           <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
             Акцент · Материал · Настроение
           </div>
