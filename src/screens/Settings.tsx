@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2 } from 'lucide-react';
-import { speakArabic, getVoiceGender, setVoiceGender, getArabicVoiceNames } from '../utils/speak';
-import type { VoiceGender } from '../utils/speak';
+import { speakArabic } from '../utils/speak';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
@@ -159,21 +158,6 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     }).catch(() => {});
   }, []);
 
-  // Voice gender + diagnostics
-  const [voiceGender, setVoiceGenderState] = useState<VoiceGender>(getVoiceGender);
-  const [arabicVoices, setArabicVoices] = useState<string[]>([]);
-  useEffect(() => {
-    const update = () => setArabicVoices(getArabicVoiceNames());
-    update();
-    window.speechSynthesis?.addEventListener('voiceschanged', update);
-    return () => window.speechSynthesis?.removeEventListener('voiceschanged', update);
-  }, []);
-
-  function handleVoiceGender(g: VoiceGender) {
-    setVoiceGender(g);
-    setVoiceGenderState(g);
-  }
-
   // Background
   const [activeBg, setActiveBg] = useState<string>(
     () => localStorage.getItem('ap_bg_url') ?? ''
@@ -306,25 +290,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           <span className="title-card">{t(lang, 'voice_title')}</span>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-          {(['male', 'female'] as VoiceGender[]).map(g => (
-            <button
-              key={g}
-              onClick={() => handleVoiceGender(g)}
-              style={{
-                flex: 1, height: 44, borderRadius: 12, cursor: 'pointer', fontSize: 14, fontWeight: 600,
-                border: voiceGender === g ? '1.5px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.12)',
-                background: voiceGender === g ? 'rgba(192,150,60,0.15)' : 'rgba(255,255,255,0.05)',
-                color: voiceGender === g ? 'var(--accent-gold)' : 'var(--text-muted)',
-                transition: 'all 150ms',
-              }}
-            >
-              {g === 'male' ? `♂ ${t(lang, 'voice_male')}` : `♀ ${t(lang, 'voice_female')}`}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
           <button
             className="btn btn-ghost btn-sm"
             style={{ gap: 6 }}
@@ -332,32 +298,16 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           >
             <Volume2 size={14} /> {t(lang, 'voice_test')}
           </button>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', opacity: 0.7 }}>
-            {t(lang, 'voice_note')}
-          </span>
         </div>
-        {/* Voice diagnostics */}
         <div style={{
           padding: '8px 12px', borderRadius: 10,
-          background: arabicVoices.length > 0 ? 'rgba(39,174,96,0.08)' : 'rgba(224,85,85,0.08)',
-          border: `1px solid ${arabicVoices.length > 0 ? 'rgba(39,174,96,0.25)' : 'rgba(224,85,85,0.25)'}`,
+          background: 'rgba(39,174,96,0.08)',
+          border: '1px solid rgba(39,174,96,0.25)',
           fontSize: 11,
+          color: 'var(--success)',
+          fontWeight: 600,
         }}>
-          {arabicVoices.length > 0 ? (
-            <>
-              <div style={{ color: 'var(--success)', fontWeight: 700, marginBottom: 4 }}>
-                ✅ Найдено {arabicVoices.length} арабских голосов
-              </div>
-              {arabicVoices.map((v, i) => (
-                <div key={i} style={{ color: 'var(--text-muted)' }}>{v}</div>
-              ))}
-            </>
-          ) : (
-            <div style={{ color: 'var(--danger)', fontWeight: 600 }}>
-              ⚠️ Арабские голоса не найдены на этом устройстве.
-              Установите арабский TTS в системных настройках телефона.
-            </div>
-          )}
+          🌐 Google Arabic (онлайн, не требует установки)
         </div>
       </div>
 
