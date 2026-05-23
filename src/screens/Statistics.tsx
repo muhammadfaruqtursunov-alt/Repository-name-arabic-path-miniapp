@@ -36,7 +36,7 @@ export default function Statistics({ lang }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
         {cards.map((c, i) => (
           <div key={i} className="glass-card" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent-teal)', marginBottom: 6 }}>
+            <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', marginBottom: 6 }}>
               {c.value}
             </div>
             <div className="text-muted" style={{ fontSize: 12 }}>{c.label}</div>
@@ -53,7 +53,7 @@ export default function Statistics({ lang }: Props) {
               <span className="title-card">
                 {BOOK_EMOJIS[b.book_id]} {t(lang, `book_${b.book_id}` as 'book_1')}
               </span>
-              <span style={{ color: 'var(--accent-teal)', fontWeight: 700, fontSize: 13 }}>
+              <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 13 }}>
                 {b.pct}%
               </span>
             </div>

@@ -42,7 +42,7 @@ export default function Profile({ lang, user, onLangChange: _onLangChange, onRes
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
         <div style={{
           width: 80, height: 80, borderRadius: '50%',
-          border: '2.5px solid var(--accent-gold)',
+          border: '2.5px solid var(--accent)',
           overflow: 'hidden', background: 'var(--bg-card)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 36, margin: '0 auto 12px',
@@ -51,7 +51,13 @@ export default function Profile({ lang, user, onLangChange: _onLangChange, onRes
         </div>
         <h1 className="title-screen">{user.name}</h1>
         <div style={{ marginTop: 10 }}>
-          <span className="badge badge--teal">{getLevel(user.total_learned, lang)}</span>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: 'var(--accent-tint)', color: 'var(--accent)',
+            border: '1px solid var(--accent-border)',
+            borderRadius: 20, padding: '3px 12px',
+            fontSize: 12, fontWeight: 700,
+          }}>{getLevel(user.total_learned, lang)}</span>
         </div>
       </div>
 
@@ -61,7 +67,9 @@ export default function Profile({ lang, user, onLangChange: _onLangChange, onRes
           <div key={i}>
             {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '10px 0' }} />}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ color: 'var(--text-muted)' }}>{row.icon}</span>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--accent)' }}>
+                {row.icon}
+              </div>
               <span className="text-muted" style={{ flex: 1 }}>{row.label}</span>
               <span style={{ fontWeight: 600, fontSize: 13 }}>{row.value}</span>
             </div>
@@ -88,15 +96,15 @@ export default function Profile({ lang, user, onLangChange: _onLangChange, onRes
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   padding: '10px 4px',
-                  background: unlocked ? 'rgba(192,150,60,0.10)' : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${unlocked ? 'rgba(192,150,60,0.30)' : 'rgba(255,255,255,0.07)'}`,
+                  background: unlocked ? 'var(--accent-tint)' : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${unlocked ? 'var(--accent-border)' : 'rgba(255,255,255,0.07)'}`,
                   borderRadius: 12,
                   opacity: unlocked ? 1 : 0.35,
                   transition: 'opacity 200ms',
                 }}
               >
                 <span style={{ fontSize: 24 }}>{ach.emoji}</span>
-                <span style={{ fontSize: 9, fontWeight: 600, color: unlocked ? 'var(--accent-gold)' : 'var(--text-muted)', textAlign: 'center', lineHeight: 1.2 }}>
+                <span style={{ fontSize: 9, fontWeight: 600, color: unlocked ? 'var(--accent)' : 'var(--text-muted)', textAlign: 'center', lineHeight: 1.2 }}>
                   {ach.title}
                 </span>
               </div>
