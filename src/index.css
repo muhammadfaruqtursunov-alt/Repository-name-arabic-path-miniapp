@@ -259,6 +259,7 @@ body {
   position: relative;
   overflow: hidden;
   letter-spacing: 0.1px;
+  background: #141319;
 }
 
 .btn:active {
