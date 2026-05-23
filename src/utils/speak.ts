@@ -35,7 +35,16 @@ function doSpeak(text: string) {
   utt.pitch = 1;
   const voice = pickVoice(gender);
   if (voice) utt.voice = voice;
+  // Resume in case synthesizer is paused (common in WebViews)
+  window.speechSynthesis.resume();
   window.speechSynthesis.speak(utt);
+}
+
+/** Returns names of available Arabic voices — for diagnostics in Settings */
+export function getArabicVoiceNames(): string[] {
+  return (window.speechSynthesis?.getVoices() ?? [])
+    .filter(v => v.lang.startsWith('ar'))
+    .map(v => `${v.name} (${v.lang})`);
 }
 
 export function speakArabic(text: string) {

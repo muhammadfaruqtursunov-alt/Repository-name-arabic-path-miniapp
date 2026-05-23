@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2 } from 'lucide-react';
-import { speakArabic, getVoiceGender, setVoiceGender } from '../utils/speak';
+import { speakArabic, getVoiceGender, setVoiceGender, getArabicVoiceNames } from '../utils/speak';
 import type { VoiceGender } from '../utils/speak';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
@@ -159,8 +159,15 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     }).catch(() => {});
   }, []);
 
-  // Voice gender
+  // Voice gender + diagnostics
   const [voiceGender, setVoiceGenderState] = useState<VoiceGender>(getVoiceGender);
+  const [arabicVoices, setArabicVoices] = useState<string[]>([]);
+  useEffect(() => {
+    const update = () => setArabicVoices(getArabicVoiceNames());
+    update();
+    window.speechSynthesis?.addEventListener('voiceschanged', update);
+    return () => window.speechSynthesis?.removeEventListener('voiceschanged', update);
+  }, []);
 
   function handleVoiceGender(g: VoiceGender) {
     setVoiceGender(g);
@@ -317,7 +324,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
           <button
             className="btn btn-ghost btn-sm"
             style={{ gap: 6 }}
@@ -328,6 +335,29 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           <span style={{ fontSize: 11, color: 'var(--text-muted)', opacity: 0.7 }}>
             {t(lang, 'voice_note')}
           </span>
+        </div>
+        {/* Voice diagnostics */}
+        <div style={{
+          padding: '8px 12px', borderRadius: 10,
+          background: arabicVoices.length > 0 ? 'rgba(39,174,96,0.08)' : 'rgba(224,85,85,0.08)',
+          border: `1px solid ${arabicVoices.length > 0 ? 'rgba(39,174,96,0.25)' : 'rgba(224,85,85,0.25)'}`,
+          fontSize: 11,
+        }}>
+          {arabicVoices.length > 0 ? (
+            <>
+              <div style={{ color: 'var(--success)', fontWeight: 700, marginBottom: 4 }}>
+                ✅ Найдено {arabicVoices.length} арабских голосов
+              </div>
+              {arabicVoices.map((v, i) => (
+                <div key={i} style={{ color: 'var(--text-muted)' }}>{v}</div>
+              ))}
+            </>
+          ) : (
+            <div style={{ color: 'var(--danger)', fontWeight: 600 }}>
+              ⚠️ Арабские голоса не найдены на этом устройстве.
+              Установите арабский TTS в системных настройках телефона.
+            </div>
+          )}
         </div>
       </div>
 

@@ -55,3 +55,15 @@ export function getAllSRSWords(): SRSWord[] {
 export function clearSRSWord(word_id: number) {
   save(getSRSWords().filter(w => w.word_id !== word_id));
 }
+
+export function isWordSaved(word_id: number): boolean {
+  return getSRSWords().some(w => w.word_id === word_id);
+}
+
+// Manual bookmark save — doesn't apply wrong-answer penalty
+export function saveWordManually(word_id: number, ar: string, trans: string, correct: string) {
+  const words = getSRSWords();
+  if (words.some(w => w.word_id === word_id)) return; // already saved
+  words.push({ word_id, ar, trans, correct, due: Date.now(), interval: 1, ease: 2.0 });
+  save(words);
+}

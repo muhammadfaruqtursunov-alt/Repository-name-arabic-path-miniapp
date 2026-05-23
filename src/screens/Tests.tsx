@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, CheckCircle2, XCircle, Flame, BookOpen, RotateCcw, Volume2 } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, XCircle, Flame, BookOpen, RotateCcw, Volume2, Bookmark, BookmarkCheck } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
 import type { QuizQuestion, QuizAnswerResult } from '../api/client';
 import { speakArabic } from '../utils/speak';
-import { addWrongWord } from '../utils/srs';
+import { addWrongWord, saveWordManually, getSRSWords } from '../utils/srs';
 import { checkAchievements } from '../utils/achievements';
 import AchievementPopup from '../components/AchievementPopup';
 import type { Achievement } from '../utils/achievements';
@@ -109,6 +109,11 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
 
   // Wrong-answer review
   const [wrongAnswers, setWrongAnswers] = useState<{ar: string; trans: string; correct: string}[]>([]);
+
+  // Saved (bookmarked) words
+  const [savedWordIds, setSavedWordIds] = useState<Set<number>>(
+    () => new Set(getSRSWords().map(w => w.word_id))
+  );
 
   // Achievements
   const [achQueue, setAchQueue] = useState<Achievement[]>([]);
@@ -442,6 +447,7 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
 
             {/* Arabic word card */}
             <div className="glass-card" style={{ textAlign: 'center', marginBottom: 24, padding: '28px 20px', position: 'relative' }}>
+              {/* Speak */}
               <button
                 onClick={() => speakArabic(question.ar)}
                 style={{
@@ -454,6 +460,25 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
                 }}
               >
                 <Volume2 size={15} />
+              </button>
+              {/* Bookmark */}
+              <button
+                onClick={() => {
+                  const correct = feedback?.msg ?? '';
+                  saveWordManually(question.word_id, question.ar, question.trans, correct);
+                  setSavedWordIds(prev => new Set([...prev, question.word_id]));
+                }}
+                style={{
+                  position: 'absolute', top: 12, left: 12,
+                  background: savedWordIds.has(question.word_id) ? 'rgba(192,150,60,0.18)' : 'rgba(255,255,255,0.07)',
+                  border: savedWordIds.has(question.word_id) ? '1px solid rgba(192,150,60,0.45)' : '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: 10, padding: '5px 8px',
+                  cursor: savedWordIds.has(question.word_id) ? 'default' : 'pointer',
+                  color: savedWordIds.has(question.word_id) ? 'var(--accent-gold)' : 'var(--text-muted)',
+                  display: 'flex', alignItems: 'center',
+                }}
+              >
+                {savedWordIds.has(question.word_id) ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
               </button>
               <div className="text-arabic-lg">{question.ar}</div>
               <div className="text-trans" style={{ marginTop: 10 }}>{question.trans}</div>

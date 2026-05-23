@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, GraduationCap, Eye, Volume2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GraduationCap, Eye, Volume2, Bookmark, BookmarkCheck } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
 import type { WordCard } from '../api/client';
 import { useSwipe } from '../hooks/useSwipe';
 import { speakArabic } from '../utils/speak';
+import { saveWordManually, getSRSWords } from '../utils/srs';
 
 interface Props {
   lang: Lang;
@@ -28,6 +29,9 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
   // revealed is sticky — once the user clicks once it stays ON for the whole lesson
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading]   = useState(true);
+  const [savedIds, setSavedIds] = useState<Set<number>>(
+    () => new Set(getSRSWords().map(w => w.word_id))
+  );
 
   useEffect(() => {
     setLoading(true);
@@ -138,9 +142,10 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
           }}
           onClick={() => !revealed && setRevealed(true)}
         >
-          {/* Arabic word + speak button */}
+          {/* Arabic word + speak + bookmark */}
           <div style={{ position: 'relative', width: '100%', marginBottom: 10 }}>
             <div className="text-arabic-lg">{card.ar}</div>
+            {/* Speak */}
             <button
               onClick={e => { e.stopPropagation(); speakArabic(card.ar); }}
               style={{
@@ -153,6 +158,25 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
               }}
             >
               <Volume2 size={15} />
+            </button>
+            {/* Bookmark / save */}
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                saveWordManually(card.id, card.ar, card.trans, getTranslation(card, lang));
+                setSavedIds(prev => new Set([...prev, card.id]));
+              }}
+              style={{
+                position: 'absolute', top: 0, left: 0,
+                background: savedIds.has(card.id) ? 'rgba(192,150,60,0.18)' : 'rgba(255,255,255,0.07)',
+                border: savedIds.has(card.id) ? '1px solid rgba(192,150,60,0.45)' : '1px solid rgba(255,255,255,0.15)',
+                borderRadius: 10, padding: '5px 8px',
+                cursor: savedIds.has(card.id) ? 'default' : 'pointer',
+                color: savedIds.has(card.id) ? 'var(--accent-gold)' : 'var(--text-muted)',
+                display: 'flex', alignItems: 'center',
+              }}
+            >
+              {savedIds.has(card.id) ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
             </button>
           </div>
 

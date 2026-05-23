@@ -3,7 +3,7 @@ import { useSwipe } from '../hooks/useSwipe';
 import {
   MessageCircleQuestion, Megaphone, Mail, ImageIcon,
   Send, Users, CheckCircle2, Camera, Trash2,
-  ChevronDown, ChevronUp, History, RefreshCw, RotateCcw, BarChart2,
+  ChevronDown, ChevronUp, History, RefreshCw, RotateCcw,
 } from 'lucide-react';
 import { formatAppTime } from '../utils/formatTime';
 import { api } from '../api/client';
@@ -18,7 +18,7 @@ interface Props {
   onBgChange: (url: string) => void;
 }
 
-type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | 'stats' | null;
+type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | null;
 type TeacherTab = 'dashboard' | 'settings';
 const TAB_ORDER: TeacherTab[] = ['dashboard', 'settings'];
 
@@ -85,6 +85,15 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   const [lazyMsgDraft, setLazyMsgDraft]   = useState<Record<number, string>>({});
   const [lazyMsgSending, setLazyMsgSending] = useState<number | null>(null);
   const [lazyMsgSent, setLazyMsgSent]     = useState<Set<number>>(new Set());
+  // Lazy broadcast with exclusions
+  const [showLazyBroadcast, setShowLazyBroadcast] = useState(false);
+  const [lazyExcluded, setLazyExcluded]     = useState<Set<number>>(new Set());
+  const [lazyBcastMsg, setLazyBcastMsg]     = useState('');
+  const [lazyBcasting, setLazyBcasting]     = useState(false);
+  const [lazyBcastResult, setLazyBcastResult] = useState<string | null>(null);
+
+  // ── Question dismissal ─────────────────────────────────────────
+  const [dismissedIds, setDismissedIds] = useState<Set<number>>(new Set());
 
   // ── Broadcast panel ────────────────────────────────────────────
   const [broadcastMsg, setBroadcastMsg]     = useState('');
@@ -119,7 +128,6 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     setPanel(p);
     if (p === 'questions') loadQuestions();
     if (p === 'message' && stats?.students?.length) setMsgStudentId(stats.students[0].user_id);
-    if (p === 'stats') loadAllStudents();
   }
 
   // ── Question loaders ───────────────────────────────────────────
@@ -204,6 +212,34 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     } catch {}
   }
 
+  // ── Question dismiss / delete ─────────────────────────────────
+  function handleMarkRead(id: number) {
+    setDismissedIds(prev => new Set([...prev, id]));
+    if (stats) setStats({ ...stats, unanswered_questions: Math.max(0, stats.unanswered_questions - 1) });
+    api.teacherDismissQuestion(id).catch(() => {});
+  }
+
+  function handleDeleteQuestion(id: number) {
+    setDismissedIds(prev => new Set([...prev, id]));
+    if (stats) setStats({ ...stats, unanswered_questions: Math.max(0, stats.unanswered_questions - 1) });
+    api.teacherDeleteQuestion(id).catch(() => {});
+  }
+
+  // ── Lazy broadcast ────────────────────────────────────────────
+  async function sendLazyBroadcast() {
+    const targets = lazyStudents.filter(s => !lazyExcluded.has(s.user_id));
+    if (!targets.length || !lazyBcastMsg.trim()) return;
+    setLazyBcasting(true); setLazyBcastResult(null);
+    let sent = 0, failed = 0;
+    for (const s of targets) {
+      try { await api.teacherPersonalMessage(s.user_id, lazyBcastMsg.trim()); sent++; }
+      catch { failed++; }
+    }
+    setLazyBcastResult(`✅ Отправлено: ${sent}, ошибок: ${failed}`);
+    setLazyBcastMsg('');
+    setLazyBcasting(false);
+  }
+
   // ── Broadcast ─────────────────────────────────────────────────
   async function sendBroadcast() {
     if (!broadcastMsg.trim()) return;
@@ -273,8 +309,8 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   const topStudents = stats?.students ?? [];
   const studentsToShow = showAllStudents ? allStudents : topStudents;
 
-  // Unanswered questions (filtered)
-  const pendingQs = questions.filter(q => !answeredIds.has(q.id));
+  // Unanswered questions (filtered — answered or dismissed are hidden)
+  const pendingQs = questions.filter(q => !answeredIds.has(q.id) && !dismissedIds.has(q.id));
 
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }} {...swipeHandlers}>
@@ -330,17 +366,6 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
             onClick={() => togglePanel('bg')}
             color="var(--accent-sage)"
           />
-          {/* Full-width stats button */}
-          <div style={{ gridColumn: 'span 2' }}>
-            <ActionBtn
-              icon={<BarChart2 size={20} />}
-              label="📊 Статистика учеников"
-              active={panel === 'stats'}
-              onClick={() => togglePanel('stats')}
-              color="var(--accent-gold)"
-              wide
-            />
-          </div>
         </div>
 
         {/* ── Questions panel ───────────────────────────────────── */}
@@ -401,6 +426,23 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                       onClick={() => sendAnswer(q.id)}
                     >
                       {answerSending === q.id ? '...' : <Send size={16} />}
+                    </button>
+                  </div>
+                  {/* Dismiss buttons */}
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      style={{ flex: 1, fontSize: 11, gap: 5 }}
+                      onClick={() => handleMarkRead(q.id)}
+                    >
+                      <CheckCircle2 size={13} /> Прочитано
+                    </button>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      style={{ flex: 1, fontSize: 11, gap: 5 }}
+                      onClick={() => handleDeleteQuestion(q.id)}
+                    >
+                      <Trash2 size={13} /> Удалить
                     </button>
                   </div>
                   <div style={{ height: 1, background: 'var(--border)', marginTop: 12 }} />
@@ -542,75 +584,12 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           </div>
         )}
 
-        {/* ── Stats panel ───────────────────────────────────────── */}
-        {panel === 'stats' && (
-          <div className="glass-card" style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <BarChart2 size={16} color="var(--accent-gold)" />
-              <p className="title-card" style={{ flex: 1, margin: 0 }}>📊 Статистика учеников</p>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                {allStudents.length > 0 ? `${allStudents.length} чел.` : ''}
-              </span>
-            </div>
-
-            {!allStudentsLoaded ? (
-              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Загрузка...</p>
-            ) : allStudents.length === 0 ? (
-              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Нет учеников</p>
-            ) : (
-              allStudents.map((s, i) => {
-                const lvl = s.learned < 70
-                  ? { emoji: '🟢', label: 'Начинающий' }
-                  : s.learned < 200
-                  ? { emoji: '🟡', label: 'Средний' }
-                  : { emoji: '🔴', label: 'Продвинутый' };
-                const bookEmoji = s.current_book === 1 ? '📗' : s.current_book === 2 ? '📘' : '📕';
-                return (
-                  <div key={s.user_id}>
-                    {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '10px 0' }} />}
-                    {/* Row 1: rank + name + level badge */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
-                      <span style={{ fontSize: 17, minWidth: 26, textAlign: 'center', flexShrink: 0 }}>
-                        {rankMedal(i)}
-                      </span>
-                      <span style={{ flex: 1, fontWeight: 600, fontSize: 14, color: 'var(--text-main)' }}>
-                        {s.name}
-                      </span>
-                      <span style={{
-                        fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
-                        background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)',
-                        whiteSpace: 'nowrap',
-                      }}>
-                        {lvl.emoji} {lvl.label}
-                      </span>
-                    </div>
-                    {/* Row 2: stats chips */}
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingLeft: 34 }}>
-                      <span style={{
-                        display: 'flex', alignItems: 'center', gap: 4,
-                        fontSize: 12, fontWeight: 700, color: 'var(--accent-gold)',
-                      }}>
-                        📚 {s.learned} сл.
-                      </span>
-                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        {bookEmoji} Книга {s.current_book}, Ур. {s.current_lesson}
-                      </span>
-                      <span style={{ fontSize: 12, color: 'var(--accent-teal)' }}>
-                        ⏱ {formatAppTime(s.total_app_time ?? 0)}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        )}
 
         {/* ── Students list (management only) ───────────────────── */}
         <div className="glass-card" style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Users size={16} color="var(--accent-gold)" />
-            <p className="title-card" style={{ flex: 1, margin: 0 }}>🏆 Управление учениками</p>
+            <p className="title-card" style={{ flex: 1, margin: 0 }}>🏆 Список учеников</p>
             <button
               onClick={() => showAllStudents ? setShowAllStudents(false) : loadAllStudents()}
               style={{
@@ -664,6 +643,18 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
                       marginTop: 8, padding: '12px', background: 'rgba(255,255,255,0.04)',
                       borderRadius: 12, border: '1px solid rgba(192,150,60,0.12)',
                     }}>
+                      {/* Stats */}
+                      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent-gold)' }}>
+                          📚 {s.learned} слов
+                        </span>
+                        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                          {s.current_book === 1 ? '📗' : s.current_book === 2 ? '📘' : '📕'} Кн.{s.current_book}, Ур.{s.current_lesson}
+                        </span>
+                        <span style={{ fontSize: 12, color: 'var(--accent-teal)' }}>
+                          ⏱ {formatAppTime(s.total_app_time ?? 0)}
+                        </span>
+                      </div>
                       {/* Action buttons */}
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button
@@ -765,48 +756,118 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
               {lazyStudents.length === 0 ? (
                 <p style={{ color: 'var(--accent-teal)', fontSize: 13 }}>🎉 Лентяев нет! Все учатся.</p>
               ) : (
-                lazyStudents.map((s, i) => {
-                  const isExpanded = lazyMsgFor === s.user_id;
-                  const sent = lazyMsgSent.has(s.user_id);
-                  return (
-                    <div key={s.user_id}>
-                      {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '8px 0' }} />}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 13, color: 'var(--text-muted)', minWidth: 20, textAlign: 'center' }}>
-                          {i + 1}.😴
-                        </span>
-                        <span style={{ flex: 1, fontSize: 13, color: 'var(--text-main)' }}>{s.name}</span>
-                        <span style={{ fontSize: 10, color: 'var(--text-muted)', marginRight: 4 }}>🌐 {s.lang.toUpperCase()}</span>
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          style={{ fontSize: 11, padding: '4px 10px' }}
-                          onClick={() => setLazyMsgFor(isExpanded ? null : s.user_id)}
-                        >
-                          {sent ? '✅' : '✉️'}
-                        </button>
-                      </div>
-                      {isExpanded && (
-                        <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                          <textarea
-                            className="input-field"
-                            placeholder="Напишите ленивому ученику..."
-                            value={lazyMsgDraft[s.user_id] ?? ''}
-                            onChange={e => setLazyMsgDraft(p => ({ ...p, [s.user_id]: e.target.value }))}
-                            style={{ flex: 1, minHeight: 56, fontSize: 12 }}
-                          />
+                <>
+                  {lazyStudents.map((s, i) => {
+                    const isExpanded = lazyMsgFor === s.user_id;
+                    const sent = lazyMsgSent.has(s.user_id);
+                    return (
+                      <div key={s.user_id}>
+                        {i > 0 && <div style={{ height: 1, background: 'var(--border)', margin: '8px 0' }} />}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 13, color: 'var(--text-muted)', minWidth: 20, textAlign: 'center' }}>
+                            {i + 1}.😴
+                          </span>
+                          <span style={{ flex: 1, fontSize: 13, color: 'var(--text-main)' }}>{s.name}</span>
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)', marginRight: 4 }}>🌐 {s.lang.toUpperCase()}</span>
                           <button
-                            className="btn btn-primary btn-sm"
-                            style={{ width: 42, padding: 0 }}
-                            disabled={lazyMsgSending === s.user_id}
-                            onClick={() => sendStudentMsg(s.user_id, true)}
+                            className="btn btn-ghost btn-sm"
+                            style={{ fontSize: 11, padding: '4px 10px' }}
+                            onClick={() => setLazyMsgFor(isExpanded ? null : s.user_id)}
                           >
-                            {lazyMsgSending === s.user_id ? '...' : <Send size={15} />}
+                            {sent ? '✅' : '✉️'}
                           </button>
                         </div>
-                      )}
-                    </div>
-                  );
-                })
+                        {isExpanded && (
+                          <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                            <textarea
+                              className="input-field"
+                              placeholder="Напишите ленивому ученику..."
+                              value={lazyMsgDraft[s.user_id] ?? ''}
+                              onChange={e => setLazyMsgDraft(p => ({ ...p, [s.user_id]: e.target.value }))}
+                              style={{ flex: 1, minHeight: 56, fontSize: 12 }}
+                            />
+                            <button
+                              className="btn btn-primary btn-sm"
+                              style={{ width: 42, padding: 0 }}
+                              disabled={lazyMsgSending === s.user_id}
+                              onClick={() => sendStudentMsg(s.user_id, true)}
+                            >
+                              {lazyMsgSending === s.user_id ? '...' : <Send size={15} />}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* ── Lazy broadcast section ── */}
+                  <div style={{ marginTop: 16, borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+                    <button
+                      onClick={() => setShowLazyBroadcast(v => !v)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                        background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 10,
+                      }}
+                    >
+                      <Megaphone size={14} color="var(--accent-gold)" />
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-gold)', flex: 1, textAlign: 'left' }}>
+                        Рассылка лентяям
+                      </span>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{showLazyBroadcast ? '▲' : '▾'}</span>
+                    </button>
+
+                    {showLazyBroadcast && (
+                      <>
+                        {/* Checkboxes to exclude */}
+                        <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+                          Снимите галочку, чтобы исключить ученика:
+                        </p>
+                        {lazyStudents.map(s => (
+                          <label key={s.user_id} style={{
+                            display: 'flex', alignItems: 'center', gap: 10,
+                            marginBottom: 6, cursor: 'pointer',
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={!lazyExcluded.has(s.user_id)}
+                              onChange={() => setLazyExcluded(prev => {
+                                const next = new Set(prev);
+                                if (next.has(s.user_id)) next.delete(s.user_id); else next.add(s.user_id);
+                                return next;
+                              })}
+                              style={{ width: 16, height: 16, accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
+                            />
+                            <span style={{ fontSize: 13, color: lazyExcluded.has(s.user_id) ? 'var(--text-muted)' : 'var(--text-main)' }}>
+                              {s.name}
+                            </span>
+                            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{s.lang.toUpperCase()}</span>
+                          </label>
+                        ))}
+                        <textarea
+                          className="input-field"
+                          placeholder="Сообщение для лентяев..."
+                          value={lazyBcastMsg}
+                          onChange={e => setLazyBcastMsg(e.target.value)}
+                          style={{ marginTop: 10, marginBottom: 10, minHeight: 70, fontSize: 13 }}
+                        />
+                        <button
+                          className="btn btn-gold"
+                          disabled={lazyBcasting || !lazyBcastMsg.trim()}
+                          onClick={sendLazyBroadcast}
+                        >
+                          {lazyBcasting
+                            ? 'Отправка...'
+                            : `📢 Отправить (${lazyStudents.length - lazyExcluded.size})`}
+                        </button>
+                        {lazyBcastResult && (
+                          <p style={{ fontSize: 13, marginTop: 8, color: 'var(--accent-teal)' }}>
+                            {lazyBcastResult}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           )}
