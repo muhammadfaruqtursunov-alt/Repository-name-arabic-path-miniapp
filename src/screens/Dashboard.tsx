@@ -61,7 +61,14 @@ export default function Dashboard({
             <div>
               <div className="title-card">{user.name}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                <span className="badge badge--teal text-badge">
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  background: 'var(--accent-tint)',
+                  color: 'var(--accent)',
+                  border: '1px solid var(--accent-border)',
+                  borderRadius: 20, padding: '2px 8px',
+                  fontSize: 11, fontWeight: 700,
+                }}>
                   <TrendingUp size={10} />
                   {getLevel(user.total_learned, lang)}
                 </span>
