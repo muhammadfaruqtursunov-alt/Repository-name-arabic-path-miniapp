@@ -50,7 +50,7 @@ export default function Themes({ onBack }: Props) {
         >
           <ChevronLeft size={24} />
         </button>
-        <h1 className="title-card" style={{ flex: 1 }}>🎨 Оформление</h1>
+        <h1 className="title-card" style={{ flex: 1 }}>🎨 Тема</h1>
       </div>
 
       <div className="page-content" style={{ paddingTop: 20 }}>

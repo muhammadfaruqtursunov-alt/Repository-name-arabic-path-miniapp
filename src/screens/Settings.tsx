@@ -324,7 +324,7 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
       >
         <Palette size={18} color="var(--accent)" />
         <div style={{ flex: 1 }}>
-          <div className="title-card">Оформление</div>
+          <div className="title-card">Тема</div>
           <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
             Акцент · Материал · Настроение
           </div>
