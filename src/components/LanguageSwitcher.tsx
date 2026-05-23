@@ -22,9 +22,9 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
         style={{
           display: 'flex', alignItems: 'center', gap: 5,
           padding: '5px 10px', borderRadius: 20,
-          background: 'rgba(45,212,160,0.10)',
-          border: '1.5px solid rgba(45,212,160,0.3)',
-          cursor: 'pointer', color: 'var(--accent-teal)',
+          background: 'rgba(192,150,60,0.10)',
+          border: '1.5px solid rgba(192,150,60,0.30)',
+          cursor: 'pointer', color: 'var(--accent-gold)',
         }}
       >
         <Globe2 size={14} />
@@ -59,9 +59,9 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   width: '100%', padding: '11px 14px',
-                  background: current === code ? 'rgba(45,212,160,0.15)' : 'transparent',
+                  background: current === code ? 'rgba(192,150,60,0.12)' : 'transparent',
                   border: 'none', borderRadius: 10,
-                  color: current === code ? 'var(--accent-teal)' : 'var(--text-main)',
+                  color: current === code ? 'var(--accent-gold)' : 'var(--text-main)',
                   fontSize: 14, fontWeight: current === code ? 700 : 400,
                   cursor: 'pointer', textAlign: 'left',
                   transition: 'background 120ms',
@@ -71,8 +71,8 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
                 <span style={{ flex: 1 }}>{label}</span>
                 {current === code && (
                   <span style={{
-                    fontSize: 10, fontWeight: 700, color: 'var(--accent-teal)',
-                    background: 'rgba(45,212,160,0.15)', borderRadius: 10, padding: '1px 7px',
+                    fontSize: 10, fontWeight: 700, color: 'var(--accent-gold)',
+                    background: 'rgba(192,150,60,0.12)', borderRadius: 10, padding: '1px 7px',
                   }}>✓</span>
                 )}
               </button>

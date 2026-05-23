@@ -15,7 +15,7 @@
 
   /* Text */
   --text-main:   #E4E5EC;
-  --text-muted:  #8A8C9A;
+  --text-muted:  #C4C6D0;
 
   /* Borders — neutral, no color tint */
   --border:      rgba(255, 255, 255, 0.07);
@@ -34,7 +34,7 @@
 
   /* Text colors + styles — adjustable from Settings */
   --arabic-color:      #E4E5EC;
-  --trans-color:       #8B97A8;
+  --trans-color:       #C4C6D0;
   --translation-color: #E4E5EC;
   --translation-size:  13px;
   --arabic-weight:     400;
@@ -64,20 +64,6 @@ body {
   overflow-x: hidden;
 }
 
-/* ─── Vignette — dark edges, lighter center ──────────────────── */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse at 50% 45%,
-    transparent 38%,
-    rgba(0, 0, 0, 0.30) 68%,
-    rgba(0, 0, 0, 0.55) 100%
-  );
-}
 
 /* ─── Full-screen background ─────────────────────────────────── */
 #app-bg {
@@ -94,10 +80,12 @@ body::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg,
-    rgba(7,8,14,0.70) 0%,
-    rgba(7,8,14,0.55) 50%,
-    rgba(7,8,14,0.82) 100%);
+  background:
+    radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(0,0,0,0.28) 65%, rgba(0,0,0,0.52) 100%),
+    linear-gradient(180deg,
+      rgba(7,8,14,0.70) 0%,
+      rgba(7,8,14,0.52) 50%,
+      rgba(7,8,14,0.82) 100%);
 }
 
 #root {
