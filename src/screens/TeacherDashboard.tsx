@@ -16,9 +16,10 @@ interface Props {
   lang: Lang;
   onLangChange: (lang: Lang) => void;
   onBgChange: (url: string) => void;
+  onOpenThemes: () => void;
 }
 
-type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | null;
+type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | 'lazy_broadcast' | null;
 type TeacherTab = 'dashboard' | 'settings';
 const TAB_ORDER: TeacherTab[] = ['dashboard', 'settings'];
 
@@ -31,7 +32,7 @@ function rankMedal(idx: number): string {
   return `${idx + 1}.`;
 }
 
-export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Props) {
+export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpenThemes }: Props) {
   const [tab, setTab] = useState<TeacherTab>('dashboard');
 
   const handleSwipeLeft = useCallback(() => {
@@ -128,6 +129,9 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
     setPanel(p);
     if (p === 'questions') loadQuestions();
     if (p === 'message' && stats?.students?.length) setMsgStudentId(stats.students[0].user_id);
+    if (p === 'lazy_broadcast' && !lazyLoaded) {
+      api.teacherGetLazy().then(rows => { setLazyStudents(rows); setLazyLoaded(true); }).catch(() => {});
+    }
   }
 
   // ── Question loaders ───────────────────────────────────────────
@@ -291,7 +295,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
   if (tab === 'settings') {
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }} {...swipeHandlers}>
-        <Settings lang={lang} onLangChange={onLangChange} onBgChange={onBgChange} />
+        <Settings lang={lang} onLangChange={onLangChange} onBgChange={onBgChange} onOpenThemes={onOpenThemes} />
         <TeacherNav tab={tab} setTab={setTab} unanswered={stats?.unanswered_questions ?? 0} />
       </div>
     );
@@ -365,6 +369,18 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
             active={panel === 'bg'}
             onClick={() => togglePanel('bg')}
             color="var(--accent-sage)"
+          />
+        </div>
+
+        {/* ── Lazy broadcast action btn (full-width) ────────────── */}
+        <div style={{ marginBottom: 10 }}>
+          <ActionBtn
+            icon={<Megaphone size={20} />}
+            label="Рассылка лентяям"
+            active={panel === 'lazy_broadcast'}
+            onClick={() => togglePanel('lazy_broadcast')}
+            color="var(--accent-gold)"
+            wide
           />
         </div>
 
@@ -584,6 +600,83 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange }: Pro
           </div>
         )}
 
+
+        {/* ── Lazy broadcast panel ─────────────────────────────── */}
+        {panel === 'lazy_broadcast' && (
+          <div className="glass-card" style={{ marginBottom: 16 }}>
+            <p className="title-card" style={{ marginBottom: 4 }}>
+              😴 Рассылка лентяям
+            </p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
+              Ученики, которые ещё не выучили ни одного слова
+            </p>
+
+            {!lazyLoaded ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Загрузка...</p>
+            ) : lazyStudents.length === 0 ? (
+              <p style={{ color: 'var(--accent-teal)', fontSize: 13 }}>🎉 Лентяев нет! Все учатся.</p>
+            ) : (
+              <>
+                {/* Checkboxes to exclude */}
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>
+                  Снимите галочку, чтобы исключить:
+                </p>
+                <div style={{ marginBottom: 14 }}>
+                  {lazyStudents.map(s => (
+                    <label key={s.user_id} style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      marginBottom: 8, cursor: 'pointer',
+                    }}>
+                      <input
+                        type="checkbox"
+                        checked={!lazyExcluded.has(s.user_id)}
+                        onChange={() => setLazyExcluded(prev => {
+                          const next = new Set(prev);
+                          if (next.has(s.user_id)) next.delete(s.user_id); else next.add(s.user_id);
+                          return next;
+                        })}
+                        style={{ width: 16, height: 16, accentColor: 'var(--accent-gold)', cursor: 'pointer', flexShrink: 0 }}
+                      />
+                      <span style={{
+                        flex: 1, fontSize: 13,
+                        color: lazyExcluded.has(s.user_id) ? 'var(--text-muted)' : 'var(--text-main)',
+                        textDecoration: lazyExcluded.has(s.user_id) ? 'line-through' : 'none',
+                      }}>
+                        {s.name}
+                      </span>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{s.lang.toUpperCase()}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <textarea
+                  className="input-field"
+                  placeholder="Сообщение для лентяев..."
+                  value={lazyBcastMsg}
+                  onChange={e => setLazyBcastMsg(e.target.value)}
+                  style={{ marginBottom: 10, minHeight: 80, fontSize: 13 }}
+                />
+
+                <button
+                  className="btn btn-gold"
+                  disabled={lazyBcasting || !lazyBcastMsg.trim() || lazyStudents.length === lazyExcluded.size}
+                  onClick={sendLazyBroadcast}
+                  style={{ width: '100%' }}
+                >
+                  {lazyBcasting
+                    ? 'Отправка...'
+                    : `📢 Отправить (${lazyStudents.length - lazyExcluded.size})`}
+                </button>
+
+                {lazyBcastResult && (
+                  <p style={{ fontSize: 13, marginTop: 10, color: 'var(--accent-teal)' }}>
+                    {lazyBcastResult}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
         {/* ── Students list (management only) ───────────────────── */}
         <div className="glass-card" style={{ marginBottom: 12 }}>
