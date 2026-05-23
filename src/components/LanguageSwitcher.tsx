@@ -43,7 +43,12 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
         >
           <div
             className="glass-card"
-            style={{ minWidth: 220, padding: 8, maxHeight: '70vh', overflowY: 'auto' }}
+            style={{
+              minWidth: 220, padding: 8, maxHeight: '70vh', overflowY: 'auto',
+              background: 'rgba(10, 11, 20, 0.92)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+            }}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 12px', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
