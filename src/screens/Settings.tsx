@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, BellOff, Type, ImageIcon, Camera, Trash2, CheckCircle2 } from 'lucide-react';
+import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2 } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
@@ -504,8 +504,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
         <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-primary" style={{ flex: 1 }} disabled={bgLoading} onClick={() => fileInputRef.current?.click()}>
-            <Camera size={16} />
-            {bgLoading ? t(lang, 'bg_loading') : `📷 ${t(lang, 'bg_select_btn')}`}
+            {bgLoading ? t(lang, 'bg_loading') : t(lang, 'bg_select_btn')}
           </button>
           {activeBg && (
             <button className="btn btn-danger btn-sm" style={{ width: 48, padding: 0 }} onClick={removeBg}>
