@@ -19,7 +19,7 @@ export const tj = {
   book_1: 'Китоб 1',
   book_2: 'Китоб 2',
   book_3: 'Китоб 3',
-  medina: 'Мадина',
+  medina: 'Мединский курс',
   all_books: 'Ҳама китобҳо',
   lessons_count: 'дарс',
   words_count: 'калима',

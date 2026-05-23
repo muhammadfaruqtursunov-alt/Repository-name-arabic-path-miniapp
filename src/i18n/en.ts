@@ -19,7 +19,7 @@ export const en = {
   book_1: 'Book 1',
   book_2: 'Book 2',
   book_3: 'Book 3',
-  medina: 'Medina',
+  medina: 'Medina Course',
   all_books: 'All Books',
   lessons_count: 'lessons',
   words_count: 'words',

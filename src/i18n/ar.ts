@@ -19,7 +19,7 @@ export const ar = {
   book_1: 'الكتاب 1',
   book_2: 'الكتاب 2',
   book_3: 'الكتاب 3',
-  medina: 'المدينة',
+  medina: 'الدورة المدنية',
   all_books: 'جميع الكتب',
   lessons_count: 'دروس',
   words_count: 'كلمات',

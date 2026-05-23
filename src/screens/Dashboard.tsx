@@ -18,7 +18,6 @@ interface Props {
   onOpenReview: () => void;
 }
 
-const LEVEL_EMOJIS = ['', '🟢', '🟡', '🔴'];
 
 function getLevel(totalLearned: number, lang: Lang): string {
   if (totalLearned < 70)  return t(lang, 'level_beginner');
@@ -97,7 +96,6 @@ export default function Dashboard({
                 {t(lang, 'current_volume')}
               </div>
               <div className="title-card">
-                {LEVEL_EMOJIS[user.current_book] ?? '📖'}{' '}
                 {user.book_info?.[`title_${lang === 'ar' ? 'ru' : lang}` as 'title_ru'] ?? user.book_info?.title_ru}
               </div>
               <div className="text-muted" style={{ fontSize: 12, marginTop: 2 }}>
@@ -157,10 +155,10 @@ export default function Dashboard({
                 <BookOpen size={22} color="var(--accent)" />
               </div>
               <div className="title-card" style={{ marginBottom: 2 }}>
-                {vol.level_emoji} {t(lang, `book_${vol.book_id}` as 'book_1')}
+                {t(lang, `book_${vol.book_id}` as 'book_1')}
               </div>
               <div className="text-muted" style={{ fontSize: 12, marginBottom: 8 }}>
-                {t(lang, 'medina')} · {t(lang, `book_${vol.book_id}` as 'book_1')}
+                {t(lang, 'medina')}
               </div>
               <ProgressBar pct={vol.pct} />
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 5 }}>

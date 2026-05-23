@@ -22,7 +22,7 @@ export const uz = {
   book_1: '1-kitob',
   book_2: '2-kitob',
   book_3: '3-kitob',
-  medina: 'Madina',
+  medina: 'Madina kursi',
   all_books: 'Barcha kitoblar',
   lessons_count: 'dars',
   words_count: "so'z",

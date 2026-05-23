@@ -22,7 +22,7 @@ export const ru = {
   book_1: 'Книга 1',
   book_2: 'Книга 2',
   book_3: 'Книга 3',
-  medina: 'Мадина',
+  medina: 'Мединский курс',
   all_books: 'Все книги',
   lessons_count: 'уроков',
   words_count: 'слов',
