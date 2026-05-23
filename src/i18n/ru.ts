@@ -162,6 +162,24 @@ export const ru = {
   btn_retry_test: 'Попробовать тест снова',
   fail_errors_warn: 'Ошибка',
   achievements_title: 'Достижения',
+  sent_ok: '✅ Отправлено!',
+  lang_pick: 'Выберите язык',
+
+  // Review (SRS)
+  review_title: 'Повторение',
+  review_empty_title: 'Нет слов для повторения',
+  review_empty_desc: 'Сохраняйте слова в уроках, чтобы повторять их здесь',
+  review_due_today: 'На сегодня',
+  review_words: 'слов',
+  review_start_due: 'Повторить сегодняшние',
+  review_all_words: 'Все слова',
+  review_start_all: 'Повторить все',
+  review_saved_list: 'Список слов',
+  review_overdue: 'просрочено',
+  review_done_title: 'Готово!',
+  review_again: 'Повторить ещё раз',
+  review_forgot: 'Не знал',
+  review_knew: 'Знал',
 };
 
 export type TranslationKeys = keyof typeof ru;

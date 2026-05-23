@@ -22,6 +22,7 @@ import Statistics       from './screens/Statistics';
 import Profile          from './screens/Profile';
 import Settings         from './screens/Settings';
 import LessonScreen     from './screens/LessonScreen';
+import ReviewScreen     from './screens/ReviewScreen';
 import TeacherDashboard from './screens/TeacherDashboard';
 
 type Screen =
@@ -35,7 +36,8 @@ type Screen =
   | 'lesson'
   | 'tests'
   | 'umrah'
-  | 'ask_teacher';
+  | 'ask_teacher'
+  | 'review';
 
 // ── Background helpers ────────────────────────────────────────────
 const BG_STORAGE_KEY = 'ap_bg_url';
@@ -435,6 +437,12 @@ export default function App() {
     );
   }
 
+  if (screen === 'review') {
+    return (
+      <ReviewScreen lang={lang} onBack={() => setScreen('dashboard')} />
+    );
+  }
+
   // Teacher view
   if (user?.is_teacher) {
     return (
@@ -478,6 +486,7 @@ export default function App() {
                 setScreen('lesson');  // ← study first, then test
               }}
               onOpenAskTeacher={() => setScreen('ask_teacher')}
+              onOpenReview={() => setScreen('review')}
               onOpenSettings={() => handleTabChange('settings')}
             />
           )}

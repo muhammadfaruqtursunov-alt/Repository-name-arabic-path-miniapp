@@ -1,4 +1,4 @@
-import { BookOpen, Compass, PenLine, Eye, MessageCircleQuestion, SlidersHorizontal, Layers, Flame, TrendingUp } from 'lucide-react';
+import { BookOpen, Compass, PenLine, Eye, MessageCircleQuestion, SlidersHorizontal, Layers, Flame, TrendingUp, RotateCcw } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import type { UserProfile, VolumeInfo } from '../api/client';
@@ -14,6 +14,7 @@ interface Props {
   onOpenTests: () => void;
   onOpenAskTeacher: () => void;
   onOpenSettings: () => void;
+  onOpenReview: () => void;
 }
 
 const LEVEL_EMOJIS = ['', '🟢', '🟡', '🔴'];
@@ -26,7 +27,7 @@ function getLevel(totalLearned: number, lang: Lang): string {
 
 export default function Dashboard({
   lang, onLangChange: _onLangChange, user, volumes, onOpenVolume,
-  onOpenGuide, onOpenTests, onOpenAskTeacher, onOpenSettings,
+  onOpenGuide, onOpenTests, onOpenAskTeacher, onOpenSettings, onOpenReview,
 }: Props) {
   const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const avatarUrl = tgUser?.photo_url;
@@ -183,6 +184,23 @@ export default function Dashboard({
             <MessageCircleQuestion size={28} color="var(--accent-gold)" style={{ marginBottom: 8 }} />
             <div className="title-card" style={{ marginBottom: 2 }}>
               {t(lang, 'teacher_title')}
+            </div>
+          </div>
+
+          {/* Review (SRS) */}
+          <div
+            className="glass-card glass-card--gold"
+            style={{ cursor: 'pointer', gridColumn: 'span 2' }}
+            onClick={onOpenReview}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <RotateCcw size={26} color="var(--accent-gold)" />
+              <div>
+                <div className="title-card">{t(lang, 'review_title')}</div>
+                <div className="text-muted" style={{ fontSize: 12, marginTop: 2 }}>
+                  {t(lang, 'review_all_words')} · SRS
+                </div>
+              </div>
             </div>
           </div>
         </div>

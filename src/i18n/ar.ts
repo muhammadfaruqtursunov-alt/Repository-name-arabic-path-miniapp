@@ -141,4 +141,22 @@ export const ar = {
   btn_retry_test: 'إعادة الاختبار',
   fail_errors_warn: 'خطأ',
   achievements_title: 'الإنجازات',
+  sent_ok: '✅ تم الإرسال!',
+  lang_pick: 'اختر اللغة',
+
+  // Review (SRS)
+  review_title: 'المراجعة',
+  review_empty_title: 'لا توجد كلمات للمراجعة',
+  review_empty_desc: 'احفظ الكلمات في الدروس لمراجعتها هنا',
+  review_due_today: 'مستحقة اليوم',
+  review_words: 'كلمات',
+  review_start_due: 'راجع كلمات اليوم',
+  review_all_words: 'جميع الكلمات',
+  review_start_all: 'مراجعة الكل',
+  review_saved_list: 'قائمة الكلمات',
+  review_overdue: 'متأخرة',
+  review_done_title: 'انتهى!',
+  review_again: 'راجع مرة أخرى',
+  review_forgot: 'لم أتذكر',
+  review_knew: 'أعرفها',
 };

@@ -141,4 +141,22 @@ export const en = {
   btn_retry_test: 'Retry test',
   fail_errors_warn: 'Wrong',
   achievements_title: 'Achievements',
+  sent_ok: '✅ Sent!',
+  lang_pick: 'Choose language',
+
+  // Review (SRS)
+  review_title: 'Review',
+  review_empty_title: 'No words to review',
+  review_empty_desc: 'Save words in lessons to review them here',
+  review_due_today: 'Due Today',
+  review_words: 'words',
+  review_start_due: "Review today's words",
+  review_all_words: 'All words',
+  review_start_all: 'Review all',
+  review_saved_list: 'Word list',
+  review_overdue: 'overdue',
+  review_done_title: 'Done!',
+  review_again: 'Review again',
+  review_forgot: 'Forgot',
+  review_knew: 'Knew it',
 };

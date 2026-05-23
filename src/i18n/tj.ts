@@ -141,4 +141,22 @@ export const tj = {
   btn_retry_test: 'Санҷишро дубора иҷро кун',
   fail_errors_warn: 'Хато',
   achievements_title: 'Дастовардҳо',
+  sent_ok: '✅ Фиристода шуд!',
+  lang_pick: 'Забонро интихоб кунед',
+
+  // Review (SRS)
+  review_title: 'Такрор',
+  review_empty_title: 'Калимаҳо барои такрор нест',
+  review_empty_desc: 'Дар дарсҳо калимаҳоро захира кунед, то онҳоро инҷо такрор кунед',
+  review_due_today: 'Имрӯз барои такрор',
+  review_words: 'калима',
+  review_start_due: 'Имрӯзиҳоро такрор кун',
+  review_all_words: 'Ҳама калимаҳо',
+  review_start_all: 'Ҳамаро такрор кун',
+  review_saved_list: 'Рӯйхати калимаҳо',
+  review_overdue: 'мӯҳлат гузашт',
+  review_done_title: 'Тамом!',
+  review_again: 'Боз такрор кун',
+  review_forgot: 'Надонистам',
+  review_knew: 'Донистам',
 };

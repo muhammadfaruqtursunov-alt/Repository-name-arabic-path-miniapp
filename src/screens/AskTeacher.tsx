@@ -75,7 +75,7 @@ export default function AskTeacher({ lang, onBack }: Props) {
           </div>
           {sent ? (
             <div className="glass-card" style={{ borderColor: 'var(--accent-teal)', textAlign: 'center', color: 'var(--accent-teal)', padding: 12 }}>
-              ✅ Отправлено!
+              {t(lang, 'sent_ok')}
             </div>
           ) : (
             <button className="btn btn-primary" disabled={!text.trim() || loading} onClick={handleSend}>

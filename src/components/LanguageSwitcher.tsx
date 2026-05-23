@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Globe2 } from 'lucide-react';
-import { LANGS } from '../i18n';
+import { LANGS, t } from '../i18n';
 import type { Lang } from '../i18n';
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
 
 export default function LanguageSwitcher({ current, onChange }: Props) {
   const [open, setOpen] = useState(false);
+  const lang_pick = t(current, 'lang_pick');
 
   return (
     <>
@@ -53,7 +54,7 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 12px', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
               <Globe2 size={14} color="var(--accent-gold)" />
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Выберите язык</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>{lang_pick}</span>
             </div>
             {LANGS.map(({ code, flag, label }) => (
               <button

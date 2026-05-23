@@ -5,6 +5,7 @@ import type { Lang } from '../i18n';
 import { api } from '../api/client';
 import type { QuizQuestion, QuizAnswerResult } from '../api/client';
 import { speakArabic } from '../utils/speak';
+import { addWrongWord } from '../utils/srs';
 import { checkAchievements } from '../utils/achievements';
 import AchievementPopup from '../components/AchievementPopup';
 import type { Achievement } from '../utils/achievements';
@@ -169,9 +170,10 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
     } else {
       setFlashClass('flash-wrong');
       setStreakVal(0);
-      // record for error-review screen
+      // record for error-review screen and persistent SRS
       if (question) {
         setWrongAnswers(prev => [...prev, { ar: question.ar, trans: question.trans, correct: res.feedback }]);
+        addWrongWord(question.word_id, question.ar, question.trans, res.feedback);
       }
 
       // Count errors — at MAX_ERRORS show the fail screen

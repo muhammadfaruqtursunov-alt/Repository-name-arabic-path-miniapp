@@ -57,8 +57,22 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p className="text-muted">{t(lang, 'loading')}</p>
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+        <div className="page-header" style={{ background: 'var(--bg-card)' }}>
+          <div className="skeleton" style={{ width: 24, height: 24, borderRadius: 6 }} />
+          <div className="skeleton" style={{ flex: 1, height: 18, marginLeft: 12, borderRadius: 6 }} />
+        </div>
+        <div style={{ height: 4, background: 'var(--border)' }} />
+        <div className="page-content" style={{ paddingTop: 20 }}>
+          <div className="glass-card" style={{ padding: '32px 20px', minHeight: 220, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div className="skeleton" style={{ width: '60%', height: 40, borderRadius: 8 }} />
+            <div className="skeleton" style={{ width: '45%', height: 16, borderRadius: 6 }} />
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+            <div className="skeleton" style={{ flex: 1, height: 52, borderRadius: 14 }} />
+            <div className="skeleton" style={{ flex: 1, height: 52, borderRadius: 14 }} />
+          </div>
+        </div>
       </div>
     );
   }

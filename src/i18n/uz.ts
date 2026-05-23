@@ -160,4 +160,22 @@ export const uz = {
   btn_retry_test: "Testni qayta sinab ko'rish",
   fail_errors_warn: 'Xato',
   achievements_title: 'Yutuqlar',
+  sent_ok: '✅ Yuborildi!',
+  lang_pick: 'Tilni tanlang',
+
+  // Review (SRS)
+  review_title: 'Takrorlash',
+  review_empty_title: "Takrorlash uchun so'z yo'q",
+  review_empty_desc: "Darslarda so'zlarni saqlang va ularni bu yerda takrorlang",
+  review_due_today: 'Bugun uchun',
+  review_words: "so'z",
+  review_start_due: 'Bugungilarni takrorlash',
+  review_all_words: "Barcha so'zlar",
+  review_start_all: 'Hammasini takrorlash',
+  review_saved_list: "So'zlar ro'yxati",
+  review_overdue: "muddati o'tgan",
+  review_done_title: 'Tayyor!',
+  review_again: 'Yana takrorlash',
+  review_forgot: 'Bilmadim',
+  review_knew: 'Bildim',
 };

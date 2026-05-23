@@ -40,7 +40,17 @@ export default function VolumeScreen({ lang, bookId, currentLesson, onBack, onSt
       {/* Lesson list */}
       <div className="page-content">
         {loading ? (
-          <p className="text-muted" style={{ textAlign: 'center', marginTop: 40 }}>{t(lang, 'loading')}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="glass-card" style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div className="skeleton" style={{ width: 36, height: 36, borderRadius: 10 }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div className="skeleton" style={{ height: 14, width: '50%', borderRadius: 6 }} />
+                  <div className="skeleton" style={{ height: 6, width: '80%', borderRadius: 3 }} />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {lessons.map((l) => {
