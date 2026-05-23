@@ -28,7 +28,6 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
         }}
       >
         <Globe2 size={14} />
-        <span style={{ fontSize: 15 }}>{cur?.flag}</span>
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5 }}>{current.toUpperCase()}</span>
         <span style={{ fontSize: 9, opacity: 0.7 }}>▾</span>
       </button>
