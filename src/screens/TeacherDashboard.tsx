@@ -833,7 +833,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
             }}
           >
             <span style={{ fontSize: 18 }}>😴</span>
-            <p className="title-card" style={{ flex: 1, margin: 0 }}>
+            <p className="title-card" style={{ flex: 1, margin: 0, color: '#fff' }}>
               Лентяи
               {lazyLoaded && (
                 <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>
