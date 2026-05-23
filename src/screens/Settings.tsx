@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2 } from 'lucide-react';
+import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2, Palette, ChevronRight } from 'lucide-react';
 import { speakArabic } from '../utils/speak';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
@@ -11,6 +11,7 @@ interface Props {
   lang: Lang;
   onLangChange: (lang: Lang) => void;
   onBgChange?: (url: string) => void;
+  onOpenThemes?: () => void;
 }
 
 // ── CSS variable helpers ───────────────────────────────────────────
@@ -103,7 +104,7 @@ function StyleToggle({ label, active, onClick, weight, italic }: {
 }
 
 // ── Main Settings component ───────────────────────────────────────
-export default function Settings({ lang, onLangChange, onBgChange }: Props) {
+export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes }: Props) {
 
   // Font sizes
   const [arabicSize, setArabicSize] = useState<number>(() => {
@@ -310,6 +311,26 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           🌐 Google Arabic (онлайн, не требует установки)
         </div>
       </div>
+
+      {/* ── Themes ───────────────────────────────────────────────── */}
+      <button
+        className="glass-card"
+        style={{
+          marginBottom: 16, width: '100%', textAlign: 'left',
+          display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+          border: '1px solid rgba(255,255,255,0.08)',
+        }}
+        onClick={onOpenThemes}
+      >
+        <Palette size={18} color="var(--accent)" />
+        <div style={{ flex: 1 }}>
+          <div className="title-card">Оформление</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+            Акцент · Материал · Настроение
+          </div>
+        </div>
+        <ChevronRight size={18} color="var(--text-muted)" />
+      </button>
 
       {/* ── Language ─────────────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>

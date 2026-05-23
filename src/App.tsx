@@ -24,6 +24,8 @@ import Settings         from './screens/Settings';
 import LessonScreen     from './screens/LessonScreen';
 import ReviewScreen     from './screens/ReviewScreen';
 import TeacherDashboard from './screens/TeacherDashboard';
+import Themes           from './screens/Themes';
+import { loadTheme, applyTheme } from './utils/theme';
 
 type Screen =
   | 'loading'
@@ -37,7 +39,8 @@ type Screen =
   | 'tests'
   | 'umrah'
   | 'ask_teacher'
-  | 'review';
+  | 'review'
+  | 'themes';
 
 // ── Background helpers ────────────────────────────────────────────
 const BG_STORAGE_KEY = 'ap_bg_url';
@@ -102,6 +105,9 @@ export default function App() {
       window.removeEventListener('beforeunload', flushSession);
     };
   }, []);
+
+  // Apply saved theme on mount (accent, surface, mood)
+  useEffect(() => { applyTheme(loadTheme()); }, []);
 
   // Restore font sizes, colors + background from localStorage on mount
   useEffect(() => {
@@ -443,6 +449,12 @@ export default function App() {
     );
   }
 
+  if (screen === 'themes') {
+    return (
+      <Themes lang={lang} onBack={() => { setTab('settings'); setScreen('dashboard'); }} />
+    );
+  }
+
   // Teacher view
   if (user?.is_teacher) {
     return (
@@ -503,7 +515,12 @@ export default function App() {
           )}
 
           {tab === 'settings' && (
-            <Settings lang={lang} onLangChange={handleLangChange} onBgChange={handleBgChange} />
+            <Settings
+              lang={lang}
+              onLangChange={handleLangChange}
+              onBgChange={handleBgChange}
+              onOpenThemes={() => setScreen('themes')}
+            />
           )}
         </div>
 
