@@ -159,4 +159,11 @@ export const ar = {
   review_again: 'راجع مرة أخرى',
   review_forgot: 'لم أتذكر',
   review_knew: 'أعرفها',
+
+  // Voice settings
+  voice_title: 'صوت النطق',
+  voice_male: 'ذكر',
+  voice_female: 'أنثى',
+  voice_test: 'اختبار',
+  voice_note: 'يعتمد على جهازك',
 };

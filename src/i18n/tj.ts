@@ -159,4 +159,11 @@ export const tj = {
   review_again: 'Боз такрор кун',
   review_forgot: 'Надонистам',
   review_knew: 'Донистам',
+
+  // Voice settings
+  voice_title: 'Овоз талаффуз',
+  voice_male: 'Мардона',
+  voice_female: 'Занона',
+  voice_test: 'Санҷидан',
+  voice_note: 'Аз дастгоҳи шумо вобаста аст',
 };

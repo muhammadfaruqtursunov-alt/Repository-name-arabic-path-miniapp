@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2 } from 'lucide-react';
+import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2 } from 'lucide-react';
+import { speakArabic, getVoiceGender, setVoiceGender } from '../utils/speak';
+import type { VoiceGender } from '../utils/speak';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
@@ -157,6 +159,14 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
     }).catch(() => {});
   }, []);
 
+  // Voice gender
+  const [voiceGender, setVoiceGenderState] = useState<VoiceGender>(getVoiceGender);
+
+  function handleVoiceGender(g: VoiceGender) {
+    setVoiceGender(g);
+    setVoiceGenderState(g);
+  }
+
   // Background
   const [activeBg, setActiveBg] = useState<string>(
     () => localStorage.getItem('ap_bg_url') ?? ''
@@ -281,6 +291,45 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
   return (
     <div className="screen-enter page-content" style={{ paddingTop: 24 }}>
       <h1 className="title-screen" style={{ marginBottom: 24 }}>{t(lang, 'settings_title')}</h1>
+
+      {/* ── Voice ────────────────────────────────────────────────── */}
+      <div className="glass-card" style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <Volume2 size={18} color="var(--accent-gold)" />
+          <span className="title-card">{t(lang, 'voice_title')}</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          {(['male', 'female'] as VoiceGender[]).map(g => (
+            <button
+              key={g}
+              onClick={() => handleVoiceGender(g)}
+              style={{
+                flex: 1, height: 44, borderRadius: 12, cursor: 'pointer', fontSize: 14, fontWeight: 600,
+                border: voiceGender === g ? '1.5px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.12)',
+                background: voiceGender === g ? 'rgba(192,150,60,0.15)' : 'rgba(255,255,255,0.05)',
+                color: voiceGender === g ? 'var(--accent-gold)' : 'var(--text-muted)',
+                transition: 'all 150ms',
+              }}
+            >
+              {g === 'male' ? `♂ ${t(lang, 'voice_male')}` : `♀ ${t(lang, 'voice_female')}`}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ gap: 6 }}
+            onClick={() => speakArabic('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ')}
+          >
+            <Volume2 size={14} /> {t(lang, 'voice_test')}
+          </button>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', opacity: 0.7 }}>
+            {t(lang, 'voice_note')}
+          </span>
+        </div>
+      </div>
 
       {/* ── Language ─────────────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>

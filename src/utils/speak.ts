@@ -1,43 +1,71 @@
-let _voices: SpeechSynthesisVoice[] = [];
+const VOICE_KEY = 'ap_voice_gender';
 
-function loadVoices() {
-  _voices = window.speechSynthesis?.getVoices() ?? [];
+export type VoiceGender = 'male' | 'female';
+
+export function getVoiceGender(): VoiceGender {
+  return (localStorage.getItem(VOICE_KEY) as VoiceGender) ?? 'male';
 }
 
-if (typeof window !== 'undefined' && window.speechSynthesis) {
-  loadVoices();
-  window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+export function setVoiceGender(g: VoiceGender) {
+  localStorage.setItem(VOICE_KEY, g);
 }
 
-function pickArabicVoice(): SpeechSynthesisVoice | null {
-  const ar = _voices.filter(v => v.lang.startsWith('ar'));
+function pickVoice(gender: VoiceGender): SpeechSynthesisVoice | null {
+  const voices = window.speechSynthesis.getVoices();
+  const ar = voices.filter(v => v.lang.startsWith('ar'));
   if (ar.length === 0) return null;
-  // prefer male (Maged on iOS, any male on Android)
-  return ar.find(v => /maged|male/i.test(v.name)) ?? ar[0];
+
+  if (gender === 'male') {
+    // Maged (iOS), or any voice whose name hints male
+    return ar.find(v => /maged/i.test(v.name))
+      ?? ar.find(v => /male/i.test(v.name))
+      ?? ar[0];
+  } else {
+    // Prefer a voice that is NOT Maged (usually female on Android = Google Arabic)
+    return ar.find(v => !/maged/i.test(v.name))
+      ?? ar[0];
+  }
+}
+
+function doSpeak(text: string) {
+  const gender = getVoiceGender();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ar-SA';
+  utt.rate = 0.82;
+  utt.pitch = 1;
+  const voice = pickVoice(gender);
+  if (voice) utt.voice = voice;
+  window.speechSynthesis.speak(utt);
 }
 
 export function speakArabic(text: string) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
 
-  const doSpeak = () => {
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = 'ar-SA';
-    utt.rate = 0.82;
-    utt.pitch = 1;
-    const voice = pickArabicVoice();
-    if (voice) utt.voice = voice;
-    window.speechSynthesis.speak(utt);
-  };
-
-  if (_voices.length === 0) {
-    // voices not ready yet — wait for the event, then speak
-    window.speechSynthesis.addEventListener('voiceschanged', doSpeak, { once: true });
-  } else {
-    doSpeak();
+  // Try immediately (voices may already be loaded)
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    doSpeak(text);
+    return;
   }
+
+  // Voices not ready — wait for voiceschanged or fallback after 300 ms
+  let fired = false;
+  const onReady = () => {
+    if (fired) return;
+    fired = true;
+    doSpeak(text);
+  };
+  window.speechSynthesis.addEventListener('voiceschanged', onReady, { once: true });
+  // Safety fallback: some WebViews never fire the event
+  setTimeout(onReady, 300);
 }
 
 export function stopSpeech() {
   window.speechSynthesis?.cancel();
+}
+
+/** Returns list of available Arabic voices for display */
+export function getArabicVoices(): SpeechSynthesisVoice[] {
+  return window.speechSynthesis?.getVoices().filter(v => v.lang.startsWith('ar')) ?? [];
 }

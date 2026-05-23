@@ -180,6 +180,13 @@ export const ru = {
   review_again: 'Повторить ещё раз',
   review_forgot: 'Не знал',
   review_knew: 'Знал',
+
+  // Voice settings
+  voice_title: 'Голос произношения',
+  voice_male: 'Мужской',
+  voice_female: 'Женский',
+  voice_test: 'Проверить',
+  voice_note: 'Зависит от вашего устройства',
 };
 
 export type TranslationKeys = keyof typeof ru;

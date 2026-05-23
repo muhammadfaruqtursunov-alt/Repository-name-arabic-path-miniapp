@@ -159,4 +159,11 @@ export const en = {
   review_again: 'Review again',
   review_forgot: 'Forgot',
   review_knew: 'Knew it',
+
+  // Voice settings
+  voice_title: 'Pronunciation voice',
+  voice_male: 'Male',
+  voice_female: 'Female',
+  voice_test: 'Test',
+  voice_note: 'Depends on your device',
 };

@@ -178,4 +178,11 @@ export const uz = {
   review_again: 'Yana takrorlash',
   review_forgot: 'Bilmadim',
   review_knew: 'Bildim',
+
+  // Voice settings
+  voice_title: 'Talaffuz ovozi',
+  voice_male: 'Erkak',
+  voice_female: 'Ayol',
+  voice_test: 'Sinab ko\'rish',
+  voice_note: 'Qurilmangizga bog\'liq',
 };
