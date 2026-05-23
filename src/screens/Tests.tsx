@@ -203,7 +203,7 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
       setDone(true);
       // check perfect test
       const isPerfect = (errorCount === 0 && !res.correct === false);
-      const newAchs = checkAchievements({ totalLearned: 0, streak: 0, questionsAsked: 1, perfectTest: wrongAnswers.length === 0 && res.correct });
+      const newAchs = checkAchievements({ totalLearned: 0, streak: 0, questionsAsked: 1 });
       if (newAchs.length > 0) setAchQueue(q => [...q, ...newAchs]);
       void isPerfect;
       return;

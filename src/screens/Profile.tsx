@@ -79,32 +79,47 @@ export default function Profile({ lang, user, onLangChange: _onLangChange, onRes
 
       {/* Achievements */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{ fontSize: 18 }}>🏆</span>
-          <span className="title-card">{t(lang, 'achievements_title')}</span>
-          <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--accent-gold)', fontWeight: 700 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 18 }}>🏆</span>
+          </div>
+          <span className="title-card" style={{ flex: 1 }}>{t(lang, 'achievements_title')}</span>
+          <span style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 700 }}>
             {unlockedIds.length}/{ACHIEVEMENTS.length}
           </span>
         </div>
+        {/* 4×3 grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
           {ACHIEVEMENTS.map(ach => {
             const unlocked = unlockedIds.includes(ach.id);
             return (
               <div
                 key={ach.id}
-                title={ach.title}
+                title={ach.desc}
                 style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                  padding: '10px 4px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                  padding: '12px 4px 10px',
                   background: unlocked ? 'var(--accent-tint)' : 'rgba(255,255,255,0.03)',
                   border: `1px solid ${unlocked ? 'var(--accent-border)' : 'rgba(255,255,255,0.07)'}`,
-                  borderRadius: 12,
-                  opacity: unlocked ? 1 : 0.35,
-                  transition: 'opacity 200ms',
+                  borderRadius: 14,
+                  opacity: unlocked ? 1 : 0.3,
+                  transition: 'all 200ms',
+                  position: 'relative',
                 }}
               >
-                <span style={{ fontSize: 24 }}>{ach.emoji}</span>
-                <span style={{ fontSize: 9, fontWeight: 600, color: unlocked ? 'var(--accent)' : 'var(--text-muted)', textAlign: 'center', lineHeight: 1.2 }}>
+                {unlocked && (
+                  <div style={{
+                    position: 'absolute', top: 5, right: 5,
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: 'var(--accent)', opacity: 0.8,
+                  }} />
+                )}
+                <span style={{ fontSize: 26 }}>{ach.emoji}</span>
+                <span style={{
+                  fontSize: 9, fontWeight: 700,
+                  color: unlocked ? 'var(--accent)' : 'var(--text-muted)',
+                  textAlign: 'center', lineHeight: 1.3,
+                }}>
                   {ach.title}
                 </span>
               </div>

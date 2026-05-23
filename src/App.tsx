@@ -173,10 +173,13 @@ export default function App() {
       // Check achievements on load
       try {
         const stats = await api.getStats();
+        const book1 = stats.books?.find((b: { book_id: number; pct: number }) => b.book_id === 1);
         const newAchs = checkAchievements({
           totalLearned: stats.total_learned,
           streak: stats.streak,
           questionsAsked: stats.questions_asked,
+          book1Complete: (book1?.pct ?? 0) >= 100,
+          allBooksComplete: (stats.books?.length ?? 0) >= 3 && stats.books?.every((b: { pct: number }) => b.pct >= 100),
         });
         if (newAchs.length > 0) setAchQueue(q => [...q, ...newAchs]);
       } catch {}

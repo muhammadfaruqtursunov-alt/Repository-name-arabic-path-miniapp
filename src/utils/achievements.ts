@@ -5,14 +5,24 @@ export interface Achievement {
   desc: string;
 }
 
+// 12 achievements — 3 rows × 4 columns
+// Row 1: vocabulary  Row 2: streak  Row 3: tests + books
 export const ACHIEVEMENTS: Achievement[] = [
-  { id: 'first_test',   emoji: '🌱', title: 'Первый шаг',      desc: 'Прошёл первый тест' },
-  { id: 'words_50',     emoji: '📖', title: '50 слов',         desc: 'Выучил 50 слов' },
-  { id: 'words_100',    emoji: '📚', title: '100 слов',        desc: 'Выучил 100 слов' },
-  { id: 'words_200',    emoji: '🎓', title: '200 слов',        desc: 'Выучил 200 слов' },
-  { id: 'streak_7',     emoji: '🔥', title: '7 дней подряд',   desc: 'Занимался 7 дней без перерыва' },
-  { id: 'streak_30',    emoji: '⚡', title: '30 дней подряд',  desc: 'Занимался 30 дней без перерыва' },
-  { id: 'perfect_test', emoji: '💎', title: 'Без ошибок',      desc: 'Прошёл тест без единой ошибки' },
+  // ── Row 1: словарный запас ─────────────────────────────────────
+  { id: 'word_1',    emoji: '🌱', title: 'Первое слово', desc: 'Выучил первое слово'       },
+  { id: 'word_10',   emoji: '🌿', title: '10 слов',      desc: 'Выучил 10 слов'            },
+  { id: 'word_50',   emoji: '🌳', title: '50 слов',      desc: 'Выучил 50 слов'            },
+  { id: 'word_100',  emoji: '⭐', title: '100 слов',     desc: 'Выучил 100 слов'           },
+  // ── Row 2: серия дней ─────────────────────────────────────────
+  { id: 'streak_3',  emoji: '🔥', title: '3 дня',        desc: 'Занимался 3 дня подряд'    },
+  { id: 'streak_7',  emoji: '⚡', title: '7 дней',       desc: 'Занимался 7 дней подряд'   },
+  { id: 'streak_14', emoji: '💫', title: '14 дней',      desc: 'Занимался 14 дней подряд'  },
+  { id: 'streak_30', emoji: '🏆', title: '30 дней',      desc: 'Занимался 30 дней подряд'  },
+  // ── Row 3: тесты + книги ──────────────────────────────────────
+  { id: 'tests_100', emoji: '🎯', title: '100 тестов',   desc: 'Прошёл 100 тестов'         },
+  { id: 'tests_500', emoji: '💎', title: '500 тестов',   desc: 'Прошёл 500 тестов'         },
+  { id: 'book_1',    emoji: '📚', title: 'Том 1',        desc: 'Завершил первый том'       },
+  { id: 'crown',     emoji: '👑', title: 'Все тома',     desc: 'Завершил все три тома'     },
 ];
 
 const KEY = 'ap_achievements';
@@ -26,12 +36,12 @@ function saveUnlocked(ids: string[]) {
   localStorage.setItem(KEY, JSON.stringify(ids));
 }
 
-// Returns list of newly unlocked achievement IDs
 export function checkAchievements(params: {
   totalLearned: number;
   streak: number;
   questionsAsked: number;
-  perfectTest?: boolean;
+  book1Complete?: boolean;
+  allBooksComplete?: boolean;
 }): Achievement[] {
   const unlocked = getUnlocked();
   const newlyUnlocked: Achievement[] = [];
@@ -44,13 +54,25 @@ export function checkAchievements(params: {
     newlyUnlocked.push(ach);
   }
 
-  if (params.questionsAsked > 0)       tryUnlock('first_test');
-  if (params.totalLearned >= 50)        tryUnlock('words_50');
-  if (params.totalLearned >= 100)       tryUnlock('words_100');
-  if (params.totalLearned >= 200)       tryUnlock('words_200');
-  if (params.streak >= 7)               tryUnlock('streak_7');
-  if (params.streak >= 30)              tryUnlock('streak_30');
-  if (params.perfectTest)               tryUnlock('perfect_test');
+  // Vocabulary
+  if (params.totalLearned >= 1)   tryUnlock('word_1');
+  if (params.totalLearned >= 10)  tryUnlock('word_10');
+  if (params.totalLearned >= 50)  tryUnlock('word_50');
+  if (params.totalLearned >= 100) tryUnlock('word_100');
+
+  // Streak
+  if (params.streak >= 3)  tryUnlock('streak_3');
+  if (params.streak >= 7)  tryUnlock('streak_7');
+  if (params.streak >= 14) tryUnlock('streak_14');
+  if (params.streak >= 30) tryUnlock('streak_30');
+
+  // Tests (proxy: totalLearned — every word requires passing tests)
+  if (params.totalLearned >= 100) tryUnlock('tests_100');
+  if (params.totalLearned >= 500) tryUnlock('tests_500');
+
+  // Books
+  if (params.book1Complete)    tryUnlock('book_1');
+  if (params.allBooksComplete) tryUnlock('crown');
 
   if (newlyUnlocked.length > 0) saveUnlocked(unlocked);
   return newlyUnlocked;
