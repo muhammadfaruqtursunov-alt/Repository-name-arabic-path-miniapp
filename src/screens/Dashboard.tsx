@@ -141,7 +141,7 @@ export default function Dashboard({
                   {t(lang, 'current_badge')}
                 </div>
               )}
-              <BookOpen size={28} color="var(--accent-teal)" style={{ marginBottom: 8 }} />
+              <BookOpen size={28} color="var(--accent-gold)" style={{ marginBottom: 8 }} />
               <div className="title-card" style={{ marginBottom: 2 }}>
                 {vol.level_emoji} {t(lang, `book_${vol.book_id}` as 'book_1')}
               </div>
