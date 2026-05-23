@@ -36,9 +36,7 @@ export function speakArabic(text: string) {
   }
   currentAudio = audio;
   audio.currentTime = 0;
-  audio.play().catch((e) => {
-    alert(`Звук не работает: ${e?.message ?? e}\nURL: ${url.slice(0, 80)}`);
-  });
+  audio.play().catch(() => {});
 }
 
 export function stopSpeech() {
