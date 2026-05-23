@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Globe2 } from 'lucide-react';
 import { LANGS } from '../i18n';
 import type { Lang } from '../i18n';
@@ -14,9 +15,8 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
 
   return (
     <>
-      {/* Compact trigger button — shows globe + flag + code */}
+      {/* Compact trigger button */}
       <button
-        className="lang-icon-btn"
         onClick={() => setOpen(v => !v)}
         aria-label="Change language"
         style={{
@@ -33,23 +33,23 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
         <span style={{ fontSize: 9, opacity: 0.7 }}>▾</span>
       </button>
 
-      {/* Backdrop + dropdown */}
-      {open && (
+      {/* Portal — rendered directly on body to escape backdrop-filter stacking context */}
+      {open && createPortal(
         <div
           style={{
-            position: 'fixed', inset: 0, zIndex: 200,
-            background: 'rgba(0,0,0,0.25)',
+            position: 'fixed', inset: 0, zIndex: 9000,
+            background: 'rgba(0,0,0,0.40)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
           onClick={() => setOpen(false)}
         >
           <div
             className="glass-card"
-            style={{ minWidth: 200, padding: 8, maxHeight: '70vh', overflowY: 'auto' }}
+            style={{ minWidth: 220, padding: 8, maxHeight: '70vh', overflowY: 'auto' }}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 12px', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
-              <Globe2 size={14} color="var(--accent-teal)" />
+              <Globe2 size={14} color="var(--accent-gold)" />
               <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Выберите язык</span>
             </div>
             {LANGS.map(({ code, flag, label }) => (
@@ -78,7 +78,8 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
               </button>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
