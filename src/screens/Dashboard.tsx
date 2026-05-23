@@ -146,7 +146,9 @@ export default function Dashboard({
                   {t(lang, 'current_badge')}
                 </div>
               )}
-              <BookOpen size={28} color="var(--accent-gold)" style={{ marginBottom: 8 }} />
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+                <BookOpen size={22} color="var(--accent)" />
+              </div>
               <div className="title-card" style={{ marginBottom: 2 }}>
                 {vol.level_emoji} {t(lang, `book_${vol.book_id}` as 'book_1')}
               </div>
@@ -162,7 +164,9 @@ export default function Dashboard({
 
           {/* Umrah Guide */}
           <div className="glass-card" style={{ cursor: 'pointer' }} onClick={onOpenGuide}>
-            <Compass size={28} color="var(--accent-gold)" style={{ marginBottom: 8 }} />
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              <Compass size={22} color="var(--accent)" />
+            </div>
             <div className="title-card" style={{ marginBottom: 2 }}>
               {t(lang, 'umrah_title')}
             </div>
@@ -173,9 +177,13 @@ export default function Dashboard({
 
           {/* Tests */}
           <div className="glass-card" style={{ cursor: 'pointer' }} onClick={onOpenTests}>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <Eye size={22} color="var(--accent-gold)" />
-              <PenLine size={22} color="var(--accent-gold)" />
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Eye size={20} color="var(--accent)" />
+              </div>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <PenLine size={20} color="var(--accent)" />
+              </div>
             </div>
             <div className="title-card" style={{ marginBottom: 2 }}>{t(lang, 'tests_title')}</div>
             <div className="text-muted" style={{ fontSize: 12 }}>
@@ -185,7 +193,9 @@ export default function Dashboard({
 
           {/* Ask teacher */}
           <div className="glass-card" style={{ cursor: 'pointer' }} onClick={onOpenAskTeacher}>
-            <MessageCircleQuestion size={28} color="var(--accent-gold)" style={{ marginBottom: 8 }} />
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              <MessageCircleQuestion size={22} color="var(--accent)" />
+            </div>
             <div className="title-card" style={{ marginBottom: 2 }}>
               {t(lang, 'teacher_title')}
             </div>
@@ -198,7 +208,9 @@ export default function Dashboard({
             onClick={onOpenReview}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <RotateCcw size={26} color="var(--accent-gold)" />
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <RotateCcw size={22} color="var(--accent)" />
+              </div>
               <div>
                 <div className="title-card">{t(lang, 'review_title')}</div>
                 <div className="text-muted" style={{ fontSize: 12, marginTop: 2 }}>

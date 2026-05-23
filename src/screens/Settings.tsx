@@ -287,7 +287,9 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
       {/* ── Voice ────────────────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <Volume2 size={18} color="var(--accent-gold)" />
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Volume2 size={17} color="var(--accent)" />
+          </div>
           <span className="title-card">{t(lang, 'voice_title')}</span>
         </div>
 
@@ -348,9 +350,11 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
       {/* ── Daily reminder ────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          {reminderEnabled
-            ? <Bell size={18} color="var(--accent-teal)" />
-            : <BellOff size={18} color="var(--text-muted)" />}
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {reminderEnabled
+              ? <Bell size={17} color="var(--accent)" />
+              : <BellOff size={17} color="var(--accent)" />}
+          </div>
           <span className="title-card">{t(lang, 'notif_daily')}</span>
           {reminderEnabled && (
             <span style={{
@@ -423,7 +427,9 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
       {/* ── Font + Colors ─────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <Type size={18} color="var(--accent-teal)" />
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Type size={17} color="var(--accent)" />
+          </div>
           <span className="title-card">{t(lang, 'font_colors')}</span>
         </div>
 
@@ -519,7 +525,9 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
       {/* ── Background photo ──────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <ImageIcon size={18} color="var(--accent-teal)" />
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <ImageIcon size={17} color="var(--accent)" />
+          </div>
           <span className="title-card">{t(lang, 'bg_title')}</span>
           <span style={{
             marginLeft: 'auto', fontSize: 10, fontWeight: 700,

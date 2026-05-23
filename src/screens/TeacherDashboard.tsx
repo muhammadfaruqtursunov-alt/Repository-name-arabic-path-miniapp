@@ -995,7 +995,13 @@ function ActionBtn({ icon, label, badge, active, onClick, color, wide }: {
         cursor: 'pointer', transition: 'all 150ms', color,
       }}
     >
-      {icon}
+      <div style={{
+        width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+        background: 'var(--accent-tint)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {icon}
+      </div>
       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)', textAlign: 'center', lineHeight: 1.3 }}>
         {label}
       </span>
