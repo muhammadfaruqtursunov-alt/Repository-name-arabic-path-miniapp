@@ -321,7 +321,7 @@ export default function Settings({ lang, onLangChange, onBgChange }: Props) {
           <span style={{ fontSize: 13 }}>🌍</span>
           <div>
             <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t(lang, 'notif_tz_label')}</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-teal)' }}>{reminderTz}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-gold)' }}>{reminderTz}</div>
           </div>
         </div>
 
