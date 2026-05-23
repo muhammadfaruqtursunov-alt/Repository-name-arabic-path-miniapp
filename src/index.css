@@ -281,7 +281,7 @@ body {
 
 /* Accent outline */
 .btn-gold {
-  background: linear-gradient(145deg, var(--accent-tint), rgba(var(--a-rgb), 0.06));
+  background: #141319;
   color: var(--accent);
   border: 1px solid var(--accent-border);
   box-shadow:
@@ -289,9 +289,9 @@ body {
     0 1px 0 rgba(255, 255, 255, 0.07) inset;
 }
 
-/* Ghost — dark glass */
+/* Ghost */
 .btn-ghost {
-  background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  background: #141319;
   color: rgba(228, 229, 236, 0.80);
   border: 1px solid rgba(255, 255, 255, 0.10);
   box-shadow:
@@ -301,7 +301,7 @@ body {
 
 /* Danger */
 .btn-danger {
-  background: linear-gradient(145deg, rgba(192,57,43,0.16), rgba(192,57,43,0.06));
+  background: #141319;
   color: var(--danger);
   border: 1px solid rgba(192, 57, 43, 0.28);
   box-shadow:
