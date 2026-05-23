@@ -11,7 +11,6 @@ interface Props {
 
 export default function LanguageSwitcher({ current, onChange }: Props) {
   const [open, setOpen] = useState(false);
-  const cur = LANGS.find(l => l.code === current);
 
   return (
     <>
