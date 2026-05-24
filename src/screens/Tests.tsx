@@ -11,6 +11,7 @@ import AchievementPopup from '../components/AchievementPopup';
 import type { Achievement } from '../utils/achievements';
 
 type Mode = 'visual' | 'written';
+type AnswerLang = 'native' | 'ar';
 
 interface Props {
   lang: Lang;
@@ -86,9 +87,15 @@ function getMotivText(m: Motivation, lang: Lang): string {
   return (m as unknown as Record<string, string>)[lang] ?? m.ru;
 }
 
+/** Strip Arabic diacritics (tashkeel) for loose comparison */
+function normalizeArabic(s: string): string {
+  return s.replace(/[ً-ٰٟ]/g, '').replace(/\s+/g, ' ').trim();
+}
+
 // ── Component ─────────────────────────────────────────────────────
 export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }: Props) {
   const [mode, setMode]         = useState<Mode>('visual');
+  const [answerLang, setAnswerLang] = useState<AnswerLang>('native');
   const [question, setQuestion] = useState<QuizQuestion | null>(null);
   const [feedback, setFeedback] = useState<{ correct: boolean; msg: string } | null>(null);
   const [typed, setTyped]       = useState('');
@@ -157,6 +164,46 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
 
   async function handleWrittenAnswer() {
     if (!question || !typed.trim() || loading) return;
+
+    if (answerLang === 'ar') {
+      const isCorrect = normalizeArabic(typed.trim()) === normalizeArabic(question.ar);
+      setTyped('');
+
+      if (!isCorrect) {
+        // Wrong: show feedback locally, don't advance session
+        setFlashClass('flash-wrong');
+        setTimeout(() => setFlashClass(''), 500);
+        setStreakVal(0);
+        setWrongAnswers(prev => [...prev, { ar: question.ar, trans: question.trans, correct: question.ar }]);
+        addWrongWord(question.word_id, question.ar, question.trans, question.ar);
+        setFeedback({ correct: false, msg: question.ar });
+        setErrorCount(prev => {
+          const next = prev + 1;
+          if (next >= MAX_ERRORS) {
+            setTimeout(() => {
+              setFailed(true);
+              setFailMotivation(pickMotivation());
+              setFeedback(null);
+            }, 1000);
+          }
+          return next;
+        });
+        return;
+      }
+
+      // Correct: advance quiz via API (backend sees Arabic as answer — will say "wrong" there,
+      // but we override result on client; done/next fields still work correctly)
+      setLoading(true);
+      try {
+        const res = await api.answerQuiz(question.word_id, -1, 'written', question.ar);
+        handleResult({ ...res, correct: true, feedback: question.ar });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Native language mode (existing behaviour)
     setLoading(true);
     try {
       const res = await api.answerQuiz(question.word_id, -1, 'written', typed.trim());
@@ -234,6 +281,9 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
     );
   }
 
+  // Reset typed input when answer language changes
+  useEffect(() => { setTyped(''); setFeedback(null); }, [answerLang]);
+
   // Drain the achievement queue one by one
   useEffect(() => {
     if (currentAch || achQueue.length === 0) return;
@@ -280,6 +330,26 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
               {m === 'visual' ? t(lang, 'tab_visual') : t(lang, 'tab_written')}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Answer language toggle — only in written mode */}
+      {!failed && mode === 'written' && (
+        <div style={{ padding: '8px 16px 0', display: 'flex', gap: 6 }}>
+          <button
+            className={`btn${answerLang === 'native' ? ' btn-primary' : ' btn-ghost'}`}
+            style={{ height: 32, fontSize: 12, flex: 1 }}
+            onClick={() => setAnswerLang('native')}
+          >
+            🌍 Родной язык
+          </button>
+          <button
+            className={`btn${answerLang === 'ar' ? ' btn-primary' : ' btn-ghost'}`}
+            style={{ height: 32, fontSize: 12, flex: 1, fontFamily: 'inherit' }}
+            onClick={() => setAnswerLang('ar')}
+          >
+            ✍️ بالعربية
+          </button>
         </div>
       )}
 
@@ -480,17 +550,34 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
               >
                 {savedWordIds.has(question.word_id) ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
               </button>
-              <div className="text-arabic-lg">{question.ar}</div>
-              <div className="text-trans" style={{ marginTop: 10 }}>{question.trans}</div>
-              {mode === 'visual' && (
-                <p style={{ color: '#FFFFFF', fontSize: 13, marginTop: 12, opacity: 0.85 }}>
-                  {t(lang, 'visual_question')}
-                </p>
-              )}
-              {mode === 'written' && (
-                <p style={{ color: '#FFFFFF', fontSize: 13, marginTop: 12, opacity: 0.85 }}>
-                  {t(lang, 'written_question')}
-                </p>
+              {/* In Arabic-answer mode: hide Arabic, show only transliteration as the clue */}
+              {mode === 'written' && answerLang === 'ar' ? (
+                <>
+                  <div style={{
+                    fontSize: 22, fontStyle: 'italic', color: 'var(--accent)',
+                    lineHeight: 1.5, letterSpacing: '0.5px', marginBottom: 4,
+                  }}>
+                    {question.trans}
+                  </div>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 8 }}>
+                    Напишите это слово по-арабски
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="text-arabic-lg">{question.ar}</div>
+                  <div className="text-trans" style={{ marginTop: 10 }}>{question.trans}</div>
+                  {mode === 'visual' && (
+                    <p style={{ color: '#FFFFFF', fontSize: 13, marginTop: 12, opacity: 0.85 }}>
+                      {t(lang, 'visual_question')}
+                    </p>
+                  )}
+                  {mode === 'written' && (
+                    <p style={{ color: '#FFFFFF', fontSize: 13, marginTop: 12, opacity: 0.85 }}>
+                      {t(lang, 'written_question')}
+                    </p>
+                  )}
+                </>
               )}
             </div>
 
@@ -555,12 +642,23 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <input
                   className="input-field"
-                  placeholder={t(lang, 'written_placeholder')}
+                  placeholder={answerLang === 'ar' ? 'اكتب بالعربية...' : t(lang, 'written_placeholder')}
                   value={typed}
+                  dir={answerLang === 'ar' ? 'rtl' : 'ltr'}
+                  lang={answerLang === 'ar' ? 'ar' : undefined}
+                  inputMode={answerLang === 'ar' ? 'text' : undefined}
+                  style={answerLang === 'ar' ? {
+                    fontFamily: 'var(--font-arabic, "Scheherazade New", Georgia, serif)',
+                    fontSize: 22,
+                    textAlign: 'right',
+                    letterSpacing: '0.5px',
+                  } : undefined}
                   onChange={e => setTyped(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleWrittenAnswer()}
                   disabled={!!feedback}
                   autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
                 />
                 <button
                   className="btn btn-primary"
