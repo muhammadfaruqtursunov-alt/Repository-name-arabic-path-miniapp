@@ -50,7 +50,7 @@ export const ru = {
   reset_msg: 'Тест начинается заново.',
 
   // Umrah Guide
-  umrah_title: 'Умра Гайд',
+  umrah_title: 'Умра разговорник',
   umrah_subtitle: 'Разговорник паломника',
   btn_start_test: '🧪 Пройти тест',
   phrase_count: 'фраз',

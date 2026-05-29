@@ -50,7 +50,7 @@ export const uz = {
   reset_msg: 'Test qaytadan boshlanadi.',
 
   // Umrah Guide
-  umrah_title: "Umra Qo'llanmasi",
+  umrah_title: "Umra So'zlashuvi",
   umrah_subtitle: 'Hoji suhbat kitobi',
   btn_start_test: '🧪 Testni topshirish',
   phrase_count: 'ibora',

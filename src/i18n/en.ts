@@ -44,7 +44,7 @@ export const en = {
   motivation_title: '💪 Don\'t give up!',
   reset_msg: 'Test is restarting.',
 
-  umrah_title: 'Umrah Guide',
+  umrah_title: 'Umrah Phrasebook',
   umrah_subtitle: 'Pilgrim Phrasebook',
   btn_start_test: '🧪 Take the test',
   phrase_count: 'phrases',

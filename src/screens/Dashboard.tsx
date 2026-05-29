@@ -1,4 +1,8 @@
-import { BookOpen, Compass, PenLine, Eye, MessageCircleQuestion, Palette, Layers, Flame, TrendingUp, RotateCcw } from 'lucide-react';
+import { useState } from 'react';
+import {
+  BookOpen, Compass, PenLine, Eye, MessageCircleQuestion,
+  Palette, Layers, Flame, TrendingUp, RotateCcw, ChevronDown,
+} from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import type { UserProfile, VolumeInfo } from '../api/client';
@@ -18,7 +22,6 @@ interface Props {
   onOpenReview: () => void;
 }
 
-
 function getLevel(totalLearned: number, lang: Lang): string {
   if (totalLearned < 70)  return t(lang, 'level_beginner');
   if (totalLearned < 200) return t(lang, 'level_intermediate');
@@ -27,25 +30,23 @@ function getLevel(totalLearned: number, lang: Lang): string {
 
 export default function Dashboard({
   lang, onLangChange: _onLangChange, user, volumes, onOpenVolume,
-  onOpenGuide, onOpenTests, onOpenAskTeacher, onOpenSettings: _onOpenSettings, onOpenThemes, onOpenReview,
+  onOpenGuide, onOpenTests, onOpenAskTeacher, onOpenSettings: _onOpenSettings,
+  onOpenThemes, onOpenReview,
 }: Props) {
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  const [medExpanded, setMedExpanded] = useState(false);
+
+  const tgUser  = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const avatarUrl = tgUser?.photo_url;
 
   return (
     <div>
-      {/* ── Header ──────────────────────────────────────────────── */}
+      {/* ── Шапка ────────────────────────────────────────────── */}
       <div
         className="islamic-header"
-        style={{
-          padding: '16px 16px 0',
-          background: 'linear-gradient(180deg, rgba(13,31,26,0.9) 0%, transparent 100%)',
-        }}
+        style={{ padding: '16px 16px 0', background: 'linear-gradient(180deg, rgba(13,31,26,0.9) 0%, transparent 100%)' }}
       >
-        {/* User row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {/* Avatar */}
             <div style={{
               width: 48, height: 48, borderRadius: '50%',
               border: '2px solid var(--accent-gold)',
@@ -62,8 +63,7 @@ export default function Dashboard({
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: 4,
-                  background: 'var(--accent-tint)',
-                  color: 'var(--accent)',
+                  background: 'var(--accent-tint)', color: 'var(--accent)',
                   border: '1px solid var(--accent-border)',
                   borderRadius: 20, padding: '2px 8px',
                   fontSize: 11, fontWeight: 700,
@@ -76,19 +76,17 @@ export default function Dashboard({
           </div>
           <button
             onClick={onOpenThemes}
-            style={{
-              width: 36, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer',
-              background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
+            style={{ width: 36, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <Palette size={18} color="var(--on-accent)" />
           </button>
         </div>
       </div>
 
-      {/* ── Content ─────────────────────────────────────────────── */}
+      {/* ── Контент ──────────────────────────────────────────── */}
       <div className="page-content" style={{ paddingTop: 0 }}>
-        {/* Progress card */}
+
+        {/* Прогресс-карточка */}
         <div className="glass-card" style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
             <div>
@@ -120,7 +118,6 @@ export default function Dashboard({
 
           <div className="gold-divider" />
 
-          {/* Streak */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Flame size={16} color="var(--accent-gold)" />
             <span style={{ color: 'var(--accent-gold)', fontWeight: 700 }}>{user.streak}</span>
@@ -136,38 +133,62 @@ export default function Dashboard({
           </div>
         </div>
 
-        {/* Grid 2×3 */}
+        {/* Сетка кнопок */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-          {/* Books */}
-          {volumes.slice(0, 3).map((vol) => (
+
+          {/* ── Мединский курс — сворачиваемый ── */}
+          <div style={{ gridColumn: 'span 2' }}>
+            {/* Заголовок группы */}
             <div
-              key={vol.book_id}
-              className={`glass-card${vol.is_current ? ' glass-card--gold' : ''}`}
-              style={{ cursor: 'pointer', position: 'relative' }}
-              onClick={() => onOpenVolume(vol.book_id)}
+              className={`glass-card${volumes.some(v => v.is_current) ? ' glass-card--gold' : ''}`}
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, marginBottom: medExpanded ? 8 : 0 }}
+              onClick={() => setMedExpanded(!medExpanded)}
             >
-              {vol.is_current && (
-                <div className="badge badge--gold text-badge" style={{ position: 'absolute', top: 10, right: 10, fontSize: 9 }}>
-                  {t(lang, 'current_badge')}
-                </div>
-              )}
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <BookOpen size={22} color="var(--accent)" />
               </div>
-              <div className="title-card" style={{ marginBottom: 2 }}>
-                {t(lang, `book_${vol.book_id}` as 'book_1')}
+              <div style={{ flex: 1 }}>
+                <div className="title-card">{t(lang, 'medina')}</div>
+                <div className="text-muted" style={{ fontSize: 12 }}>
+                  {t(lang, 'book_1')} · {t(lang, 'book_2')} · {t(lang, 'book_3')}
+                </div>
               </div>
-              <div className="text-muted" style={{ fontSize: 12, marginBottom: 8 }}>
-                {t(lang, 'medina')}
-              </div>
-              <ProgressBar pct={vol.pct} />
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 5 }}>
-                {vol.learned_words} / {vol.total_words}
-              </div>
+              <ChevronDown
+                size={18}
+                color="var(--text-muted)"
+                style={{ transform: medExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
+              />
             </div>
-          ))}
 
-          {/* Umrah Guide */}
+            {/* Три книги — раскрываются */}
+            {medExpanded && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {volumes.slice(0, 3).map(vol => (
+                  <div
+                    key={vol.book_id}
+                    className={`glass-card${vol.is_current ? ' glass-card--gold' : ''}`}
+                    style={{ cursor: 'pointer', position: 'relative', padding: '10px 10px 12px' }}
+                    onClick={() => onOpenVolume(vol.book_id)}
+                  >
+                    {vol.is_current && (
+                      <div className="badge badge--gold text-badge" style={{ position: 'absolute', top: 6, right: 6, fontSize: 8 }}>
+                        {t(lang, 'current_badge')}
+                      </div>
+                    )}
+                    <div className="title-card" style={{ fontSize: 12, marginBottom: 6, paddingRight: vol.is_current ? 28 : 0 }}>
+                      {t(lang, `book_${vol.book_id}` as 'book_1')}
+                    </div>
+                    <ProgressBar pct={vol.pct} />
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                      {vol.learned_words}/{vol.total_words}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Умра разговорник ── */}
           <div className="glass-card" style={{ cursor: 'pointer' }} onClick={onOpenGuide}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
               <Compass size={22} color="var(--accent)" />
@@ -180,7 +201,7 @@ export default function Dashboard({
             </div>
           </div>
 
-          {/* Tests */}
+          {/* ── Тесты ── */}
           <div className="glass-card" style={{ cursor: 'pointer' }} onClick={onOpenTests}>
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
               <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -196,7 +217,7 @@ export default function Dashboard({
             </div>
           </div>
 
-          {/* Ask teacher */}
+          {/* ── Вопрос учителю ── */}
           <div className="glass-card" style={{ cursor: 'pointer' }} onClick={onOpenAskTeacher}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
               <MessageCircleQuestion size={22} color="var(--accent)" />
@@ -206,7 +227,55 @@ export default function Dashboard({
             </div>
           </div>
 
-          {/* Review (SRS) */}
+          {/* ── Сарф (скоро) ── */}
+          <div
+            className="glass-card"
+            style={{ opacity: 0.55, cursor: 'default', position: 'relative' }}
+          >
+            <div style={{
+              position: 'absolute', top: 8, right: 8,
+              background: 'var(--accent-tint)', color: 'var(--accent)',
+              borderRadius: 10, padding: '2px 7px', fontSize: 9, fontWeight: 700,
+              border: '1px solid var(--accent-border)',
+            }}>
+              {lang === 'ru' ? 'Скоро' : lang === 'en' ? 'Soon' : lang === 'uz' ? 'Tez kunda' : 'Зуд'}
+            </div>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              <span style={{ fontSize: 22 }}>📖</span>
+            </div>
+            <div className="title-card" style={{ marginBottom: 2 }}>
+              {lang === 'ru' ? 'Сарф' : lang === 'en' ? 'Sarf' : 'Сарф'}
+            </div>
+            <div className="text-muted" style={{ fontSize: 12 }}>
+              {lang === 'ru' ? 'Морфология' : lang === 'en' ? 'Morphology' : lang === 'uz' ? 'Morfologiya' : 'Морфология'}
+            </div>
+          </div>
+
+          {/* ── Нахв (скоро) ── */}
+          <div
+            className="glass-card"
+            style={{ opacity: 0.55, cursor: 'default', position: 'relative' }}
+          >
+            <div style={{
+              position: 'absolute', top: 8, right: 8,
+              background: 'var(--accent-tint)', color: 'var(--accent)',
+              borderRadius: 10, padding: '2px 7px', fontSize: 9, fontWeight: 700,
+              border: '1px solid var(--accent-border)',
+            }}>
+              {lang === 'ru' ? 'Скоро' : lang === 'en' ? 'Soon' : lang === 'uz' ? 'Tez kunda' : 'Зуд'}
+            </div>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              <span style={{ fontSize: 22 }}>✏️</span>
+            </div>
+            <div className="title-card" style={{ marginBottom: 2 }}>
+              {lang === 'ru' ? 'Нахв' : lang === 'en' ? 'Nahw' : 'Нахв'}
+            </div>
+            <div className="text-muted" style={{ fontSize: 12 }}>
+              {lang === 'ru' ? 'Синтаксис' : lang === 'en' ? 'Syntax' : lang === 'uz' ? 'Sintaksis' : 'Синтаксис'}
+            </div>
+          </div>
+
+          {/* ── Повторение SRS ── */}
           <div
             className="glass-card glass-card--gold"
             style={{ cursor: 'pointer', gridColumn: 'span 2' }}
@@ -224,6 +293,7 @@ export default function Dashboard({
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>

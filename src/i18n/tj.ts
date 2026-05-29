@@ -44,7 +44,7 @@ export const tj = {
   motivation_title: '💪 Таслим нашав!',
   reset_msg: 'Санҷиш аз нав оғоз мешавад.',
 
-  umrah_title: 'Роҳнамои Умра',
+  umrah_title: 'Гуфтугӯи Умра',
   umrah_subtitle: 'Китобчаи муоширати ҳоҷиён',
   btn_start_test: '🧪 Санҷишро гузаштан',
   phrase_count: 'ибора',
