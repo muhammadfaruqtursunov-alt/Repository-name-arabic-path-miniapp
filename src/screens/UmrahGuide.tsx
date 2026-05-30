@@ -1,5 +1,8 @@
-import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronDown, CheckCircle2, XCircle, Volume2 } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  ChevronLeft, ChevronRight, ChevronDown,
+  CheckCircle2, XCircle, Volume2, GraduationCap,
+} from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import {
@@ -10,6 +13,7 @@ import {
   type UmrahPhrase,
 } from '../data/umrahData';
 import { speakArabic } from '../utils/speak';
+import { useSwipe } from '../hooks/useSwipe';
 
 interface Props {
   lang: Lang;
@@ -17,6 +21,28 @@ interface Props {
 }
 
 type View = 'sections' | 'detail' | 'quiz';
+
+// ─── speaker label ───────────────────────────────────────────
+function speakerLabel(ph: UmrahPhrase, lang: Lang): string | null {
+  if (!ph.speaker) return null;
+  if (ph.speaker === 'student') {
+    if (lang === 'en') return '🙏 Pilgrim';
+    if (lang === 'uz') return '🙏 Hoji';
+    if (lang === 'tj') return '🙏 Ҳоҷӣ';
+    return '🙏 Паломник';
+  }
+  if (ph.speaker === 'police') {
+    if (lang === 'en') return '👮 Police';
+    if (lang === 'uz') return '👮 Politsiya';
+    if (lang === 'tj') return '👮 Полис';
+    return '👮 Полиция';
+  }
+  // arab
+  if (lang === 'en') return '🧕 Local';
+  if (lang === 'uz') return '🧕 Mahalliy';
+  if (lang === 'tj') return '🧕 Маҳаллӣ';
+  return '🧕 Местный';
+}
 
 // ─── локальный квиз ──────────────────────────────────────────
 interface QuizQuestion {
@@ -31,13 +57,11 @@ function buildQuiz(section: UmrahSection, lang: Lang): QuizQuestion[] {
     .flatMap(s => s.phrases)
     .map(p => getPhraseTranslation(p, lang));
 
-  const phrases = section.phrases.filter(p => p.ar && p.ar.trim());
-  const questions: QuizQuestion[] = [];
+  const phrases = section.phrases.filter(p => p.ar?.trim());
 
-  phrases.forEach((phrase, idx) => {
+  return phrases.map((phrase, idx) => {
     const correct = getPhraseTranslation(phrase, lang);
     const pool = [...new Set(allTranslations.filter(tr => tr !== correct))];
-    // shuffle pool
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -46,28 +70,22 @@ function buildQuiz(section: UmrahSection, lang: Lang): QuizQuestion[] {
       ...pool.slice(0, 3).map(label => ({ label, isCorrect: false })),
       { label: correct, isCorrect: true },
     ];
-    // shuffle choices
     for (let i = choices.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [choices[i], choices[j]] = [choices[j], choices[i]];
     }
-    questions.push({ phrase, choices, idx, total: phrases.length });
+    return { phrase, choices, idx, total: phrases.length };
   });
-
-  return questions;
 }
 
-// ─── компонент ──────────────────────────────────────────────
+// ─── компонент ───────────────────────────────────────────────
 export default function UmrahGuide({ lang, onBack }: Props) {
   const [view, setView]       = useState<View>('sections');
   const [current, setCurrent] = useState<UmrahSection | null>(null);
-  const [playingAr, setPlayingAr] = useState<string | null>(null);
 
-  function speak(ar: string) {
-    setPlayingAr(ar);
-    speakArabic(ar);
-    setTimeout(() => setPlayingAr(null), 2500);
-  }
+  // Duolingo navigation
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [playingAr, setPlayingAr] = useState<string | null>(null);
 
   // quiz
   const [quiz, setQuiz]         = useState<QuizQuestion[]>([]);
@@ -76,23 +94,41 @@ export default function UmrahGuide({ lang, onBack }: Props) {
   const [done, setDone]         = useState(false);
   const [answered, setAnswered] = useState(false);
 
-  const quizQ = quiz[quizIdx] ?? null;
+  // сброс при смене секции
+  useEffect(() => { setPhraseIdx(0); }, [current]);
 
-  // Сколько фраз в секции (для отображения счётчика)
   const phraseCounts = useMemo(
     () => Object.fromEntries(umrahSections.map(s => [s.key, s.phrases.length])),
     [],
   );
 
-  function openSection(sec: UmrahSection) {
-    setCurrent(sec);
-    setView('detail');
+  // ── audio ────────────────────────────────────────────────────
+  function speak(ar: string) {
+    setPlayingAr(ar);
+    speakArabic(ar);
+    setTimeout(() => setPlayingAr(null), 2500);
   }
 
+  // ── detail navigation ────────────────────────────────────────
+  const total    = current?.phrases.length ?? 0;
+  const isFirst  = phraseIdx === 0;
+  const isLast   = phraseIdx === total - 1;
+  const phrase   = current?.phrases[phraseIdx] ?? null;
+
+  const goNext = useCallback(
+    () => setPhraseIdx(i => Math.min(i + 1, total - 1)),
+    [total],
+  );
+  const goPrev = useCallback(
+    () => setPhraseIdx(i => Math.max(i - 1, 0)),
+    [],
+  );
+  const swipeHandlers = useSwipe(goNext, goPrev);
+
+  // ── quiz ─────────────────────────────────────────────────────
   function startQuiz() {
     if (!current) return;
-    const questions = buildQuiz(current, lang);
-    setQuiz(questions);
+    setQuiz(buildQuiz(current, lang));
     setQuizIdx(0);
     setFeedback(null);
     setDone(false);
@@ -100,45 +136,36 @@ export default function UmrahGuide({ lang, onBack }: Props) {
     setView('quiz');
   }
 
+  const quizQ = quiz[quizIdx] ?? null;
+
   function handleAnswer(choice: { label: string; isCorrect: boolean }) {
     if (answered) return;
     setAnswered(true);
-
-    if (choice.isCorrect) {
-      setFeedback({ correct: true, msg: '' });
-    } else {
-      setFeedback({
-        correct: false,
-        msg: quizQ ? getPhraseTranslation(quizQ.phrase, lang) : '',
-      });
-    }
-
+    setFeedback({
+      correct: choice.isCorrect,
+      msg: quizQ ? getPhraseTranslation(quizQ.phrase, lang) : '',
+    });
     setTimeout(() => {
       setFeedback(null);
       setAnswered(false);
-      if (quizIdx + 1 >= quiz.length) {
-        setDone(true);
-      } else {
-        setQuizIdx(prev => prev + 1);
-      }
+      if (quizIdx + 1 >= quiz.length) setDone(true);
+      else setQuizIdx(q => q + 1);
     }, 950);
   }
 
-  // ─── QUIZ VIEW ───────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════
+  // QUIZ VIEW
+  // ═══════════════════════════════════════════════════════════
   if (view === 'quiz') {
     return (
       <div className="screen-enter" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
         <div className="page-header" style={{ background: 'var(--bg-card)' }}>
-          <button
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
-            onClick={() => { setView('detail'); setFeedback(null); setAnswered(false); }}
-          >
+          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
+            onClick={() => { setView('detail'); setFeedback(null); setAnswered(false); }}>
             <ChevronLeft size={24} />
           </button>
-          <h1 className="title-card" style={{ flex: 1 }}>
-            {t(lang, 'umrah_title')} — тест
-          </h1>
-          {quizQ && !done && (
+          <h1 className="title-card" style={{ flex: 1 }}>{t(lang, 'umrah_title')} — тест</h1>
+          {!done && quizQ && (
             <span style={{ color: 'var(--accent-teal)', fontSize: 13, fontWeight: 700 }}>
               {quizIdx + 1}/{quiz.length}
             </span>
@@ -157,17 +184,10 @@ export default function UmrahGuide({ lang, onBack }: Props) {
             </div>
           ) : quizQ ? (
             <>
-              {/* Вопрос */}
               <div className="glass-card" style={{ textAlign: 'center', marginBottom: 20, padding: '28px 20px', position: 'relative' }}>
-                <button
-                  onClick={() => speak(quizQ.phrase.ar)}
-                  style={{
-                    position: 'absolute', top: 12, right: 12,
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: playingAr === quizQ.phrase.ar ? 'var(--accent-gold)' : 'var(--text-muted)',
-                    transition: 'color 0.2s',
-                  }}
-                >
+                <button onClick={() => speak(quizQ.phrase.ar)}
+                  style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', cursor: 'pointer',
+                    color: playingAr === quizQ.phrase.ar ? 'var(--accent-gold)' : 'var(--text-muted)', transition: 'color 0.2s' }}>
                   <Volume2 size={20} />
                 </button>
                 <div className="text-arabic-lg">{quizQ.phrase.ar}</div>
@@ -178,42 +198,23 @@ export default function UmrahGuide({ lang, onBack }: Props) {
                 )}
                 <div className="text-trans" style={{ marginTop: 8 }}>{quizQ.phrase.trans}</div>
               </div>
-
-              {/* Фидбек */}
               {feedback && (
-                <div
-                  className={`glass-card ${feedback.correct ? 'flash-correct' : 'flash-wrong'}`}
-                  style={{
-                    marginBottom: 14,
-                    borderColor: feedback.correct ? 'var(--accent-teal)' : 'var(--danger)',
-                    display: 'flex', gap: 10, alignItems: 'center',
-                  }}
-                >
+                <div className={`glass-card ${feedback.correct ? 'flash-correct' : 'flash-wrong'}`}
+                  style={{ marginBottom: 14, borderColor: feedback.correct ? 'var(--accent-teal)' : 'var(--danger)',
+                    display: 'flex', gap: 10, alignItems: 'center' }}>
                   {feedback.correct
                     ? <CheckCircle2 size={18} color="var(--accent-teal)" />
                     : <XCircle size={18} color="var(--danger)" />}
                   <span style={{ fontWeight: 600, color: feedback.correct ? 'var(--accent-teal)' : 'var(--danger)', fontSize: 14 }}>
-                    {feedback.correct
-                      ? t(lang, 'correct_msg')
-                      : `${t(lang, 'wrong_msg')} ${feedback.msg}`}
+                    {feedback.correct ? t(lang, 'correct_msg') : `${t(lang, 'wrong_msg')} ${feedback.msg}`}
                   </span>
                 </div>
               )}
-
-              {/* Варианты ответа */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {quizQ.choices.map((ch, i) => (
-                  <button
-                    key={i}
-                    className="btn btn-ghost"
-                    style={{
-                      height: 'auto', padding: '14px',
-                      textAlign: 'left', justifyContent: 'flex-start',
-                      color: '#FFFFFF', fontWeight: 600,
-                    }}
-                    disabled={answered}
-                    onClick={() => handleAnswer(ch)}
-                  >
+                  <button key={i} className="btn btn-ghost"
+                    style={{ height: 'auto', padding: '14px', textAlign: 'left', justifyContent: 'flex-start', color: '#FFF', fontWeight: 600 }}
+                    disabled={answered} onClick={() => handleAnswer(ch)}>
                     {ch.label}
                   </button>
                 ))}
@@ -225,175 +226,163 @@ export default function UmrahGuide({ lang, onBack }: Props) {
     );
   }
 
-  // ─── DETAIL VIEW ──────────────────────────────────────────────
-  if (view === 'detail' && current) {
-    const title = getSectionTitle(current, lang);
+  // ═══════════════════════════════════════════════════════════
+  // DETAIL VIEW — Duolingo-стиль
+  // ═══════════════════════════════════════════════════════════
+  if (view === 'detail' && current && phrase) {
+    const title      = getSectionTitle(current, lang);
+    const translation = getPhraseTranslation(phrase, lang);
+    const progress   = ((phraseIdx + 1) / total) * 100;
+    const badge      = speakerLabel(phrase, lang);
 
     return (
-      <div className="screen-enter" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-        {/* Шапка */}
-        <div style={{
-          padding: '40px 20px 24px',
-          background: 'linear-gradient(180deg, rgba(13,31,26,0.7) 0%, var(--bg-deep) 100%), url(https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=600) center/cover no-repeat',
-          textAlign: 'center',
-          position: 'relative',
-        }}>
-          <button
-            style={{ position: 'absolute', top: 16, left: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
-            onClick={() => setView('sections')}
-          >
+      <div
+        className="screen-enter"
+        style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}
+        {...swipeHandlers}
+      >
+        {/* Header */}
+        <div className="page-header" style={{ background: 'var(--bg-card)' }}>
+          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
+            onClick={() => setView('sections')}>
             <ChevronLeft size={24} />
           </button>
-          <div style={{ fontSize: 36, marginBottom: 8 }}>{current.emoji}</div>
-          <h1 className="title-screen">{title}</h1>
-          <div style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 6 }}>
-            {current.phrases.length} {t(lang, 'phrase_count')}
-          </div>
+          <h1 className="title-card" style={{ flex: 1 }}>
+            {current.emoji} {title}
+          </h1>
+          <span style={{ color: 'var(--accent-teal)', fontSize: 13, fontWeight: 700, minWidth: 36, textAlign: 'right' }}>
+            {phraseIdx + 1}/{total}
+          </span>
         </div>
 
-        {/* Список фраз */}
-        <div className="page-content" style={{ paddingTop: 12, paddingBottom: 100 }}>
-          {current.phrases.map((ph, i) => {
-            const translation = getPhraseTranslation(ph, lang);
-            const isSpeaker = !!ph.speaker;
-            const isRight = ph.speaker === 'student';
-            const isPolice = ph.speaker === 'police';
+        {/* Progress bar */}
+        <div style={{ height: 4, background: 'var(--border)' }}>
+          <div style={{
+            height: '100%', background: 'var(--accent-teal)',
+            width: `${progress}%`, transition: 'width 0.35s ease',
+            borderRadius: '0 2px 2px 0',
+          }} />
+        </div>
 
-            if (isSpeaker) {
-              // Chat-bubble style
-              return (
-                <div key={i} style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: isRight ? 'flex-end' : 'flex-start',
-                  marginBottom: 12,
-                  gap: 2,
-                }}>
-                  {/* Имя говорящего */}
-                  <div style={{
-                    fontSize: 11,
-                    color: 'var(--text-muted)',
-                    marginLeft: isRight ? 0 : 4,
-                    marginRight: isRight ? 4 : 0,
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>
-                    {ph.speaker === 'student'
-                      ? (lang === 'ru' ? 'Паломник' : lang === 'en' ? 'Pilgrim' : lang === 'uz' ? 'Hoji' : 'Ҳоҷӣ')
-                      : isPolice
-                        ? (lang === 'ru' ? 'Полиция' : lang === 'en' ? 'Police' : lang === 'uz' ? 'Politsiya' : 'Полис')
-                        : (lang === 'ru' ? 'Местный' : lang === 'en' ? 'Local' : lang === 'uz' ? 'Mahalliy' : 'Маҳаллӣ')
-                    }
-                    {ph.variant && (
-                      <span style={{
-                        marginLeft: 6,
-                        color: ph.variant === 'pos' ? 'var(--accent-teal)' : 'var(--danger)',
-                        fontSize: 10,
-                      }}>
-                        {ph.variant === 'pos' ? '✓' : '✗'}
-                      </span>
-                    )}
-                  </div>
-                  {/* Пузырь */}
-                  <div style={{
-                    maxWidth: '85%',
-                    background: isRight
-                      ? 'var(--accent-tint)'
-                      : isPolice
-                        ? 'rgba(220,60,40,0.12)'
-                        : 'var(--bg-card)',
-                    border: `1px solid ${isRight ? 'var(--accent-border)' : isPolice ? 'rgba(220,60,40,0.3)' : 'var(--border)'}`,
-                    borderRadius: isRight ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
-                    padding: '12px 16px',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                      <div dir="rtl" style={{ fontSize: 18, fontFamily: 'var(--font-arabic)', marginBottom: 4, color: 'var(--text-primary)', flex: 1 }}>
-                        {ph.ar}
-                      </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); speak(ph.ar); }}
-                        style={{
-                          background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 0 4px', flexShrink: 0,
-                          color: playingAr === ph.ar ? 'var(--accent-gold)' : 'var(--text-muted)',
-                          transition: 'color 0.2s',
-                        }}
-                      >
-                        <Volume2 size={16} />
-                      </button>
-                    </div>
-                    {ph.dialect && ph.dialect !== ph.ar && (
-                      <div style={{ fontSize: 13, color: 'var(--accent-gold)', fontStyle: 'italic', marginBottom: 3 }}>
-                        {ph.dialect}
-                      </div>
-                    )}
-                    <div className="text-trans" style={{ fontSize: 12 }}>{ph.trans}</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4, fontWeight: 500 }}>
-                      {translation}
-                    </div>
-                  </div>
-                </div>
-              );
-            }
+        {/* Карточка фразы */}
+        <div className="page-content" style={{ paddingTop: 24, display: 'flex', flexDirection: 'column', flex: 1 }}>
 
-            // Обычная карточка
-            return (
-              <div key={i} className="glass-card" style={{ marginBottom: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
-                  <div dir="rtl" className="text-arabic" style={{ fontSize: 20, flex: 1 }}>
-                    {ph.ar}
-                  </div>
-                  <button
-                    onClick={() => speak(ph.ar)}
-                    style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      padding: '4px 0 0 4px', flexShrink: 0,
-                      color: playingAr === ph.ar ? 'var(--accent-gold)' : 'var(--text-muted)',
-                      transition: 'color 0.2s',
-                    }}
-                  >
-                    <Volume2 size={18} />
-                  </button>
-                </div>
-                {ph.dialect && ph.dialect !== ph.ar && (
-                  <div style={{ fontSize: 13, color: 'var(--accent-gold)', fontStyle: 'italic', marginBottom: 4 }}>
-                    {ph.dialect}
-                  </div>
+          <div className="glass-card" style={{
+            textAlign: 'center', padding: '32px 20px 28px',
+            marginBottom: 20, minHeight: 240,
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            position: 'relative',
+          }}>
+            {/* Кнопка озвучки */}
+            <button
+              onClick={() => speak(phrase.ar)}
+              style={{
+                position: 'absolute', top: 12, right: 12,
+                background: 'rgba(192,150,60,0.12)',
+                border: '1px solid rgba(192,150,60,0.30)',
+                borderRadius: 10, padding: '5px 8px',
+                cursor: 'pointer',
+                color: playingAr === phrase.ar ? 'var(--accent-gold)' : 'var(--text-muted)',
+                transition: 'color 0.2s',
+                display: 'flex', alignItems: 'center',
+              }}
+            >
+              <Volume2 size={16} />
+            </button>
+
+            {/* Бейдж говорящего */}
+            {badge && (
+              <div style={{
+                fontSize: 12, fontWeight: 700,
+                color: phrase.speaker === 'police' ? '#ff7070' : 'var(--accent-teal)',
+                background: phrase.speaker === 'police' ? 'rgba(220,60,40,0.12)' : 'rgba(0,180,150,0.1)',
+                border: `1px solid ${phrase.speaker === 'police' ? 'rgba(220,60,40,0.3)' : 'rgba(0,180,150,0.25)'}`,
+                borderRadius: 20, padding: '3px 10px',
+                marginBottom: 18,
+              }}>
+                {badge}
+                {phrase.variant && (
+                  <span style={{ marginLeft: 6, opacity: 0.8 }}>
+                    {phrase.variant === 'pos' ? '✓' : '✗'}
+                  </span>
                 )}
-                <div className="text-trans" style={{ marginBottom: 4 }}>{ph.trans}</div>
-                <div className="text-translation">{translation}</div>
               </div>
-            );
-          })}
-        </div>
+            )}
 
-        {/* Кнопка «Тест» */}
-        <div style={{ padding: '12px 16px 24px', background: 'var(--bg-deep)', position: 'sticky', bottom: 0 }}>
-          <button className="btn btn-gold" onClick={startQuiz}>
-            {t(lang, 'btn_start_test')}
-          </button>
+            {/* Арабский текст */}
+            <div dir="rtl" className="text-arabic-lg" style={{ marginBottom: 10, lineHeight: 1.6 }}>
+              {phrase.ar}
+            </div>
+
+            {/* Транслитерация */}
+            <div className="text-trans" style={{ marginBottom: 20 }}>
+              {phrase.trans}
+            </div>
+
+            {/* Разделитель + перевод */}
+            <div style={{ width: '100%', borderTop: '1px solid var(--border)', paddingTop: 18 }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.4 }}>
+                {translation}
+              </div>
+            </div>
+
+            {/* Диалект — если есть и отличается */}
+            {phrase.dialect && phrase.dialect !== phrase.ar && (
+              <div style={{
+                marginTop: 14, fontSize: 13,
+                color: 'var(--accent-gold)', fontStyle: 'italic',
+                background: 'rgba(192,150,60,0.07)',
+                borderRadius: 8, padding: '6px 12px',
+                width: '100%', textAlign: 'center',
+              }}>
+                🗣 {phrase.dialect}
+              </div>
+            )}
+          </div>
+
+          {/* Навигация */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+            <button className="btn btn-ghost" style={{ flex: 1 }}
+              onClick={goPrev} disabled={isFirst}>
+              <ChevronLeft size={18} /> {t(lang, 'back')}
+            </button>
+
+            {isLast ? (
+              <button className="btn btn-primary" style={{ flex: 2, gap: 8 }} onClick={startQuiz}>
+                <GraduationCap size={18} />
+                {t(lang, 'btn_start_test')}
+              </button>
+            ) : (
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={goNext}>
+                {t(lang, 'next')} <ChevronRight size={18} />
+              </button>
+            )}
+          </div>
+
+          {/* Подсказка свайп */}
+          <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', opacity: 0.6, marginTop: 4 }}>
+            ← → {t(lang, 'lesson_swipe_hint')}
+          </p>
         </div>
       </div>
     );
   }
 
-  // ─── SECTIONS LIST ───────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════
+  // SECTIONS LIST
+  // ═══════════════════════════════════════════════════════════
   return (
     <div className="screen-enter" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      {/* Hero */}
       <div style={{
         padding: '40px 20px 28px',
         background: 'linear-gradient(180deg, rgba(13,31,26,0.6) 0%, var(--bg-deep) 100%), url(https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=600) center/cover no-repeat',
-        textAlign: 'center',
-        position: 'relative',
+        textAlign: 'center', position: 'relative',
       }}>
-        <button
-          style={{ position: 'absolute', top: 16, left: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
-          onClick={onBack}
-        >
+        <button style={{ position: 'absolute', top: 16, left: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
+          onClick={onBack}>
           <ChevronLeft size={24} />
         </button>
-        {/* Паломник SVG */}
         <svg width="48" height="64" viewBox="0 0 48 64" fill="none" style={{ marginBottom: 10 }}>
           <circle cx="24" cy="10" r="8" fill="#C9A84C" opacity="0.8" />
           <rect x="10" y="20" width="28" height="36" rx="4" fill="#C9A84C" opacity="0.7" />
@@ -403,15 +392,11 @@ export default function UmrahGuide({ lang, onBack }: Props) {
         <p className="text-muted" style={{ fontSize: 13 }}>{t(lang, 'umrah_subtitle')}</p>
       </div>
 
-      {/* Список секций */}
       <div className="page-content" style={{ paddingTop: 12 }}>
         {umrahSections.map(sec => (
-          <div
-            key={sec.key}
-            className="glass-card"
+          <div key={sec.key} className="glass-card"
             style={{ marginBottom: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}
-            onClick={() => openSection(sec)}
-          >
+            onClick={() => { setCurrent(sec); setView('detail'); }}>
             <span style={{ fontSize: 28 }}>{sec.emoji}</span>
             <div style={{ flex: 1 }}>
               <div className="title-card">{getSectionTitle(sec, lang)}</div>
