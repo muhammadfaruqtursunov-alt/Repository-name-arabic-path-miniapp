@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, CheckCircle2, XCircle, Flame, BookOpen, RotateCcw, Volume2, Bookmark, BookmarkCheck } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
@@ -9,6 +9,7 @@ import { addWrongWord, saveWordManually, getSRSWords } from '../utils/srs';
 import { checkAchievements } from '../utils/achievements';
 import AchievementPopup from '../components/AchievementPopup';
 import type { Achievement } from '../utils/achievements';
+import { markTestPassed } from '../utils/lessonProgress';
 
 type Mode = 'visual' | 'written';
 type AnswerLang = 'native' | 'ar';
@@ -94,6 +95,9 @@ function normalizeArabic(s: string): string {
 
 // ── Component ─────────────────────────────────────────────────────
 export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }: Props) {
+  // Ref: был ли достигнут лимит ошибок в текущей попытке (→ не считать тест сданным)
+  const hadMaxErrors = useRef(false);
+
   const [mode, setMode]         = useState<Mode>('visual');
   const [answerLang, setAnswerLang] = useState<AnswerLang>('native');
   const [question, setQuestion] = useState<QuizQuestion | null>(null);
@@ -127,6 +131,7 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
   const [currentAch, setCurrentAch] = useState<Achievement | null>(null);
 
   async function startQuiz(m: Mode) {
+    hadMaxErrors.current = false;
     setLoading(true);
     setDone(false);
     setFeedback(null);
@@ -232,6 +237,7 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
       setErrorCount(prev => {
         const next = prev + 1;
         if (next >= MAX_ERRORS) {
+          hadMaxErrors.current = true; // ← фиксируем синхронно до проверки res.done
           setTimeout(() => {
             setFailed(true);
             setFailMotivation(pickMotivation());
@@ -248,6 +254,10 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
 
     if (res.done) {
       setDone(true);
+      // Отмечаем тест как пройденный только если не было провала (< MAX_ERRORS ошибок)
+      if (!hadMaxErrors.current) {
+        markTestPassed(bookId, lesson, mode);
+      }
       // check perfect test
       const isPerfect = (errorCount === 0 && !res.correct === false);
       const newAchs = checkAchievements({ totalLearned: 0, streak: 0, questionsAsked: 1 });
