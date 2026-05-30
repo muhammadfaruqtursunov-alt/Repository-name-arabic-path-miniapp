@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronDown, CheckCircle2, XCircle } from 'lucide-react';
+import { ChevronLeft, ChevronDown, CheckCircle2, XCircle, Volume2 } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import {
@@ -9,6 +9,7 @@ import {
   type UmrahSection,
   type UmrahPhrase,
 } from '../data/umrahData';
+import { speakArabic } from '../utils/speak';
 
 interface Props {
   lang: Lang;
@@ -60,6 +61,13 @@ function buildQuiz(section: UmrahSection, lang: Lang): QuizQuestion[] {
 export default function UmrahGuide({ lang, onBack }: Props) {
   const [view, setView]       = useState<View>('sections');
   const [current, setCurrent] = useState<UmrahSection | null>(null);
+  const [playingAr, setPlayingAr] = useState<string | null>(null);
+
+  function speak(ar: string) {
+    setPlayingAr(ar);
+    speakArabic(ar);
+    setTimeout(() => setPlayingAr(null), 2500);
+  }
 
   // quiz
   const [quiz, setQuiz]         = useState<QuizQuestion[]>([]);
@@ -150,7 +158,18 @@ export default function UmrahGuide({ lang, onBack }: Props) {
           ) : quizQ ? (
             <>
               {/* Вопрос */}
-              <div className="glass-card" style={{ textAlign: 'center', marginBottom: 20, padding: '28px 20px' }}>
+              <div className="glass-card" style={{ textAlign: 'center', marginBottom: 20, padding: '28px 20px', position: 'relative' }}>
+                <button
+                  onClick={() => speak(quizQ.phrase.ar)}
+                  style={{
+                    position: 'absolute', top: 12, right: 12,
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: playingAr === quizQ.phrase.ar ? 'var(--accent-gold)' : 'var(--text-muted)',
+                    transition: 'color 0.2s',
+                  }}
+                >
+                  <Volume2 size={20} />
+                </button>
                 <div className="text-arabic-lg">{quizQ.phrase.ar}</div>
                 {quizQ.phrase.dialect && quizQ.phrase.dialect !== quizQ.phrase.ar && (
                   <div style={{ color: 'var(--accent-gold)', fontSize: 14, marginTop: 6, fontStyle: 'italic' }}>
@@ -288,8 +307,20 @@ export default function UmrahGuide({ lang, onBack }: Props) {
                     borderRadius: isRight ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
                     padding: '12px 16px',
                   }}>
-                    <div dir="rtl" style={{ fontSize: 18, fontFamily: 'var(--font-arabic)', marginBottom: 4, color: 'var(--text-primary)' }}>
-                      {ph.ar}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                      <div dir="rtl" style={{ fontSize: 18, fontFamily: 'var(--font-arabic)', marginBottom: 4, color: 'var(--text-primary)', flex: 1 }}>
+                        {ph.ar}
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); speak(ph.ar); }}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 0 4px', flexShrink: 0,
+                          color: playingAr === ph.ar ? 'var(--accent-gold)' : 'var(--text-muted)',
+                          transition: 'color 0.2s',
+                        }}
+                      >
+                        <Volume2 size={16} />
+                      </button>
                     </div>
                     {ph.dialect && ph.dialect !== ph.ar && (
                       <div style={{ fontSize: 13, color: 'var(--accent-gold)', fontStyle: 'italic', marginBottom: 3 }}>
@@ -308,8 +339,21 @@ export default function UmrahGuide({ lang, onBack }: Props) {
             // Обычная карточка
             return (
               <div key={i} className="glass-card" style={{ marginBottom: 10 }}>
-                <div dir="rtl" className="text-arabic" style={{ fontSize: 20, marginBottom: 6 }}>
-                  {ph.ar}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                  <div dir="rtl" className="text-arabic" style={{ fontSize: 20, flex: 1 }}>
+                    {ph.ar}
+                  </div>
+                  <button
+                    onClick={() => speak(ph.ar)}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      padding: '4px 0 0 4px', flexShrink: 0,
+                      color: playingAr === ph.ar ? 'var(--accent-gold)' : 'var(--text-muted)',
+                      transition: 'color 0.2s',
+                    }}
+                  >
+                    <Volume2 size={18} />
+                  </button>
                 </div>
                 {ph.dialect && ph.dialect !== ph.ar && (
                   <div style={{ fontSize: 13, color: 'var(--accent-gold)', fontStyle: 'italic', marginBottom: 4 }}>
