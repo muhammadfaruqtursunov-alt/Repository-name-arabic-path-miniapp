@@ -232,26 +232,27 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
             <ChevronLeft size={18} />
             {t(lang, 'back')}
           </button>
-          <button
-            className="btn btn-primary"
-            style={{ flex: 1 }}
-            onClick={goNext}
-            disabled={isLast}
-          >
-            {t(lang, 'next')}
-            <ChevronRight size={18} />
-          </button>
-        </div>
 
-        {/* Пройти тест — всегда виден */}
-        <button
-          className="btn btn-gold"
-          style={{ gap: 8, fontSize: 15, height: 52 }}
-          onClick={onStartTest}
-        >
-          <GraduationCap size={18} />
-          {t(lang, 'btn_start_test')}
-        </button>
+          {isLast ? (
+            <button
+              className="btn btn-gold"
+              style={{ flex: 2, gap: 8, fontSize: 15 }}
+              onClick={onStartTest}
+            >
+              <GraduationCap size={18} />
+              {t(lang, 'btn_start_test')}
+            </button>
+          ) : (
+            <button
+              className="btn btn-primary"
+              style={{ flex: 1 }}
+              onClick={goNext}
+            >
+              {t(lang, 'next')}
+              <ChevronRight size={18} />
+            </button>
+          )}
+        </div>
 
         {/* Swipe hint */}
         <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', marginTop: 14, opacity: 0.7 }}>
