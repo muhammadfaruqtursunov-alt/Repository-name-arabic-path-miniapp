@@ -9,7 +9,7 @@ import { addWrongWord, saveWordManually, getSRSWords } from '../utils/srs';
 import { checkAchievements } from '../utils/achievements';
 import AchievementPopup from '../components/AchievementPopup';
 import type { Achievement } from '../utils/achievements';
-import { markTestPassed } from '../utils/lessonProgress';
+import { markTestPassed, isTestPassed } from '../utils/lessonProgress';
 
 type Mode = 'visual' | 'written';
 type AnswerLang = 'native' | 'ar';
@@ -20,6 +20,7 @@ interface Props {
   lesson: number;
   onBack: () => void;
   onRestartLesson: () => void;
+  onNextLesson: () => void;
 }
 
 const MAX_ERRORS = 3;
@@ -94,11 +95,14 @@ function normalizeArabic(s: string): string {
 }
 
 // ── Component ─────────────────────────────────────────────────────
-export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }: Props) {
+export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson, onNextLesson }: Props) {
   // Ref: был ли достигнут лимит ошибок в текущей попытке (→ не считать тест сданным)
   const hadMaxErrors = useRef(false);
 
-  const [mode, setMode]         = useState<Mode>('visual');
+  // Если визуальный уже сдан — сразу начинаем с письменного
+  const [mode, setMode] = useState<Mode>(
+    () => isTestPassed(bookId, lesson, 'visual') ? 'written' : 'visual',
+  );
   const [answerLang, setAnswerLang] = useState<AnswerLang>('native');
   const [question, setQuestion] = useState<QuizQuestion | null>(null);
   const [feedback, setFeedback] = useState<{ correct: boolean; msg: string } | null>(null);
@@ -327,19 +331,31 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
         </div>
       </div>
 
-      {/* Mode tabs */}
+      {/* Индикатор этапа (визуальный / письменный) */}
       {!failed && (
-        <div style={{ padding: '12px 16px 0', display: 'flex', gap: 8 }}>
-          {(['visual', 'written'] as Mode[]).map((m) => (
-            <button
-              key={m}
-              className={`btn${mode === m ? ' btn-primary' : ' btn-ghost'}`}
-              style={{ height: 40, fontSize: 13, flex: 1 }}
-              onClick={() => { setMode(m); }}
-            >
-              {m === 'visual' ? t(lang, 'tab_visual') : t(lang, 'tab_written')}
-            </button>
-          ))}
+        <div style={{ padding: '10px 16px 0', display: 'flex', gap: 8 }}>
+          <div style={{
+            flex: 1, height: 36, borderRadius: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: 6, fontSize: 13, fontWeight: 700,
+            background: mode === 'visual' ? 'var(--accent)' : 'rgba(255,255,255,0.07)',
+            color: mode === 'visual' ? 'var(--on-accent)' : 'var(--text-muted)',
+            border: mode === 'visual' ? 'none' : '1px solid var(--border)',
+          }}>
+            {mode === 'visual' && '▶ '}{t(lang, 'tab_visual')}
+            {mode === 'visual' && isTestPassed(bookId, lesson, 'visual') && ' ✓'}
+          </div>
+          <div style={{
+            flex: 1, height: 36, borderRadius: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: 6, fontSize: 13, fontWeight: 700,
+            background: mode === 'written' ? 'var(--accent)' : 'rgba(255,255,255,0.07)',
+            color: mode === 'written' ? 'var(--on-accent)' : 'var(--text-muted)',
+            border: mode === 'written' ? 'none' : '1px solid var(--border)',
+          }}>
+            {mode === 'written' && '▶ '}{t(lang, 'tab_written')}
+            {isTestPassed(bookId, lesson, 'written') && ' ✓'}
+          </div>
         </div>
       )}
 
@@ -444,7 +460,11 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
               <div style={{ fontSize: 56, marginBottom: 12 }}>
                 {wrongAnswers.length === 0 ? '🎉' : '✅'}
               </div>
-              <h2 className="title-screen">{t(lang, 'done_title')}</h2>
+              <h2 className="title-screen">
+                {mode === 'visual'
+                  ? (lang === 'ru' ? 'Визуальный тест пройден!' : lang === 'en' ? 'Visual test passed!' : lang === 'uz' ? 'Vizual test topshirildi!' : 'Санҷиши визуалӣ гузашт!')
+                  : t(lang, 'done_title')}
+              </h2>
               <p className="text-muted" style={{ marginTop: 8, fontSize: 14 }}>{t(lang, 'done_msg')}</p>
 
               {/* Score pill */}
@@ -503,10 +523,32 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson }:
               </div>
             )}
 
-            <button className="btn btn-primary" onClick={() => startQuiz(mode)}>
-              <RotateCcw size={16} />
-              {t(lang, 'btn_retry_test')}
-            </button>
+            {/* ── CTA: зависит от режима ── */}
+            {mode === 'visual' ? (
+              // После визуального — кнопка "Письменный тест"
+              <button
+                className="btn btn-gold"
+                style={{ fontSize: 15, height: 52, gap: 8 }}
+                onClick={() => setMode('written')}
+              >
+                ✍️ {t(lang, 'tab_written')} →
+              </button>
+            ) : (
+              // После письменного — "Следующий урок" + "Повторить"
+              <>
+                <button
+                  className="btn btn-primary"
+                  style={{ fontSize: 15, height: 52, gap: 8, marginBottom: 10 }}
+                  onClick={onNextLesson}
+                >
+                  {lang === 'ru' ? 'Следующий урок' : lang === 'en' ? 'Next lesson' : lang === 'uz' ? 'Keyingi dars' : 'Дарси навбатӣ'} →
+                </button>
+                <button className="btn btn-ghost" style={{ gap: 6 }} onClick={() => startQuiz(mode)}>
+                  <RotateCcw size={15} />
+                  {t(lang, 'btn_retry_test')}
+                </button>
+              </>
+            )}
           </div>
 
         ) : question ? (

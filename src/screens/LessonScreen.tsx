@@ -232,39 +232,26 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
             <ChevronLeft size={18} />
             {t(lang, 'back')}
           </button>
-
-          {isLast ? (
-            <button
-              className="btn btn-primary"
-              style={{ flex: 2, gap: 8 }}
-              onClick={onStartTest}
-            >
-              <GraduationCap size={18} />
-              {t(lang, 'btn_start_test')}
-            </button>
-          ) : (
-            <button
-              className="btn btn-primary"
-              style={{ flex: 1 }}
-              onClick={goNext}
-            >
-              {t(lang, 'next')}
-              <ChevronRight size={18} />
-            </button>
-          )}
+          <button
+            className="btn btn-primary"
+            style={{ flex: 1 }}
+            onClick={goNext}
+            disabled={isLast}
+          >
+            {t(lang, 'next')}
+            <ChevronRight size={18} />
+          </button>
         </div>
 
-        {/* Skip to test (always available except on last card) */}
-        {!isLast && (
-          <button
-            className="btn btn-gold"
-            style={{ gap: 8 }}
-            onClick={onStartTest}
-          >
-            <GraduationCap size={16} />
-            {t(lang, 'lesson_skip_test')}
-          </button>
-        )}
+        {/* Пройти тест — всегда виден */}
+        <button
+          className="btn btn-gold"
+          style={{ gap: 8, fontSize: 15, height: 52 }}
+          onClick={onStartTest}
+        >
+          <GraduationCap size={18} />
+          {t(lang, 'btn_start_test')}
+        </button>
 
         {/* Swipe hint */}
         <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', marginTop: 14, opacity: 0.7 }}>

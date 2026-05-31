@@ -430,6 +430,10 @@ export default function App() {
         lesson={selectedLesson}
         onBack={() => setScreen('volume')}
         onRestartLesson={() => setScreen('lesson')}
+        onNextLesson={() => {
+          setSelectedLesson(selectedLesson + 1);
+          setScreen('lesson');
+        }}
       />
     );
   }
