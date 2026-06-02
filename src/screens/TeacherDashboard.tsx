@@ -4,6 +4,7 @@ import {
   MessageCircleQuestion, Megaphone, Mail, ImageIcon,
   Send, Users, CheckCircle2, Camera, Trash2,
   ChevronDown, ChevronUp, History, RefreshCw, RotateCcw,
+  Settings2, TrendingUp, BookOpen,
 } from 'lucide-react';
 import { formatAppTime } from '../utils/formatTime';
 import { api } from '../api/client';
@@ -77,6 +78,13 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
   const [confirmReset, setConfirmReset] = useState<number | null>(null);
   const [resetDone, setResetDone]       = useState<Set<number>>(new Set());
   const [resetBusy, setResetBusy]       = useState(false);
+
+  // ⚙️ Настройки ученика
+  const [showSettingsFor, setShowSettingsFor] = useState<number | null>(null);
+  const [boostBusy, setBoostBusy]   = useState(false);
+  const [boostDone, setBoostDone]   = useState<Set<number>>(new Set());
+  const [setBookBusy, setSetBookBusy] = useState(false);
+  const [setBookDoneFor, setSetBookDoneFor] = useState<Record<number, number>>({});
 
   // ── Lazy students ──────────────────────────────────────────────
   const [lazyStudents, setLazyStudents]   = useState<LazyStudent[]>([]);
@@ -205,6 +213,27 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
       api.getTeacherStats().then(setStats).catch(() => {});
     } catch (e) { alert('Ошибка: ' + String(e)); }
     finally { setResetBusy(false); }
+  }
+
+  async function doBoostRank(userId: number) {
+    setBoostBusy(true);
+    try {
+      await api.teacherBoostRank(userId);
+      setBoostDone(p => new Set([...p, userId]));
+      setTimeout(() => setBoostDone(p => { const n = new Set(p); n.delete(userId); return n; }), 2500);
+    } catch (e) { alert('Ошибка: ' + String(e)); }
+    finally { setBoostBusy(false); }
+  }
+
+  async function doSetBook(userId: number, bookId: number) {
+    setSetBookBusy(true);
+    try {
+      await api.teacherSetStudentBook(userId, bookId);
+      setSetBookDoneFor(p => ({ ...p, [userId]: bookId }));
+      setTimeout(() => setSetBookDoneFor(p => { const n = { ...p }; delete n[userId]; return n; }), 2500);
+      api.getTeacherStats().then(setStats).catch(() => {});
+    } catch (e) { alert('Ошибка: ' + String(e)); }
+    finally { setSetBookBusy(false); }
   }
 
   async function loadLazy() {
@@ -748,7 +777,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
                           ⏱ {formatAppTime(s.total_app_time ?? 0)}
                         </span>
                       </div>
-                      {/* Action buttons */}
+                      {/* Action buttons — только 2 */}
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button
                           className={`btn btn-ghost btn-sm ${showMsg ? 'btn-primary' : ''}`}
@@ -756,21 +785,23 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
                           onClick={e => {
                             e.stopPropagation();
                             setShowMsgFor(showMsg ? null : s.user_id);
+                            setShowSettingsFor(null);
                             setConfirmReset(null);
                           }}
                         >
                           {msgSent ? '✅ Отправлено' : '✉️ Написать'}
                         </button>
                         <button
-                          className="btn btn-danger btn-sm"
-                          style={{ flex: 1, fontSize: 12 }}
+                          className={`btn btn-ghost btn-sm ${showSettingsFor === s.user_id ? 'btn-primary' : ''}`}
+                          style={{ flex: 1, fontSize: 12, gap: 5 }}
                           onClick={e => {
                             e.stopPropagation();
-                            setConfirmReset(confirmReset === s.user_id ? null : s.user_id);
+                            setShowSettingsFor(showSettingsFor === s.user_id ? null : s.user_id);
                             setShowMsgFor(null);
+                            setConfirmReset(null);
                           }}
                         >
-                          <RotateCcw size={12} /> Сбросить
+                          <Settings2 size={13} /> Настройки
                         </button>
                       </div>
 
@@ -796,22 +827,99 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
                         </div>
                       )}
 
-                      {/* Reset confirm */}
-                      {confirmReset === s.user_id && (
-                        <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(224,85,85,0.12)', borderRadius: 10 }}>
-                          <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>
-                            ⚠️ Сбросить весь прогресс {s.name}? Это нельзя отменить.
+                      {/* ⚙️ Настройки ученика */}
+                      {showSettingsFor === s.user_id && (
+                        <div
+                          style={{ marginTop: 10, padding: '12px', background: 'rgba(192,150,60,0.06)', borderRadius: 12, border: '1px solid rgba(192,150,60,0.18)' }}
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent-gold)', marginBottom: 12 }}>
+                            ⚙️ Настройки ученика
                           </p>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <button className="btn btn-ghost btn-sm" style={{ flex: 1 }}
-                              onClick={e => { e.stopPropagation(); setConfirmReset(null); }}>
-                              Отмена
+
+                          {/* Повысить рейтинг */}
+                          <div style={{ marginBottom: 12 }}>
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <TrendingUp size={12} /> Повысить рейтинг
+                            </p>
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              style={{ fontSize: 12, gap: 5, width: '100%' }}
+                              disabled={boostBusy}
+                              onClick={() => doBoostRank(s.user_id)}
+                            >
+                              <TrendingUp size={13} />
+                              {boostDone.has(s.user_id) ? '✅ Рейтинг повышен!' : boostBusy ? '...' : '📈 Повысить'}
                             </button>
-                            <button className="btn btn-danger btn-sm" style={{ flex: 1 }}
-                              disabled={resetBusy}
-                              onClick={e => { e.stopPropagation(); doResetStudent(s.user_id); }}>
-                              {resetBusy ? '...' : <><RefreshCw size={11} /> Сбросить</>}
-                            </button>
+                          </div>
+
+                          {/* Открыть книгу */}
+                          <div style={{ marginBottom: 12 }}>
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <BookOpen size={12} /> Открыть книгу
+                              {setBookDoneFor[s.user_id] && (
+                                <span style={{ color: 'var(--accent-teal)', marginLeft: 4 }}>
+                                  ✅ Книга {setBookDoneFor[s.user_id]} открыта
+                                </span>
+                              )}
+                            </p>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              {[1, 2, 3].map(bk => (
+                                <button
+                                  key={bk}
+                                  className={`btn btn-sm ${s.current_book === bk ? 'btn-primary' : 'btn-ghost'}`}
+                                  style={{ fontSize: 12, flex: 1 }}
+                                  disabled={setBookBusy}
+                                  onClick={() => doSetBook(s.user_id, bk)}
+                                >
+                                  {bk === 1 ? '📗' : bk === 2 ? '📘' : '📕'} Кн.{bk}
+                                </button>
+                              ))}
+                              {/* Сарф и Нахв — скоро */}
+                              {['Сарф', 'Нахв'].map(name => (
+                                <button
+                                  key={name}
+                                  className="btn btn-ghost btn-sm"
+                                  style={{ fontSize: 11, flex: 1, opacity: 0.4, cursor: 'default' }}
+                                  disabled
+                                >
+                                  📖 {name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Сбросить прогресс */}
+                          <div style={{ borderTop: '1px solid rgba(224,85,85,0.2)', paddingTop: 10 }}>
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
+                              ⚠️ Сбросить прогресс
+                            </p>
+                            {confirmReset !== s.user_id ? (
+                              <button
+                                className="btn btn-danger btn-sm"
+                                style={{ width: '100%', fontSize: 12 }}
+                                onClick={() => setConfirmReset(s.user_id)}
+                              >
+                                <RotateCcw size={12} /> Сбросить
+                              </button>
+                            ) : (
+                              <div style={{ padding: '8px 10px', background: 'rgba(224,85,85,0.10)', borderRadius: 8 }}>
+                                <p style={{ fontSize: 11, color: 'var(--danger)', marginBottom: 8 }}>
+                                  Сбросить весь прогресс {s.name}? Нельзя отменить.
+                                </p>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                  <button className="btn btn-ghost btn-sm" style={{ flex: 1 }}
+                                    onClick={() => setConfirmReset(null)}>
+                                    Отмена
+                                  </button>
+                                  <button className="btn btn-danger btn-sm" style={{ flex: 1 }}
+                                    disabled={resetBusy}
+                                    onClick={() => doResetStudent(s.user_id)}>
+                                    {resetBusy ? '...' : <><RefreshCw size={11} /> Сбросить</>}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}

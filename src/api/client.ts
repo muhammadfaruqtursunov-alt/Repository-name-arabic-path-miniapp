@@ -232,6 +232,10 @@ export const api = {
   teacherGetAllQuestions: () => request<AllQuestion[]>('GET', '/api/webapp/teacher/questions/all'),
   teacherResetStudent: (user_id: number) =>
     request<{ ok: boolean }>('POST', '/api/webapp/teacher/student/reset', { user_id }),
+  teacherSetStudentBook: (user_id: number, book_id: number) =>
+    request<{ ok: boolean }>('POST', '/api/webapp/teacher/student/setbook', { user_id, book_id }),
+  teacherBoostRank: (user_id: number) =>
+    request<{ ok: boolean }>('POST', '/api/webapp/teacher/student/boost', { user_id }),
   teacherDeleteQuestion: (id: number) =>
     request<{ ok: boolean }>('POST', `/api/webapp/teacher/question/${id}/delete`, {}),
   teacherDismissQuestion: (id: number) =>
