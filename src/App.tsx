@@ -25,6 +25,7 @@ import LessonScreen     from './screens/LessonScreen';
 import ReviewScreen     from './screens/ReviewScreen';
 import TeacherDashboard from './screens/TeacherDashboard';
 import Themes           from './screens/Themes';
+import Sarf             from './screens/Sarf';
 import { loadTheme, applyTheme } from './utils/theme';
 
 type Screen =
@@ -40,7 +41,8 @@ type Screen =
   | 'umrah'
   | 'ask_teacher'
   | 'review'
-  | 'themes';
+  | 'themes'
+  | 'sarf';
 
 // ── Background helpers ────────────────────────────────────────────
 const BG_STORAGE_KEY = 'ap_bg_url';
@@ -444,6 +446,12 @@ export default function App() {
     );
   }
 
+  if (screen === 'sarf') {
+    return (
+      <Sarf lang={lang} onBack={() => setScreen('dashboard')} />
+    );
+  }
+
   if (screen === 'ask_teacher') {
     return (
       <AskTeacher lang={lang} onBack={() => setScreen('dashboard')} />
@@ -512,6 +520,7 @@ export default function App() {
               onOpenReview={() => setScreen('review')}
               onOpenSettings={() => handleTabChange('settings')}
               onOpenThemes={() => setScreen('themes')}
+              onOpenSarf={() => setScreen('sarf')}
             />
           )}
 

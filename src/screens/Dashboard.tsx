@@ -20,6 +20,7 @@ interface Props {
   onOpenSettings: () => void;
   onOpenThemes: () => void;
   onOpenReview: () => void;
+  onOpenSarf: () => void;
 }
 
 function getLevel(totalLearned: number, lang: Lang): string {
@@ -31,7 +32,7 @@ function getLevel(totalLearned: number, lang: Lang): string {
 export default function Dashboard({
   lang, onLangChange: _onLangChange, user, volumes, onOpenVolume,
   onOpenGuide, onOpenTests, onOpenAskTeacher, onOpenSettings: _onOpenSettings,
-  onOpenThemes, onOpenReview,
+  onOpenThemes, onOpenReview, onOpenSarf,
 }: Props) {
   const [medExpanded, setMedExpanded] = useState(false);
 
@@ -227,19 +228,12 @@ export default function Dashboard({
             </div>
           </div>
 
-          {/* ── Сарф (скоро) ── */}
+          {/* ── Сарф ── */}
           <div
             className="glass-card"
-            style={{ opacity: 0.55, cursor: 'default', position: 'relative' }}
+            style={{ cursor: 'pointer', position: 'relative' }}
+            onClick={onOpenSarf}
           >
-            <div style={{
-              position: 'absolute', top: 8, right: 8,
-              background: 'var(--accent-tint)', color: 'var(--accent)',
-              borderRadius: 10, padding: '2px 7px', fontSize: 9, fontWeight: 700,
-              border: '1px solid var(--accent-border)',
-            }}>
-              {lang === 'ru' ? 'Скоро' : lang === 'en' ? 'Soon' : lang === 'uz' ? 'Tez kunda' : 'Зуд'}
-            </div>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
               <span style={{ fontSize: 22 }}>📖</span>
             </div>
@@ -247,7 +241,7 @@ export default function Dashboard({
               {lang === 'ru' ? 'Сарф' : lang === 'en' ? 'Sarf' : 'Сарф'}
             </div>
             <div className="text-muted" style={{ fontSize: 12 }}>
-              {lang === 'ru' ? 'Морфология' : lang === 'en' ? 'Morphology' : lang === 'uz' ? 'Morfologiya' : 'Морфология'}
+              {lang === 'ru' ? 'Урок · Тест' : lang === 'en' ? 'Lesson · Test' : lang === 'uz' ? 'Dars · Test' : 'Дарс · Санҷиш'}
             </div>
           </div>
 

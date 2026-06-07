@@ -570,3 +570,93 @@ input[type=range]::-webkit-slider-thumb {
 
 /* ─── Islamic header ─────────────────────────────────────────── */
 .islamic-header { position: relative; }
+
+/* ═══════════════════════════════════════════════════════════════
+   СА́РФ (морфология) — уроки, диаграммы, таблицы, тест
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Крупный жирный арабский для форм صرف */
+.sarf-ar {
+  font-family: 'Noto Naskh Arabic', serif;
+  direction: rtl;
+  color: var(--accent-gold);
+  font-weight: 700;
+  line-height: 1.7;
+  letter-spacing: 0;
+}
+.sarf-ar--xl { font-size: 40px; }
+.sarf-ar--lg { font-size: 30px; }
+.sarf-ar--md { font-size: 24px; }
+
+/* Появление шага урока */
+@keyframes sarfStepIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.sarf-step { animation: sarfStepIn 340ms cubic-bezier(0.22,0.61,0.36,1) forwards; }
+
+/* Стаггер-появление строк таблицы تصريف */
+@keyframes sarfRowIn {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.sarf-row { animation: sarfRowIn 300ms ease forwards; opacity: 0; }
+
+/* Пульсирующая стрелка (مصدر → مشتق, ميزان) */
+@keyframes sarfArrowPulse {
+  0%,100% { transform: translateX(0); opacity: 0.75; }
+  50%     { transform: translateX(-6px); opacity: 1; }
+}
+.sarf-arrow { animation: sarfArrowPulse 1.3s ease-in-out infinite; color: var(--accent-gold); }
+
+/* Подсветка ячейки ميزان при сопоставлении */
+@keyframes sarfGlow {
+  0%,100% { box-shadow: 0 0 0 0 rgba(192,150,60,0.0); }
+  50%     { box-shadow: 0 0 0 4px rgba(192,150,60,0.22); }
+}
+.sarf-glow { animation: sarfGlow 1.6s ease-in-out infinite; }
+
+/* Карточка-буква (ميزان, корень) */
+.sarf-letter {
+  display: flex; align-items: center; justify-content: center;
+  width: 54px; height: 60px;
+  border-radius: 14px;
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  font-family: 'Noto Naskh Arabic', serif;
+  font-size: 30px; font-weight: 700; color: var(--accent-gold);
+  flex-shrink: 0;
+}
+.sarf-letter--mizan {
+  background: rgba(255,255,255,0.04);
+  color: var(--text-main);
+  font-size: 26px;
+}
+
+/* Строка تصريف */
+.sarf-form-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 9px 12px; border-radius: 12px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+}
+.sarf-form-row .label { font-size: 11px; color: var(--text-muted); text-align: left; }
+.sarf-form-row .label .ar { display: block; font-size: 12px; color: var(--text-main); direction: rtl; }
+
+/* Пилюля выбора огласовки (визуальный тест) */
+.harakah-pill {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 14px 8px; border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  cursor: pointer; transition: all 140ms ease;
+}
+.harakah-pill:active { transform: scale(0.95); }
+.harakah-pill .glyph {
+  font-family: 'Noto Naskh Arabic', serif;
+  font-size: 34px; line-height: 1; color: var(--accent-gold); min-height: 40px;
+  display: flex; align-items: center; justify-content: center;
+}
+.harakah-pill .nm { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.harakah-pill.correct { border-color: var(--success); background: rgba(39,174,96,0.14); }
+.harakah-pill.wrong   { border-color: var(--danger);  background: rgba(192,57,43,0.14); }
