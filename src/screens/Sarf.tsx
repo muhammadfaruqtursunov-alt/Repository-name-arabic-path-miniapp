@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, GraduationCap, Eye, PenLine, BookOpen } from 'lucide-react';
 import type { Lang } from '../i18n';
 import { sarfSections, sarfText } from '../data/sarfData';
@@ -11,6 +11,7 @@ import type { SarfTestMode } from './SarfTest';
 interface Props {
   lang: Lang;
   onBack: () => void;
+  onLocalBack: (fn: null | (() => void)) => void;
 }
 
 type SLang = Exclude<Lang, 'ar'>;
@@ -21,11 +22,22 @@ function L(lang: Lang, ru: string, en?: string, uz?: string, tj?: string): strin
 
 type View = 'home' | 'lessons' | 'lesson' | 'testcfg' | 'test';
 
-export default function Sarf({ lang, onBack }: Props) {
+export default function Sarf({ lang, onBack, onLocalBack }: Props) {
   const [view, setView] = useState<View>('home');
   const [lessonIdx, setLessonIdx] = useState(0);
   const [group, setGroup] = useState<SarfGroup | 'all'>('all');
   const [mode, setMode] = useState<SarfTestMode>('visual');
+
+  // Регистрируем «шаг назад» на родительский под-вид для плавающей стрелки.
+  // home → null (в корне Сарфа стрелка идёт назад по истории экранов).
+  useEffect(() => {
+    const parent: Record<View, View | null> = {
+      home: null, lessons: 'home', lesson: 'lessons', testcfg: 'home', test: 'testcfg',
+    };
+    const p = parent[view];
+    onLocalBack(p ? () => setView(p) : null);
+    return () => onLocalBack(null);
+  }, [view, onLocalBack]);
 
   // ── Урок (плеер) ──
   if (view === 'lesson') {

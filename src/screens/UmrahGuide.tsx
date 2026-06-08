@@ -18,6 +18,7 @@ import { useSwipe } from '../hooks/useSwipe';
 interface Props {
   lang: Lang;
   onBack: () => void;
+  onLocalBack: (fn: null | (() => void)) => void;
 }
 
 type View = 'sections' | 'detail' | 'quiz';
@@ -79,9 +80,19 @@ function buildQuiz(section: UmrahSection, lang: Lang): QuizQuestion[] {
 }
 
 // ─── компонент ───────────────────────────────────────────────
-export default function UmrahGuide({ lang, onBack }: Props) {
+export default function UmrahGuide({ lang, onBack, onLocalBack }: Props) {
   const [view, setView]       = useState<View>('sections');
   const [current, setCurrent] = useState<UmrahSection | null>(null);
+
+  // Регистрируем «шаг назад» на родительский под-вид для плавающей стрелки.
+  useEffect(() => {
+    const parent: Record<View, View | null> = {
+      sections: null, detail: 'sections', quiz: 'detail',
+    };
+    const p = parent[view];
+    onLocalBack(p ? () => setView(p) : null);
+    return () => onLocalBack(null);
+  }, [view, onLocalBack]);
 
   // Duolingo navigation
   const [phraseIdx, setPhraseIdx] = useState(0);

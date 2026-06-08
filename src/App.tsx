@@ -67,8 +67,10 @@ export default function App() {
   const [onboardingLang, setOnboardingLang] = useState<Lang>('ru');
   const [initError, setInitError] = useState<string | null>(null);
 
-  // ── История навигации (для плавающей кнопки «Назад») ──────────────
-  const [navStack, setNavStack] = useState<Screen[]>([]);
+  // ── История навигации экранов (для плавающей кнопки «Назад») ──────
+  // navStack — ref, не state: в рендере не участвует, а ref избавляет от
+  // рассинхронизации/двойного pop при быстром двойном тапе.
+  const navStackRef = useRef<Screen[]>([]);
   const prevScreenRef = useRef<Screen>('loading');
   const skipRecordRef = useRef(false);
 
@@ -78,27 +80,46 @@ export default function App() {
     if (skipRecordRef.current) {
       skipRecordRef.current = false;
     } else if (prev !== 'loading') {
-      setNavStack((s) => [...s, prev]);
+      navStackRef.current = [...navStackRef.current, prev];
     }
     prevScreenRef.current = screen;
   }, [screen]);
 
   function goHome() {
     skipRecordRef.current = true;
-    setNavStack([]);
+    navStackRef.current = [];
     setTab('home');
     setScreen('dashboard');
   }
 
   function goBack() {
-    if (navStack.length === 0) { goHome(); return; }
-    const prev = navStack[navStack.length - 1];
+    const stack = navStackRef.current;
+    if (stack.length === 0) { goHome(); return; }
+    const prev = stack[stack.length - 1];
+    navStackRef.current = stack.slice(0, -1);
     skipRecordRef.current = true;
-    setNavStack((s) => s.slice(0, -1));
     setScreen(prev);
   }
 
-  const navFloat = <NavFloat onHome={goHome} onBack={goBack} />;
+  // Локальный «шаг назад» внутри экранов с под-видами (Сарф, Умра).
+  // Экран регистрирует переход на свой РОДИТЕЛЬСКИЙ под-вид. Плавающая
+  // стрелка сначала идёт на под-вид вверх, и лишь в корне экрана —
+  // назад по истории экранов (goBack). Домик всегда → главный экран.
+  const localBackRef = useRef<null | (() => void)>(null);
+  const setLocalBack = useCallback((fn: null | (() => void)) => {
+    localBackRef.current = fn;
+  }, []);
+
+  function onFloatBack() {
+    if (localBackRef.current) localBackRef.current();
+    else goBack();
+  }
+  function onFloatHome() {
+    localBackRef.current = null;
+    goHome();
+  }
+
+  const navFloat = <NavFloat onHome={onFloatHome} onBack={onFloatBack} />;
 
   // Achievements
   const [achQueue, setAchQueue] = useState<Achievement[]>([]);
@@ -435,7 +456,7 @@ export default function App() {
         lang={lang}
         bookId={selectedBook}
         currentLesson={user.current_lesson}
-        onBack={() => setScreen('dashboard')}
+        onBack={goBack}
         onStartLesson={(bookId, lesson) => {
           setSelectedBook(bookId);
           setSelectedLesson(lesson);
@@ -452,7 +473,7 @@ export default function App() {
         lang={lang}
         bookId={selectedBook}
         lesson={selectedLesson}
-        onBack={() => setScreen('volume')}
+        onBack={goBack}
         onStartTest={() => setScreen('tests')}
       /></>
     );
@@ -464,7 +485,7 @@ export default function App() {
         lang={lang}
         bookId={selectedBook}
         lesson={selectedLesson}
-        onBack={() => setScreen('volume')}
+        onBack={goBack}
         onRestartLesson={() => setScreen('lesson')}
         onNextLesson={() => {
           setSelectedLesson(selectedLesson + 1);
@@ -476,31 +497,33 @@ export default function App() {
 
   if (screen === 'umrah') {
     return (
-      <>{navFloat}<UmrahGuide lang={lang} onBack={() => setScreen('dashboard')} /></>
+      <>{navFloat}<UmrahGuide lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
     );
   }
 
   if (screen === 'sarf') {
     return (
-      <>{navFloat}<Sarf lang={lang} onBack={() => setScreen('dashboard')} /></>
+      <>{navFloat}<Sarf lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
     );
   }
 
   if (screen === 'ask_teacher') {
     return (
-      <>{navFloat}<AskTeacher lang={lang} onBack={() => setScreen('dashboard')} /></>
+      <>{navFloat}<AskTeacher lang={lang} onBack={goBack} /></>
     );
   }
 
   if (screen === 'review') {
     return (
-      <>{navFloat}<ReviewScreen lang={lang} onBack={() => setScreen('dashboard')} /></>
+      <>{navFloat}<ReviewScreen lang={lang} onBack={goBack} /></>
     );
   }
 
   if (screen === 'themes') {
     return (
       <>{navFloat}<Themes lang={lang} onBack={() => {
+        skipRecordRef.current = true;
+        navStackRef.current = navStackRef.current.slice(0, -1);
         if (user?.is_teacher) { setScreen('dashboard'); }
         else { setTab('settings'); setScreen('dashboard'); }
       }} /></>
