@@ -379,7 +379,7 @@ function Header({
       <h1 className="title-card" style={{ flex: 1 }}>
         {L(lang, 'Тест по сарфу', 'Sarf test')}{typeof qNum === 'number' ? ` · ${qNum + 1}/${TOTAL}` : ''}
       </h1>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginRight: 84 }}>
         <div style={{ display: 'flex', gap: 5 }}>
           {Array.from({ length: MAX_ERRORS }).map((_, i) => (
             <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i < errors ? 'var(--danger)' : 'rgba(255,255,255,0.15)' }} />

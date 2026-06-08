@@ -320,7 +320,7 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson, o
         <h1 className="title-card" style={{ flex: 1 }}>
           {t(lang, 'lesson_num')} {lesson}
         </h1>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginRight: 84 }}>
           <ErrorDots />
           <span style={{ color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700 }}>
             <Flame size={14} /> {streakVal}

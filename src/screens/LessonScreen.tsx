@@ -108,7 +108,7 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
         <h1 className="title-card" style={{ flex: 1 }}>
           {t(lang, 'lesson_num')} {lesson} — {t(lang, 'lesson_study')}
         </h1>
-        <span style={{ color: 'var(--accent-teal)', fontSize: 13, fontWeight: 700, minWidth: 36, textAlign: 'right' }}>
+        <span style={{ color: 'var(--accent-teal)', fontSize: 13, fontWeight: 700, minWidth: 36, textAlign: 'right', marginRight: 84 }}>
           {idx + 1}/{total}
         </span>
       </div>

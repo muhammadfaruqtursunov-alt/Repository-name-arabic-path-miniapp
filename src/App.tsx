@@ -7,6 +7,7 @@ import type { UserProfile, VolumeInfo } from './api/client';
 
 import BottomNav from './components/BottomNav';
 import type { NavTab } from './components/BottomNav';
+import NavFloat from './components/NavFloat';
 import AchievementPopup from './components/AchievementPopup';
 import { checkAchievements } from './utils/achievements';
 import type { Achievement } from './utils/achievements';
@@ -65,6 +66,39 @@ export default function App() {
   const [selectedLesson, setSelectedLesson] = useState(1);
   const [onboardingLang, setOnboardingLang] = useState<Lang>('ru');
   const [initError, setInitError] = useState<string | null>(null);
+
+  // ── История навигации (для плавающей кнопки «Назад») ──────────────
+  const [navStack, setNavStack] = useState<Screen[]>([]);
+  const prevScreenRef = useRef<Screen>('loading');
+  const skipRecordRef = useRef(false);
+
+  useEffect(() => {
+    const prev = prevScreenRef.current;
+    if (prev === screen) return;
+    if (skipRecordRef.current) {
+      skipRecordRef.current = false;
+    } else if (prev !== 'loading') {
+      setNavStack((s) => [...s, prev]);
+    }
+    prevScreenRef.current = screen;
+  }, [screen]);
+
+  function goHome() {
+    skipRecordRef.current = true;
+    setNavStack([]);
+    setTab('home');
+    setScreen('dashboard');
+  }
+
+  function goBack() {
+    if (navStack.length === 0) { goHome(); return; }
+    const prev = navStack[navStack.length - 1];
+    skipRecordRef.current = true;
+    setNavStack((s) => s.slice(0, -1));
+    setScreen(prev);
+  }
+
+  const navFloat = <NavFloat onHome={goHome} onBack={goBack} />;
 
   // Achievements
   const [achQueue, setAchQueue] = useState<Achievement[]>([]);
@@ -397,7 +431,7 @@ export default function App() {
 
   if (screen === 'volume' && user) {
     return (
-      <VolumeScreen
+      <>{navFloat}<VolumeScreen
         lang={lang}
         bookId={selectedBook}
         currentLesson={user.current_lesson}
@@ -407,26 +441,26 @@ export default function App() {
           setSelectedLesson(lesson);
           setScreen('lesson');   // ← go to study first, then test
         }}
-      />
+      /></>
     );
   }
 
   // Lesson study screen — shows word cards before the test
   if (screen === 'lesson') {
     return (
-      <LessonScreen
+      <>{navFloat}<LessonScreen
         lang={lang}
         bookId={selectedBook}
         lesson={selectedLesson}
         onBack={() => setScreen('volume')}
         onStartTest={() => setScreen('tests')}
-      />
+      /></>
     );
   }
 
   if (screen === 'tests') {
     return (
-      <Tests
+      <>{navFloat}<Tests
         lang={lang}
         bookId={selectedBook}
         lesson={selectedLesson}
@@ -436,40 +470,40 @@ export default function App() {
           setSelectedLesson(selectedLesson + 1);
           setScreen('lesson');
         }}
-      />
+      /></>
     );
   }
 
   if (screen === 'umrah') {
     return (
-      <UmrahGuide lang={lang} onBack={() => setScreen('dashboard')} />
+      <>{navFloat}<UmrahGuide lang={lang} onBack={() => setScreen('dashboard')} /></>
     );
   }
 
   if (screen === 'sarf') {
     return (
-      <Sarf lang={lang} onBack={() => setScreen('dashboard')} />
+      <>{navFloat}<Sarf lang={lang} onBack={() => setScreen('dashboard')} /></>
     );
   }
 
   if (screen === 'ask_teacher') {
     return (
-      <AskTeacher lang={lang} onBack={() => setScreen('dashboard')} />
+      <>{navFloat}<AskTeacher lang={lang} onBack={() => setScreen('dashboard')} /></>
     );
   }
 
   if (screen === 'review') {
     return (
-      <ReviewScreen lang={lang} onBack={() => setScreen('dashboard')} />
+      <>{navFloat}<ReviewScreen lang={lang} onBack={() => setScreen('dashboard')} /></>
     );
   }
 
   if (screen === 'themes') {
     return (
-      <Themes lang={lang} onBack={() => {
+      <>{navFloat}<Themes lang={lang} onBack={() => {
         if (user?.is_teacher) { setScreen('dashboard'); }
         else { setTab('settings'); setScreen('dashboard'); }
-      }} />
+      }} /></>
     );
   }
 

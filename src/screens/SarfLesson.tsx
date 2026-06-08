@@ -149,7 +149,7 @@ export default function SarfLesson({ lang, sectionIndex, isLast, onBack, onNextL
         <h1 className="title-card" style={{ flex: 1 }}>
           {sec.emoji} {sarfText(sec.title, lang)}
         </h1>
-        <span style={{ color: 'var(--accent-teal)', fontSize: 13, fontWeight: 700, minWidth: 36, textAlign: 'right' }}>
+        <span style={{ color: 'var(--accent-teal)', fontSize: 13, fontWeight: 700, minWidth: 36, textAlign: 'right', marginRight: 84 }}>
           {idx + 1}/{total}
         </span>
       </div>
