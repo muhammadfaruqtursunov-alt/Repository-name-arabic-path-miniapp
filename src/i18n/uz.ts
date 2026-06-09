@@ -57,7 +57,7 @@ export const uz = {
 
   // Ask teacher
   teacher_title: "O'qituvchiga savol",
-  teacher_name: 'Ustod Dante',
+  teacher_name: 'Ustoz',
   teacher_online: 'Onlayn',
   question_placeholder: 'Savolingizni yozing...',
   btn_send: 'Savol yuborish',

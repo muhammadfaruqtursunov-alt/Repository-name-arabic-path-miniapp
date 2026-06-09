@@ -50,7 +50,7 @@ export const en = {
   phrase_count: 'phrases',
 
   teacher_title: 'Ask Teacher',
-  teacher_name: 'Ustod Dante',
+  teacher_name: 'Teacher',
   teacher_online: 'Online',
   question_placeholder: 'Ask your question...',
   btn_send: 'Send Question',

@@ -50,7 +50,7 @@ export const tj = {
   phrase_count: 'ибора',
 
   teacher_title: 'Савол ба устод',
-  teacher_name: 'Устод Данте',
+  teacher_name: 'Устод',
   teacher_online: 'Онлайн',
   question_placeholder: 'Саволи худро бинависед...',
   btn_send: 'Фиристодани савол',

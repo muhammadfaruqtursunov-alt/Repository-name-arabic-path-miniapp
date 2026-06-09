@@ -50,7 +50,7 @@ export const ar = {
   phrase_count: 'عبارات',
 
   teacher_title: 'اسأل المعلم',
-  teacher_name: 'الأستاذ دانتي',
+  teacher_name: 'الأستاذ',
   teacher_online: 'متصل',
   question_placeholder: 'اكتب سؤالك...',
   btn_send: 'إرسال السؤال',

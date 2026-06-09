@@ -57,7 +57,7 @@ export const ru = {
 
   // Ask teacher
   teacher_title: 'Вопрос учителю',
-  teacher_name: 'Устод Данте',
+  teacher_name: 'Учитель',
   teacher_online: 'Онлайн',
   question_placeholder: 'Задайте ваш вопрос...',
   btn_send: 'Отправить вопрос',
