@@ -473,6 +473,8 @@ export default function App() {
         lang={lang}
         bookId={selectedBook}
         lesson={selectedLesson}
+        lastBook={volumes.length ? Math.max(...volumes.map(v => v.book_id)) : (user?.current_book ?? selectedBook)}
+        learnedCount={user?.total_learned ?? 0}
         onBack={goBack}
         onStartTest={() => setScreen('tests')}
       /></>

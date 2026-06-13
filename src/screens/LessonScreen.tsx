@@ -7,11 +7,14 @@ import type { WordCard } from '../api/client';
 import { useSwipe } from '../hooks/useSwipe';
 import { speakArabic } from '../utils/speak';
 import { saveWordManually, getSRSWords } from '../utils/srs';
+import CourseComplete from '../components/CourseComplete';
 
 interface Props {
   lang: Lang;
   bookId: number;
   lesson: number;
+  lastBook: number;       // номер последнего доступного тома
+  learnedCount: number;   // всего выучено слов (для экрана-поздравления)
   onBack: () => void;
   onStartTest: () => void;
 }
@@ -23,7 +26,7 @@ function getTranslation(card: WordCard, lang: Lang): string {
   return card.ru || card.translation;
 }
 
-export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest }: Props) {
+export default function LessonScreen({ lang, bookId, lesson, lastBook, learnedCount, onBack, onStartTest }: Props) {
   const [words, setWords]       = useState<WordCard[]>([]);
   const [idx, setIdx]           = useState(0);
   // revealed is sticky — once the user clicks once it stays ON for the whole lesson
@@ -81,10 +84,25 @@ export default function LessonScreen({ lang, bookId, lesson, onBack, onStartTest
     );
   }
 
+  // Урок без слов = ученик дошёл до конца содержимого тома.
   if (!card) {
+    // Конец последнего тома → поздравление (конец курса / последней книги).
+    if (bookId >= lastBook) {
+      return <CourseComplete lang={lang} count={learnedCount} onHome={onBack} />;
+    }
+    // Конец промежуточного тома → перейти к следующему тому.
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p className="text-muted">{t(lang, 'words_not_found')}</p>
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 24, gap: 16 }}>
+        <div style={{ fontSize: 56 }}>🎉</div>
+        <h2 className="title-screen" style={{ color: 'var(--accent-gold)' }}>
+          {lang === 'en' ? 'Volume completed!' : lang === 'uz' ? 'Jild tamomlandi!' : lang === 'tj' ? 'Ҷилд анҷом ёфт!' : 'Том пройден!'}
+        </h2>
+        <p className="text-muted" style={{ fontSize: 14, maxWidth: 360 }}>
+          {lang === 'en' ? 'Move on to the next volume.' : lang === 'uz' ? 'Keyingi jildga oʻting.' : lang === 'tj' ? 'Ба ҷилди навбатӣ гузаред.' : 'Переходите к следующему тому.'}
+        </p>
+        <button className="btn btn-primary" style={{ maxWidth: 320 }} onClick={onBack}>
+          {lang === 'en' ? 'Back' : lang === 'uz' ? 'Orqaga' : lang === 'tj' ? 'Бозгашт' : 'Назад'}
+        </button>
       </div>
     );
   }
