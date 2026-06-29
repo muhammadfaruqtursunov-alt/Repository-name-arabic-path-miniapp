@@ -30,22 +30,101 @@ export function ArabicForm({
   );
 }
 
+// Разбор краткой ru-метки (число/род/лицо/местоимение) → полные слова.
+function explainLabel(ru: string): { num?: string; gen?: string; person?: string; pron?: string } {
+  const pron = (ru.match(/\(([^)]+)\)/) || [])[1];
+  let num: string | undefined;
+  if (/мн\./.test(ru)) num = 'множественное — трое и больше';
+  else if (/дв\./.test(ru)) num = 'двойственное — двое';
+  else if (/ед\./.test(ru)) num = 'единственное — один';
+  let gen: string | undefined;
+  if (/ж\.\s*р|жен/i.test(ru) || /\bж\./.test(ru)) gen = 'женский';
+  else if (/м\.\s*р|муж/i.test(ru) || /\bм\./.test(ru)) gen = 'мужской';
+  let person: string | undefined;
+  if (/3-?е/.test(ru)) person = '3-е — о ком говорят';
+  else if (/2-?е/.test(ru)) person = '2-е — к кому обращаются';
+  else if (/1-?е/.test(ru)) person = '1-е — кто говорит';
+  return { num, gen, person, pron };
+}
+
+// Один разбор (صيغة). Тап по строке → полное объяснение.
+// Кнопка 🔊 внутри ArabicForm делает stopPropagation, поэтому НЕ конфликтует.
+export function SarfFormRow({
+  ar, tr, labelRu, labelAr, labelParse, catRu, catAr, catGloss, delay = 0,
+}: {
+  ar: string; tr?: string; labelRu: string; labelAr?: string; labelParse?: string;
+  catRu?: string; catAr?: string; catGloss?: string; delay?: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const ex = explainLabel(labelParse ?? labelRu);
+  return (
+    <div className="sarf-row" style={{ animationDelay: `${delay}ms` }}>
+      <div
+        className="sarf-form-row"
+        style={{ cursor: 'pointer' }}
+        role="button"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <div className="label">
+          {labelRu}
+          {tr && <span className="ar" style={{ direction: 'ltr', fontStyle: 'italic' }}>{tr}</span>}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <ArabicForm text={ar} size="md" />
+          <ChevronDown
+            size={15}
+            color="var(--text-muted)"
+            style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}
+          />
+        </div>
+      </div>
+
+      {open && (
+        <div
+          style={{
+            margin: '6px 0 2px', padding: '12px 14px', borderRadius: 12,
+            background: 'rgba(192,150,60,0.07)', border: '1px solid var(--accent-border)',
+            fontSize: 13, lineHeight: 1.65,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+            <span className="sarf-ar" style={{ fontSize: 24 }}>{ar}</span>
+            {tr && <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>{tr}</span>}
+          </div>
+          {(catRu || catAr) && (
+            <div style={{ marginBottom: 8 }}>
+              <b style={{ color: 'var(--accent-gold)' }}>Категория:</b>{' '}
+              {catRu}{catAr ? ` (${catAr})` : ''}{catGloss ? ` — «${catGloss}»` : ''}
+            </div>
+          )}
+          <div style={{ color: 'var(--text-main)' }}>
+            {ex.num && <div>• Число: {ex.num}</div>}
+            {ex.gen && <div>• Род: {ex.gen}</div>}
+            {ex.person && <div>• Лицо: {ex.person}</div>}
+            {ex.pron && <div>• Кто/что: <b style={{ color: 'var(--accent-gold)' }}>{ex.pron}</b></div>}
+            {labelAr && <div style={{ direction: 'rtl', textAlign: 'right', marginTop: 4, color: 'var(--text-muted)' }}>{labelAr}</div>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Таблица تصريف (одна категория: 14 / 8 / 6 / 3 формы) ─────────────────────
 export function FormsTable({ cat }: { cat: TasrifCategory }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {cat.forms.map((form, i) => (
-        <div
+        <SarfFormRow
           key={i}
-          className="sarf-form-row sarf-row"
-          style={{ animationDelay: `${i * 35}ms` }}
-        >
-          <div className="label">
-            {cat.labels[i]?.ru}
-            <span className="ar">{cat.labels[i]?.ar}</span>
-          </div>
-          <ArabicForm text={form} size="md" />
-        </div>
+          ar={form}
+          labelRu={cat.labels[i]?.ru ?? ''}
+          labelAr={cat.labels[i]?.ar}
+          catRu={cat.ru}
+          catAr={cat.ar}
+          catGloss={cat.gloss}
+          delay={i * 35}
+        />
       ))}
     </div>
   );

@@ -5,7 +5,7 @@ import { useSwipe } from '../hooks/useSwipe';
 import { speakArabic } from '../utils/speak';
 import { sarfSections, sarfText } from '../data/sarfData';
 import type { SarfSection, SarfTheory, SarfParadigm } from '../data/sarfData';
-import { ArabicForm, MizanDiagram, FullTasrif } from '../components/SarfBits';
+import { ArabicForm, MizanDiagram, FullTasrif, SarfFormRow } from '../components/SarfBits';
 import { GROUP2 } from '../data/sarfVerbs';
 
 interface Props {
@@ -109,15 +109,23 @@ function ParadigmCard({ p, lang }: { p: SarfParadigm; lang: Lang }) {
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {p.sighas.map((s, i) => (
-          <div key={i} className="sarf-form-row sarf-row" style={{ animationDelay: `${i * 30}ms` }}>
-            <div className="label">
-              {sarfText(s.label, lang)}
-              {s.tr && <span className="ar" style={{ direction: 'ltr', fontStyle: 'italic' }}>{s.tr}</span>}
-            </div>
-            <ArabicForm text={s.ar} size="md" />
-          </div>
+          <SarfFormRow
+            key={i}
+            ar={s.ar}
+            tr={s.tr}
+            labelRu={sarfText(s.label, lang)}
+            labelParse={s.label.ru}
+            labelAr={s.label.fa}
+            catRu={sarfText(p.title, lang)}
+            catAr={p.ar}
+            catGloss={p.gloss ? sarfText(p.gloss, lang) : undefined}
+            delay={i * 30}
+          />
         ))}
       </div>
+      <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', marginTop: 10, opacity: 0.75 }}>
+        👆 нажми на форму — откроется подробный разбор
+      </p>
     </div>
   );
 }
