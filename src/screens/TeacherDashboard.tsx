@@ -349,6 +349,13 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
   const topStudents = stats?.students ?? [];
   const studentsToShow = showAllStudents ? allStudents : topStudents;
 
+  // Новые ученики за неделю — бейдж-оповещение на кнопке «Активность»
+  const _weekAgoMs = Date.now() - 7 * 864e5;
+  const newWeekCount = allStudents.filter(s => {
+    const d = parseDate(s.created_at);
+    return d !== null && d.getTime() >= _weekAgoMs;
+  }).length;
+
   // Unanswered questions (filtered — answered or dismissed are hidden)
   const pendingQs = questions.filter(q => !answeredIds.has(q.id) && !dismissedIds.has(q.id));
 
@@ -375,10 +382,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
           ))}
         </div>
 
-        {/* ── Оповещение о новых студентах ───────────────────── */}
-        <ActivityBanner students={allStudents} />
-
-        {/* ── Активность и история (диаграмма + по месяцам) ───── */}
+        {/* ── Активность и история (фильтр День / Неделя / Месяц) ─── */}
         <button
           onClick={() => setShowActivity(v => !v)}
           style={{
@@ -390,6 +394,11 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
         >
           <span style={{ fontSize: 22 }}>📊</span>
           <span style={{ flex: 1, fontWeight: 600 }}>Активность и история</span>
+          {newWeekCount > 0 && (
+            <span style={{ background: 'var(--accent)', color: 'var(--on-accent)', borderRadius: 20, padding: '2px 9px', fontSize: 12, fontWeight: 700 }}>
+              🆕 {newWeekCount}
+            </span>
+          )}
           <span style={{ color: 'var(--text-muted)', transform: showActivity ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
         </button>
         {showActivity && <ActivitySection students={allStudents} />}
@@ -1122,48 +1131,38 @@ function mLabel(key: string): string {
   return `${RU_MON_FULL[m - 1]} ${y}`;
 }
 
-// Оповещение о новых студентах (за 7 дней)
-function ActivityBanner({ students }: { students: AllStudent[] }) {
-  const [open, setOpen] = useState(false);
-  const weekAgo = Date.now() - 7 * 864e5;
-  const fresh = students
-    .map(s => ({ s, d: parseDate(s.created_at) }))
-    .filter(x => x.d !== null && x.d.getTime() >= weekAgo)
-    .sort((a, b) => b.d!.getTime() - a.d!.getTime());
-  if (fresh.length === 0) return null;
-  return (
-    <div className="glass-card glass-card--gold" style={{ marginBottom: 16, cursor: 'pointer' }} onClick={() => setOpen(v => !v)}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ fontSize: 24 }}>🆕</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, color: 'var(--accent-gold)' }}>
-            Новых студентов за 7 дней: {fresh.length}
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>нажми, чтобы посмотреть кто</div>
-        </div>
-        <span style={{ color: 'var(--text-muted)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
-      </div>
-      {open && (
-        <div style={{ marginTop: 10 }}>
-          {fresh.map(({ s, d }) => (
-            <div key={s.user_id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '7px 0', borderTop: '1px solid var(--border)' }}>
-              <span style={{ color: 'var(--text-main)' }}>{s.name}</span>
-              <span style={{ color: 'var(--accent-teal)' }}>{d ? fmtDay(d) : ''}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+// Период фильтра — как в статистике ZAAD (today / week / month)
+type Period = 'day' | 'week' | 'month';
+const PERIOD_LABEL: Record<Period, string> = { day: 'сегодня', week: 'за неделю', month: 'за месяц' };
+
+function inPeriod(d: Date, period: Period, now: Date): boolean {
+  if (period === 'day') {
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  }
+  if (period === 'week') {
+    return d.getTime() >= now.getTime() - 7 * 864e5;
+  }
+  // month — текущий календарный месяц
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
 }
 
 // Активность: счётчики + диаграмма регистраций по месяцам + история по датам
 function ActivitySection({ students }: { students: AllStudent[] }) {
-  const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
-  const weekAgoStr = new Date(today.getTime() - 7 * 864e5).toISOString().slice(0, 10);
-  const activeToday = students.filter(s => s.last_activity === todayStr).length;
-  const activeWeek = students.filter(s => s.last_activity != null && s.last_activity >= weekAgoStr).length;
+  const [period, setPeriod] = useState<Period>('month'); // по умолчанию месяц (как в ZAAD)
+  const now = new Date();
+  const weekAgoStr = new Date(now.getTime() - 7 * 864e5).toISOString().slice(0, 10);
+
+  // новые ученики за выбранный период
+  const newOnes = students
+    .map(s => ({ s, d: parseDate(s.created_at) }))
+    .filter(x => x.d !== null && inPeriod(x.d, period, now))
+    .sort((a, b) => b.d!.getTime() - a.d!.getTime());
+
+  // активные за выбранный период (по last_activity)
+  const activeInPeriod = students.filter(s => {
+    const d = parseDate(s.last_activity);
+    return d !== null && inPeriod(d, period, now);
+  }).length;
 
   const byMonth = new Map<string, AllStudent[]>();
   for (const s of students) {
@@ -1182,17 +1181,54 @@ function ActivitySection({ students }: { students: AllStudent[] }) {
 
   return (
     <div className="glass-card" style={{ marginBottom: 16 }}>
-      {/* счётчики активности */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-        <div style={{ textAlign: 'center', padding: 12, borderRadius: 12, background: 'var(--accent-tint)' }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{activeToday}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>активны сегодня</div>
+      {/* ── фильтр периода (как в статистике ZAAD) ── */}
+      <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 14, background: 'rgba(255,255,255,0.05)', marginBottom: 16 }}>
+        {(([['day', 'День'], ['week', 'Неделя'], ['month', 'Месяц']]) as [Period, string][]).map(([p, label]) => {
+          const sel = period === p;
+          return (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              style={{
+                flex: 1, padding: '9px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
+                background: sel ? 'var(--accent)' : 'transparent',
+                color: sel ? 'var(--on-accent)' : 'var(--text-muted)',
+                fontWeight: sel ? 700 : 500, fontSize: 13, transition: 'all .15s',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── новых / активных за период ── */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+        <div style={{ flex: 1, textAlign: 'center', padding: 12, borderRadius: 12, background: 'var(--accent-tint)' }}>
+          <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--accent-gold)' }}>{newOnes.length}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>🆕 новых {PERIOD_LABEL[period]}</div>
         </div>
-        <div style={{ textAlign: 'center', padding: 12, borderRadius: 12, background: 'var(--accent-tint)' }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-teal)' }}>{activeWeek}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>активны за 7 дней</div>
+        <div style={{ flex: 1, textAlign: 'center', padding: 12, borderRadius: 12, background: 'var(--accent-tint)' }}>
+          <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--accent-teal)' }}>{activeInPeriod}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>✅ активных {PERIOD_LABEL[period]}</div>
         </div>
       </div>
+
+      {/* список новых учеников за период */}
+      {newOnes.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '4px 0 16px' }}>
+          Новых учеников {PERIOD_LABEL[period]} нет
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
+          {newOnes.map(({ s, d }) => (
+            <div key={s.user_id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.025)', border: '1px solid var(--border)' }}>
+              <span style={{ color: 'var(--text-main)' }}>{s.name}</span>
+              <span style={{ color: 'var(--accent-teal)' }}>{d ? fmtDay(d) : ''}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* диаграмма: регистрации по месяцам */}
       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>📈 Регистрации по месяцам</div>
