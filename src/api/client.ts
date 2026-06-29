@@ -148,6 +148,9 @@ export interface AllStudent {
   user_id: number; name: string;
   current_book: number; current_lesson: number;
   learned: number; total_app_time: number;
+  created_at?: string | null;     // ISO timestamp of registration
+  last_activity?: string | null;  // "YYYY-MM-DD" of last active day
+  streak?: number;
 }
 
 export interface LazyStudent {

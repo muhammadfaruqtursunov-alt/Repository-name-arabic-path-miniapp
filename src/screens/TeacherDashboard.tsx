@@ -123,12 +123,19 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
   const [bgSaved, setBgSaved]             = useState(false);
   const bgFileRef = useRef<HTMLInputElement>(null);
 
+  // Активность / история
+  const [showActivity, setShowActivity] = useState(false);
+
   // ── Initial load ───────────────────────────────────────────────
   useEffect(() => {
     api.getTeacherStats().then(setStats).finally(() => setLoading(false));
     api.getAppConfig().then(cfg => {
       if (cfg.bg_url) { setGlobalBg(cfg.bg_url); setGlobalBgSmall(cfg.bg_url); }
     }).catch(() => {});
+    // load full student list up-front for the new-students banner + activity chart
+    api.teacherGetAllStudents()
+      .then(rows => { setAllStudents(rows); setAllStudentsLoaded(true); })
+      .catch(() => {});
   }, []);
 
   // ── Panel toggle ───────────────────────────────────────────────
@@ -367,6 +374,25 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
             </div>
           ))}
         </div>
+
+        {/* ── Оповещение о новых студентах ───────────────────── */}
+        <ActivityBanner students={allStudents} />
+
+        {/* ── Активность и история (диаграмма + по месяцам) ───── */}
+        <button
+          onClick={() => setShowActivity(v => !v)}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+            padding: '14px 16px', marginBottom: showActivity ? 8 : 16, cursor: 'pointer',
+            borderRadius: 'var(--radius-card)', border: '1px solid var(--border)',
+            background: 'var(--bg-card)', color: 'var(--text-main)', textAlign: 'left',
+          }}
+        >
+          <span style={{ fontSize: 22 }}>📊</span>
+          <span style={{ flex: 1, fontWeight: 600 }}>Активность и история</span>
+          <span style={{ color: 'var(--text-muted)', transform: showActivity ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
+        </button>
+        {showActivity && <ActivitySection students={allStudents} />}
 
         {/* ── Action buttons 2×2 + 1 full-width ───────────────── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
@@ -1076,6 +1102,166 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
       </div>
 
       <TeacherNav tab={tab} setTab={setTab} unanswered={stats?.unanswered_questions ?? 0} />
+    </div>
+  );
+}
+
+// ── Активность: дата-хелперы ──────────────────────────────────────
+const RU_MON = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+const RU_MON_FULL = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+function parseDate(s?: string | null): Date | null {
+  if (!s) return null;
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtDay(d: Date): string { return `${d.getDate()} ${RU_MON[d.getMonth()]}`; }
+function mKey(d: Date): string { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
+function mLabel(key: string): string {
+  const [y, m] = key.split('-').map(Number);
+  return `${RU_MON_FULL[m - 1]} ${y}`;
+}
+
+// Оповещение о новых студентах (за 7 дней)
+function ActivityBanner({ students }: { students: AllStudent[] }) {
+  const [open, setOpen] = useState(false);
+  const weekAgo = Date.now() - 7 * 864e5;
+  const fresh = students
+    .map(s => ({ s, d: parseDate(s.created_at) }))
+    .filter(x => x.d !== null && x.d.getTime() >= weekAgo)
+    .sort((a, b) => b.d!.getTime() - a.d!.getTime());
+  if (fresh.length === 0) return null;
+  return (
+    <div className="glass-card glass-card--gold" style={{ marginBottom: 16, cursor: 'pointer' }} onClick={() => setOpen(v => !v)}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ fontSize: 24 }}>🆕</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, color: 'var(--accent-gold)' }}>
+            Новых студентов за 7 дней: {fresh.length}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>нажми, чтобы посмотреть кто</div>
+        </div>
+        <span style={{ color: 'var(--text-muted)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
+      </div>
+      {open && (
+        <div style={{ marginTop: 10 }}>
+          {fresh.map(({ s, d }) => (
+            <div key={s.user_id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '7px 0', borderTop: '1px solid var(--border)' }}>
+              <span style={{ color: 'var(--text-main)' }}>{s.name}</span>
+              <span style={{ color: 'var(--accent-teal)' }}>{d ? fmtDay(d) : ''}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Активность: счётчики + диаграмма регистраций по месяцам + история по датам
+function ActivitySection({ students }: { students: AllStudent[] }) {
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  const weekAgoStr = new Date(today.getTime() - 7 * 864e5).toISOString().slice(0, 10);
+  const activeToday = students.filter(s => s.last_activity === todayStr).length;
+  const activeWeek = students.filter(s => s.last_activity != null && s.last_activity >= weekAgoStr).length;
+
+  const byMonth = new Map<string, AllStudent[]>();
+  for (const s of students) {
+    const d = parseDate(s.created_at);
+    if (!d) continue;
+    const k = mKey(d);
+    const arr = byMonth.get(k);
+    if (arr) arr.push(s); else byMonth.set(k, [s]);
+  }
+  const monthsAsc = [...byMonth.keys()].sort();
+  const monthsDesc = [...monthsAsc].reverse();
+  const maxCount = Math.max(1, ...monthsAsc.map(k => byMonth.get(k)!.length));
+  const chartMonths = monthsAsc.slice(-8);
+
+  const [openMonth, setOpenMonth] = useState<string | null>(monthsDesc[0] ?? null);
+
+  return (
+    <div className="glass-card" style={{ marginBottom: 16 }}>
+      {/* счётчики активности */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+        <div style={{ textAlign: 'center', padding: 12, borderRadius: 12, background: 'var(--accent-tint)' }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-gold)' }}>{activeToday}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>активны сегодня</div>
+        </div>
+        <div style={{ textAlign: 'center', padding: 12, borderRadius: 12, background: 'var(--accent-tint)' }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-teal)' }}>{activeWeek}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>активны за 7 дней</div>
+        </div>
+      </div>
+
+      {/* диаграмма: регистрации по месяцам */}
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>📈 Регистрации по месяцам</div>
+      {chartMonths.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>Пока нет данных</div>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 124, marginBottom: 18 }}>
+          {chartMonths.map(k => {
+            const c = byMonth.get(k)!.length;
+            const h = Math.round((c / maxCount) * 90) + 6;
+            const [y, m] = k.split('-').map(Number);
+            return (
+              <div key={k} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-gold)' }}>{c}</div>
+                <div style={{ width: '72%', height: h, borderRadius: 6, background: 'linear-gradient(180deg, var(--accent-gold2), var(--accent-gold))' }} />
+                <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>{RU_MON[m - 1]}</div>
+                <div style={{ fontSize: 8, color: 'var(--text-muted)', opacity: 0.6 }}>'{String(y).slice(2)}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* история: кто когда пришёл (по месяцам → датам) */}
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>📅 Кто когда зашёл</div>
+      {monthsDesc.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Нет данных о регистрациях</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {monthsDesc.map(k => {
+            const list = [...byMonth.get(k)!].sort((a, b) =>
+              (parseDate(b.created_at)?.getTime() ?? 0) - (parseDate(a.created_at)?.getTime() ?? 0));
+            const isOpen = openMonth === k;
+            return (
+              <div key={k} style={{ borderRadius: 10, background: 'rgba(255,255,255,0.025)', border: '1px solid var(--border)' }}>
+                <button
+                  onClick={() => setOpenMonth(isOpen ? null : k)}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}
+                >
+                  <span style={{ fontWeight: 600, flex: 1, textAlign: 'left' }}>{mLabel(k)}</span>
+                  <span style={{ fontSize: 12, color: 'var(--accent-gold)' }}>{list.length}</span>
+                  <span style={{ color: 'var(--text-muted)', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
+                </button>
+                {isOpen && (
+                  <div style={{ padding: '0 12px 10px' }}>
+                    {list.map(s => {
+                      const d = parseDate(s.created_at);
+                      const recent = s.last_activity != null && s.last_activity >= weekAgoStr;
+                      return (
+                        <div key={s.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, padding: '7px 0', borderTop: '1px solid var(--border)' }}>
+                          <span style={{ color: 'var(--text-main)' }}>{s.name}</span>
+                          <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                            {s.last_activity && (
+                              <span style={{ fontSize: 10, color: recent ? 'var(--accent-teal)' : 'var(--text-muted)' }}>
+                                {recent ? '● активен' : `был ${s.last_activity}`}
+                              </span>
+                            )}
+                            <span style={{ color: 'var(--accent-teal)' }}>{d ? fmtDay(d) : '—'}</span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
