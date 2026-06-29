@@ -50,7 +50,12 @@ const BG_STORAGE_KEY = 'ap_bg_url';
 
 function applyBackground(url: string) {
   const el = document.getElementById('app-bg');
-  if (el) (el as HTMLElement).style.backgroundImage = url ? `url(${url})` : '';
+  if (!el) return;
+  // Defense-in-depth: only allow image data URLs or https links, and reject
+  // characters that could break out of the CSS url() context.
+  const safe = !url || (/^(data:image\/|https:\/\/)/.test(url) && !/[)"'\\]/.test(url));
+  const clean = safe ? url : '';
+  (el as HTMLElement).style.backgroundImage = clean ? `url("${clean}")` : '';
 }
 
 const TAB_ORDER: NavTab[] = ['home', 'stats', 'profile', 'settings'];
