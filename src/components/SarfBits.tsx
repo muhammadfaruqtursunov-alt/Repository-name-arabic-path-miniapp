@@ -66,9 +66,6 @@ export function SarfFormRow({
         onClick={() => setOpen((o) => !o)}
       >
         <div className="label">
-          <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>
-            {open ? 'Скрыть' : 'Разбор'}
-          </span>
           {tr && <span className="ar" style={{ direction: 'ltr', fontStyle: 'italic' }}>{tr}</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
