@@ -170,16 +170,16 @@ export default function SarfTest({ lang, group, mode, onBack }: Props) {
         <div className="page-content" style={{ paddingTop: 24, textAlign: 'center' }}>
           <div style={{ fontSize: 64, marginBottom: 12 }}>😔</div>
           <h2 className="title-screen" style={{ color: 'var(--danger)', marginBottom: 8 }}>
-            {L(lang, 'Слишком много ошибок', 'Too many mistakes')}
+            {L(lang, 'Слишком много ошибок', 'Too many mistakes', 'Juda koʻp xato', 'Хатоҳо аз ҳад зиёданд')}
           </h2>
           <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 24 }}>
-            {L(lang, 'Повторите тасриф и попробуйте снова.', 'Review the tasrif and try again.')}
+            {L(lang, 'Повторите тасриф и попробуйте снова.', 'Review the tasrif and try again.', 'Tasrifni takrorlab, yana urinib koʻring.', 'Тасрифро такрор карда, боз кӯшиш кунед.')}
           </p>
           <button className="btn btn-primary" style={{ marginBottom: 12 }} onClick={restart}>
-            <RotateCcw size={18} /> {L(lang, 'Заново', 'Restart')}
+            <RotateCcw size={18} /> {L(lang, 'Заново', 'Restart', 'Boshidan', 'Аз нав')}
           </button>
           <button className="btn btn-ghost" onClick={onBack}>
-            {L(lang, 'Выйти', 'Exit')}
+            {L(lang, 'Выйти', 'Exit', 'Chiqish', 'Баромадан')}
           </button>
         </div>
       </div>
@@ -194,7 +194,7 @@ export default function SarfTest({ lang, group, mode, onBack }: Props) {
         <Header lang={lang} onBack={onBack} streak={streak} score={score} errors={errors} />
         <div className="page-content" style={{ paddingTop: 24, textAlign: 'center' }}>
           <div style={{ fontSize: 56, marginBottom: 12 }}>{wrong.length === 0 ? '🎉' : '✅'}</div>
-          <h2 className="title-screen">{L(lang, 'Тест завершён!', 'Test complete!')}</h2>
+          <h2 className="title-screen">{L(lang, 'Тест завершён!', 'Test complete!', 'Test yakunlandi!', 'Тест ба анҷом расид!')}</h2>
           <div style={{
             display: 'inline-flex', gap: 16, marginTop: 16, padding: '10px 20px',
             background: 'rgba(192,150,60,0.10)', border: '1px solid rgba(192,150,60,0.25)', borderRadius: 14,
@@ -218,9 +218,9 @@ export default function SarfTest({ lang, group, mode, onBack }: Props) {
           )}
 
           <button className="btn btn-primary" style={{ marginTop: 20, marginBottom: 12 }} onClick={restart}>
-            <RotateCcw size={18} /> {L(lang, 'Ещё раз', 'Again')}
+            <RotateCcw size={18} /> {L(lang, 'Ещё раз', 'Again', 'Yana bir bor', 'Боз як бор')}
           </button>
-          <button className="btn btn-ghost" onClick={onBack}>{L(lang, 'Выйти', 'Exit')}</button>
+          <button className="btn btn-ghost" onClick={onBack}>{L(lang, 'Выйти', 'Exit', 'Chiqish', 'Баромадан')}</button>
         </div>
       </div>
     );
@@ -247,7 +247,7 @@ export default function SarfTest({ lang, group, mode, onBack }: Props) {
                 {q.cat.ru} · <span className="sarf-ar" style={{ fontSize: 15 }}>{q.cat.ar}</span>
               </div>
               <div style={{ fontSize: 12, color: 'var(--text-main)', marginTop: 2 }}>
-                {L(lang, 'форма', 'form')}: {q.labelRu} <span className="sarf-ar" style={{ fontSize: 14 }}>{q.labelAr}</span>
+                {L(lang, 'форма', 'form', 'shakl', 'шакл')}: {q.labelRu} <span className="sarf-ar" style={{ fontSize: 14 }}>{q.labelAr}</span>
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -260,7 +260,7 @@ export default function SarfTest({ lang, group, mode, onBack }: Props) {
         {mode === 'visual' && (
           <>
             <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>
-              {L(lang, 'Какая огласовка на выделенной букве?', 'Which vowel mark is on the highlighted letter?')}
+              {L(lang, 'Какая огласовка на выделенной букве?', 'Which vowel mark is on the highlighted letter?', 'Ajratilgan harfda qanday harakat bor?', 'Дар ҳарфи ҷудошуда кадом ҳаракат аст?')}
             </div>
             {/* Слово с пропущенной огласовкой — единая строка (вязь не рвём).
                 У одной буквы убрана огласовка → её и нужно «достроить». */}
@@ -271,7 +271,7 @@ export default function SarfTest({ lang, group, mode, onBack }: Props) {
             </div>
             {/* Чип: на какой букве пропущена огласовка */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{L(lang, 'буква без огласовки:', 'letter without vowel:')}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{L(lang, 'буква без огласовки:', 'letter without vowel:', 'harakatsiz harf:', 'ҳарфи бе ҳаракат:')}</span>
               <span style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 minWidth: 40, height: 44, borderRadius: 12,
@@ -306,7 +306,7 @@ export default function SarfTest({ lang, group, mode, onBack }: Props) {
         {mode === 'written' && (
           <>
             <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-main)', marginBottom: 14, lineHeight: 1.5 }}>
-              {L(lang, 'Напишите эту форму глагола по-арабски', 'Write this verb form in Arabic')}
+              {L(lang, 'Напишите эту форму глагола по-арабски', 'Write this verb form in Arabic', 'Feʼlning ushbu shaklini arabcha yozing', 'Ин шакли феълро ба забони арабӣ нависед')}
             </div>
             <input
               className="input-field"
@@ -322,7 +322,7 @@ export default function SarfTest({ lang, group, mode, onBack }: Props) {
             />
             {!feedback && (
               <button className="btn btn-ghost btn-sm" style={{ margin: '10px auto 0' }} onClick={() => setRevealed((v) => !v)}>
-                <Eye size={14} /> {revealed ? L(lang, 'Скрыть', 'Hide') : L(lang, 'Подсказка', 'Hint')}
+                <Eye size={14} /> {revealed ? L(lang, 'Скрыть', 'Hide', 'Yashirish', 'Пинҳон кардан') : L(lang, 'Подсказка', 'Hint', 'Maslahat', 'Ишора')}
               </button>
             )}
             {revealed && !feedback && (
@@ -336,7 +336,7 @@ export default function SarfTest({ lang, group, mode, onBack }: Props) {
               disabled={!typed.trim() || !!feedback}
               onClick={checkWritten}
             >
-              {L(lang, 'Проверить', 'Check')}
+              {L(lang, 'Проверить', 'Check', 'Tekshirish', 'Санҷидан')}
             </button>
           </>
         )}
@@ -354,7 +354,7 @@ export default function SarfTest({ lang, group, mode, onBack }: Props) {
             {feedback.ok ? <CheckCircle2 size={20} color="var(--accent-teal)" /> : <XCircle size={20} color="var(--danger)" />}
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, color: feedback.ok ? 'var(--accent-teal)' : 'var(--danger)' }}>
-                {feedback.ok ? L(lang, 'Верно!', 'Correct!') : L(lang, 'Правильный ответ:', 'Correct answer:')}
+                {feedback.ok ? L(lang, 'Верно!', 'Correct!', 'Toʻgʻri!', 'Дуруст!') : L(lang, 'Правильный ответ:', 'Correct answer:', 'Toʻgʻri javob:', 'Ҷавоби дуруст:')}
               </div>
               {!feedback.ok && (
                 <div style={{ marginTop: 6 }}><ArabicForm text={q.form} size="md" /></div>
@@ -377,7 +377,7 @@ function Header({
         <ChevronLeft size={24} />
       </button>
       <h1 className="title-card" style={{ flex: 1 }}>
-        {L(lang, 'Тест по сарфу', 'Sarf test')}{typeof qNum === 'number' ? ` · ${qNum + 1}/${TOTAL}` : ''}
+        {L(lang, 'Тест по сарфу', 'Sarf test', 'Sarf boʻyicha test', 'Тест аз сарф')}{typeof qNum === 'number' ? ` · ${qNum + 1}/${TOTAL}` : ''}
       </h1>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginRight: 84 }}>
         <div style={{ display: 'flex', gap: 5 }}>

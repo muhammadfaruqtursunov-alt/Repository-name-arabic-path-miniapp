@@ -65,7 +65,7 @@ export default function Sarf({ lang, onBack, onLocalBack }: Props) {
           <button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}>
             <ChevronLeft size={24} />
           </button>
-          <h1 className="title-card" style={{ flex: 1 }}>{L(lang, 'Уроки сарфа', 'Sarf lessons')}</h1>
+          <h1 className="title-card" style={{ flex: 1 }}>{L(lang, 'Уроки сарфа', 'Sarf lessons', 'Sarf darslari', 'Дарсҳои сарф')}</h1>
         </div>
         <div className="page-content" style={{ paddingTop: 14 }}>
           {sarfSections.map((sec, i) => (
@@ -103,11 +103,11 @@ export default function Sarf({ lang, onBack, onLocalBack }: Props) {
           <button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}>
             <ChevronLeft size={24} />
           </button>
-          <h1 className="title-card" style={{ flex: 1 }}>{L(lang, 'Настройка теста', 'Test setup')}</h1>
+          <h1 className="title-card" style={{ flex: 1 }}>{L(lang, 'Настройка теста', 'Test setup', 'Test sozlamalari', 'Танзими санҷиш')}</h1>
         </div>
         <div className="page-content" style={{ paddingTop: 16 }}>
           {/* Группа глаголов */}
-          <div className="text-badge text-muted" style={{ marginBottom: 8 }}>{L(lang, 'Группа глаголов', 'Verb group')}</div>
+          <div className="text-badge text-muted" style={{ marginBottom: 8 }}>{L(lang, 'Группа глаголов', 'Verb group', 'Feʼllar guruhi', 'Гурӯҳи феълҳо')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
             {SARF_GROUPS.map((g) => (
               <button
@@ -125,15 +125,15 @@ export default function Sarf({ lang, onBack, onLocalBack }: Props) {
               style={{ height: 'auto', padding: '12px 10px', flexDirection: 'column', gap: 4, gridColumn: 'span 2' }}
               onClick={() => setGroup('all')}
             >
-              <span style={{ fontSize: 14, fontWeight: 700 }}>{L(lang, 'Все группы', 'All groups')}</span>
-              <span style={{ fontSize: 11, opacity: 0.8 }}>{L(lang, '60 глаголов', '60 verbs')}</span>
+              <span style={{ fontSize: 14, fontWeight: 700 }}>{L(lang, 'Все группы', 'All groups', 'Barcha guruhlar', 'Ҳамаи гурӯҳҳо')}</span>
+              <span style={{ fontSize: 11, opacity: 0.8 }}>{L(lang, '60 глаголов', '60 verbs', '60 feʼl', '60 феъл')}</span>
             </button>
           </div>
 
           <div className="gold-divider" />
 
           {/* Режим */}
-          <div className="text-badge text-muted" style={{ marginBottom: 8 }}>{L(lang, 'Вид теста', 'Test type')}</div>
+          <div className="text-badge text-muted" style={{ marginBottom: 8 }}>{L(lang, 'Вид теста', 'Test type', 'Test turi', 'Навъи санҷиш')}</div>
           <div
             className="glass-card"
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}
@@ -143,8 +143,8 @@ export default function Sarf({ lang, onBack, onLocalBack }: Props) {
               <Eye size={22} color="var(--accent)" />
             </div>
             <div style={{ flex: 1 }}>
-              <div className="title-card">{L(lang, 'Визуальный', 'Visual')}</div>
-              <div className="text-muted" style={{ fontSize: 12 }}>{L(lang, 'Игра с харакатами — найди огласовку', 'Harakat game — find the vowel')}</div>
+              <div className="title-card">{L(lang, 'Визуальный', 'Visual', 'Vizual', 'Тасвирӣ')}</div>
+              <div className="text-muted" style={{ fontSize: 12 }}>{L(lang, 'Игра с харакатами — найди огласовку', 'Harakat game — find the vowel', 'Harakatlar oʻyini — harakatni top', 'Бозии ҳаракатҳо — ҳаракатро ёб')}</div>
             </div>
             <ChevronRight size={18} color="var(--text-muted)" />
           </div>
@@ -157,8 +157,8 @@ export default function Sarf({ lang, onBack, onLocalBack }: Props) {
               <PenLine size={22} color="var(--accent)" />
             </div>
             <div style={{ flex: 1 }}>
-              <div className="title-card">{L(lang, 'Письменный', 'Written')} · بِالْعَرَبِيَّة</div>
-              <div className="text-muted" style={{ fontSize: 12 }}>{L(lang, 'Напиши تصريف по-арабски', 'Write the tasrif in Arabic')}</div>
+              <div className="title-card">{L(lang, 'Письменный', 'Written', 'Yozma', 'Хаттӣ')} · بِالْعَرَبِيَّة</div>
+              <div className="text-muted" style={{ fontSize: 12 }}>{L(lang, 'Напиши تصريف по-арабски', 'Write the tasrif in Arabic', 'تصريف ni arabcha yoz', 'تصريف-ро ба забони арабӣ навис')}</div>
             </div>
             <ChevronRight size={18} color="var(--text-muted)" />
           </div>
@@ -174,13 +174,13 @@ export default function Sarf({ lang, onBack, onLocalBack }: Props) {
         <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}>
           <ChevronLeft size={24} />
         </button>
-        <h1 className="title-card" style={{ flex: 1 }}>{L(lang, 'Сарф (морфология)', 'Sarf (morphology)')}</h1>
+        <h1 className="title-card" style={{ flex: 1 }}>{L(lang, 'Сарф (морфология)', 'Sarf (morphology)', 'Sarf (morfologiya)', 'Сарф (морфология)')}</h1>
       </div>
       <div className="page-content" style={{ paddingTop: 16 }}>
         <div className="glass-card glass-card--gold" style={{ textAlign: 'center', marginBottom: 18, padding: '22px 16px' }}>
           <div className="sarf-ar sarf-ar--lg">عِلْمُ الصَّرْف</div>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
-            {L(lang, 'Как строятся арабские слова: спряжение глагола ضَرَبَ и 12 производных.', 'How Arabic words are built: conjugation of ضَرَبَ and the 12 derivatives.')}
+            {L(lang, 'Как строятся арабские слова: спряжение глагола ضَرَبَ и 12 производных.', 'How Arabic words are built: conjugation of ضَرَبَ and the 12 derivatives.', 'Arabcha soʻzlar qanday tuziladi: ضَرَبَ feʼlining tuslanishi va 12 hosila shakli.', 'Калимаҳои арабӣ чӣ гуна сохта мешаванд: тасрифи феъли ضَرَبَ ва 12 шакли ҳосила.')}
           </p>
         </div>
 
@@ -193,9 +193,9 @@ export default function Sarf({ lang, onBack, onLocalBack }: Props) {
             <BookOpen size={26} color="var(--accent)" />
           </div>
           <div style={{ flex: 1 }}>
-            <div className="title-card" style={{ fontSize: 17 }}>{L(lang, 'Урок', 'Lesson')}</div>
+            <div className="title-card" style={{ fontSize: 17 }}>{L(lang, 'Урок', 'Lesson', 'Dars', 'Дарс')}</div>
             <div className="text-muted" style={{ fontSize: 12, marginTop: 2 }}>
-              {L(lang, 'Теория по темам + полный тасриф', 'Theory by topic + full tasrif')}
+              {L(lang, 'Теория по темам + полный тасриф', 'Theory by topic + full tasrif', 'Mavzular boʻyicha nazariya + toʻliq tasrif', 'Назария аз рӯи мавзӯъҳо + тасрифи пурра')}
             </div>
           </div>
           <ChevronRight size={20} color="var(--text-muted)" />
@@ -210,9 +210,9 @@ export default function Sarf({ lang, onBack, onLocalBack }: Props) {
             <GraduationCap size={26} color="var(--accent)" />
           </div>
           <div style={{ flex: 1 }}>
-            <div className="title-card" style={{ fontSize: 17 }}>{L(lang, 'Тест', 'Test')}</div>
+            <div className="title-card" style={{ fontSize: 17 }}>{L(lang, 'Тест', 'Test', 'Test', 'Санҷиш')}</div>
             <div className="text-muted" style={{ fontSize: 12, marginTop: 2 }}>
-              {L(lang, 'Визуальный + письменный · сделай тасриф', 'Visual + written · do the tasrif')}
+              {L(lang, 'Визуальный + письменный · сделай тасриф', 'Visual + written · do the tasrif', 'Vizual + yozma · tasrifni bajar', 'Тасвирӣ + хаттӣ · тасрифро иҷро кун')}
             </div>
           </div>
           <ChevronRight size={20} color="var(--text-muted)" />

@@ -120,11 +120,12 @@ function ParadigmCard({ p, lang }: { p: SarfParadigm; lang: Lang }) {
             catAr={p.ar}
             catGloss={p.gloss ? sarfText(p.gloss, lang) : undefined}
             delay={i * 30}
+            lang={lang}
           />
         ))}
       </div>
       <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', marginTop: 10, opacity: 0.75 }}>
-        👆 нажми на форму — откроется подробный разбор
+        👆 {L(lang, 'нажми на форму — откроется подробный разбор', 'tap a form — a detailed breakdown will open', 'shaklga bosing — batafsil tahlil ochiladi', 'ба шакл зер кунед — таҳлили муфассал кушода мешавад')}
       </p>
     </div>
   );
@@ -183,9 +184,9 @@ export default function SarfLesson({ lang, sectionIndex, isLast, onBack, onNextL
           {step.kind === 'mizan' && (
             <div className="glass-card" style={{ padding: '20px 16px' }}>
               <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 15, marginBottom: 8 }}>
-                {L(lang, 'Весы слова (الميزان)', 'Word scale (al-mīzān)')}
+                {L(lang, 'Весы слова (الميزان)', 'Word scale (al-mīzān)', 'Soʻz tarozisi (الميزان)', 'Тарозуи калима (الميزان)')}
               </div>
-              <MizanDiagram root={['ض', 'ر', 'ب']} />
+              <MizanDiagram root={['ض', 'ر', 'ب']} lang={lang} />
             </div>
           )}
 
@@ -206,13 +207,13 @@ export default function SarfLesson({ lang, sectionIndex, isLast, onBack, onNextL
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>🎯</div>
                 <h2 className="title-screen" style={{ fontSize: 20 }}>
-                  {L(lang, 'Полный тасриф', 'Full tasrif')}
+                  {L(lang, 'Полный тасриф', 'Full tasrif', 'Toʻliq tasrif', 'Тасрифи пурра')}
                 </h2>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>
-                  {L(lang, 'Закрепление: модельный глагол ضَرَبَ во всех формах', 'Review: model verb ضَرَبَ in all forms')}
+                  {L(lang, 'Закрепление: модельный глагол ضَرَبَ во всех формах', 'Review: model verb ضَرَبَ in all forms', 'Mustahkamlash: ضَرَبَ namunali feʼli barcha shakllarda', 'Мустаҳкамкунӣ: феъли намунавии ضَرَبَ дар ҳамаи шаклҳо')}
                 </p>
               </div>
-              <FullTasrif verb={GROUP2[0]} />
+              <FullTasrif verb={GROUP2[0]} lang={lang} />
             </div>
           )}
         </div>

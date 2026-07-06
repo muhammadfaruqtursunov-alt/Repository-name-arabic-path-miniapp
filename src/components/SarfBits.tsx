@@ -30,33 +30,75 @@ export function ArabicForm({
   );
 }
 
-// Разбор краткой ru-метки (число/род/лицо/местоимение) → полные слова.
-function explainLabel(ru: string): { num?: string; gen?: string; person?: string; pron?: string } {
-  const pron = (ru.match(/\(([^)]+)\)/) || [])[1];
-  let num: string | undefined;
-  if (/мн\./.test(ru)) num = 'множественное — трое и больше';
-  else if (/дв\./.test(ru)) num = 'двойственное — двое';
-  else if (/ед\./.test(ru)) num = 'единственное — один';
-  let gen: string | undefined;
-  if (/ж\.\s*р|жен/i.test(ru) || /\bж\./.test(ru)) gen = 'женский';
-  else if (/м\.\s*р|муж/i.test(ru) || /\bм\./.test(ru)) gen = 'мужской';
-  let person: string | undefined;
-  if (/3-?е/.test(ru)) person = '3-е — о ком говорят';
-  else if (/2-?е/.test(ru)) person = '2-е — к кому обращаются';
-  else if (/1-?е/.test(ru)) person = '1-е — кто говорит';
-  return { num, gen, person, pron };
+// ── Мультиязычные подписи панели разбора ──────────────────────────
+type SLangB = 'ru' | 'en' | 'uz' | 'tj';
+function slangB(lang: string): SLangB { return (lang === 'ar' ? 'ru' : lang) as SLangB; }
+function ttB(lang: string, m: Record<SLangB, string>): string { return m[slangB(lang)] ?? m.ru; }
+
+const PANEL_T = {
+  category: { ru: 'Категория', en: 'Category', uz: 'Turkum', tj: 'Гурӯҳ' },
+  number:   { ru: 'Число',     en: 'Number',   uz: 'Son',    tj: 'Шумора' },
+  gender:   { ru: 'Род',       en: 'Gender',   uz: 'Jins',   tj: 'Ҷинс' },
+  person:   { ru: 'Лицо',      en: 'Person',   uz: 'Shaxs',  tj: 'Шахс' },
+  who:      { ru: 'Кто/что',   en: 'Who',      uz: 'Kim',    tj: 'Кӣ' },
+};
+const NUM_T: Record<'sg' | 'du' | 'pl', Record<SLangB, string>> = {
+  sg: { ru: 'единственное — один', en: 'singular — one', uz: 'birlik — bitta', tj: 'танҳо — як' },
+  du: { ru: 'двойственное — двое', en: 'dual — two', uz: 'ikkilik — ikkita', tj: 'дугона — ду' },
+  pl: { ru: 'множественное — трое и больше', en: 'plural — three or more', uz: 'koʻplik — uch va undan koʻp', tj: 'ҷамъ — се ва зиёдтар' },
+};
+const GEN_T: Record<'m' | 'f', Record<SLangB, string>> = {
+  m: { ru: 'мужской', en: 'masculine', uz: 'erkak', tj: 'мардона' },
+  f: { ru: 'женский', en: 'feminine', uz: 'ayol', tj: 'занона' },
+};
+const PERSON_T: Record<'1' | '2' | '3', Record<SLangB, string>> = {
+  '1': { ru: '1-е — кто говорит', en: '1st — the speaker', uz: '1-shaxs — soʻzlovchi', tj: '1-шахс — гӯянда' },
+  '2': { ru: '2-е — к кому обращаются', en: '2nd — the addressee', uz: '2-shaxs — tinglovchi', tj: '2-шахс — мухотаб' },
+  '3': { ru: '3-е — о ком говорят', en: '3rd — the one talked about', uz: '3-shaxs — gʻoyib', tj: '3-шахс — ғоиб' },
+};
+
+function pronounOf(lang: string, p?: '1' | '2' | '3', num?: 'sg' | 'du' | 'pl', gen?: 'm' | 'f'): string | undefined {
+  if (!p) return undefined;
+  const L = slangB(lang);
+  const pick = (r: string, e: string, u: string, t: string) => ({ ru: r, en: e, uz: u, tj: t }[L]);
+  if (p === '1') return num === 'pl' ? pick('мы', 'we', 'biz', 'мо') : pick('я', 'I', 'men', 'ман');
+  if (p === '2') {
+    if (num === 'du') return pick('вы двое', 'you two', 'ikkovingiz', 'шумо ду');
+    if (num === 'pl') return gen === 'f' ? pick('вы (ж.)', 'you (f.)', 'sizlar (ayol)', 'шумо (зан)') : pick('вы (м.)', 'you (m.)', 'sizlar (erkak)', 'шумо (мард)');
+    return gen === 'f' ? pick('ты (ж.)', 'you (f.)', 'sen (ayol)', 'ту (зан)') : pick('ты (м.)', 'you (m.)', 'sen (erkak)', 'ту (мард)');
+  }
+  if (num === 'du') return pick('они вдвоём', 'they two', 'ikkovi', 'онҳо ду');
+  if (num === 'pl') return gen === 'f' ? pick('они (ж.)', 'they (f.)', 'ular (ayol)', 'онҳо (зан)') : pick('они (м.)', 'they (m.)', 'ular (erkak)', 'онҳо (мард)');
+  return gen === 'f' ? pick('она', 'she', 'u (ayol)', 'ӯ (зан)') : pick('он', 'he', 'u (erkak)', 'ӯ (мард)');
+}
+
+// Разбор краткой ru-метки → структурные коды (число/род/лицо).
+function explainLabel(ru: string): { num?: 'sg' | 'du' | 'pl'; gen?: 'm' | 'f'; person?: '1' | '2' | '3' } {
+  let num: 'sg' | 'du' | 'pl' | undefined;
+  if (/мн\./.test(ru)) num = 'pl';
+  else if (/дв\./.test(ru)) num = 'du';
+  else if (/ед\./.test(ru)) num = 'sg';
+  let gen: 'm' | 'f' | undefined;
+  if (/ж\.\s*р|жен/i.test(ru) || /\bж\./.test(ru)) gen = 'f';
+  else if (/м\.\s*р|муж/i.test(ru) || /\bм\./.test(ru)) gen = 'm';
+  let person: '1' | '2' | '3' | undefined;
+  if (/3-?е/.test(ru)) person = '3';
+  else if (/2-?е/.test(ru)) person = '2';
+  else if (/1-?е/.test(ru)) person = '1';
+  return { num, gen, person };
 }
 
 // Один разбор (صيغة). Тап по строке → полное объяснение.
 // Кнопка 🔊 внутри ArabicForm делает stopPropagation, поэтому НЕ конфликтует.
 export function SarfFormRow({
-  ar, tr, labelRu, labelAr, labelParse, catRu, catAr, catGloss, delay = 0,
+  ar, tr, labelRu, labelAr, labelParse, catRu, catAr, catGloss, delay = 0, lang = 'ru',
 }: {
   ar: string; tr?: string; labelRu: string; labelAr?: string; labelParse?: string;
-  catRu?: string; catAr?: string; catGloss?: string; delay?: number;
+  catRu?: string; catAr?: string; catGloss?: string; delay?: number; lang?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ex = explainLabel(labelParse ?? labelRu);
+  const pron = pronounOf(lang, ex.person, ex.num, ex.gen);
   return (
     <div className="sarf-row" style={{ animationDelay: `${delay}ms` }}>
       <div
@@ -92,15 +134,15 @@ export function SarfFormRow({
           </div>
           {(catRu || catAr) && (
             <div style={{ marginBottom: 8 }}>
-              <b style={{ color: 'var(--accent-gold)' }}>Категория:</b>{' '}
+              <b style={{ color: 'var(--accent-gold)' }}>{ttB(lang, PANEL_T.category)}:</b>{' '}
               {catRu}{catAr ? ` (${catAr})` : ''}{catGloss ? ` — «${catGloss}»` : ''}
             </div>
           )}
           <div style={{ color: 'var(--text-main)' }}>
-            {ex.num && <div>• Число: {ex.num}</div>}
-            {ex.gen && <div>• Род: {ex.gen}</div>}
-            {ex.person && <div>• Лицо: {ex.person}</div>}
-            {ex.pron && <div>• Кто/что: <b style={{ color: 'var(--accent-gold)' }}>{ex.pron}</b></div>}
+            {ex.num && <div>• {ttB(lang, PANEL_T.number)}: {NUM_T[ex.num][slangB(lang)]}</div>}
+            {ex.gen && <div>• {ttB(lang, PANEL_T.gender)}: {GEN_T[ex.gen][slangB(lang)]}</div>}
+            {ex.person && <div>• {ttB(lang, PANEL_T.person)}: {PERSON_T[ex.person][slangB(lang)]}</div>}
+            {pron && <div>• {ttB(lang, PANEL_T.who)}: <b style={{ color: 'var(--accent-gold)' }}>{pron}</b></div>}
             {labelAr && <div style={{ direction: 'rtl', textAlign: 'right', marginTop: 4, color: 'var(--text-muted)' }}>{labelAr}</div>}
           </div>
         </div>
@@ -110,7 +152,7 @@ export function SarfFormRow({
 }
 
 // ── Таблица تصريف (одна категория: 14 / 8 / 6 / 3 формы) ─────────────────────
-export function FormsTable({ cat }: { cat: TasrifCategory }) {
+export function FormsTable({ cat, lang = 'ru' }: { cat: TasrifCategory; lang?: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {cat.forms.map((form, i) => (
@@ -122,6 +164,7 @@ export function FormsTable({ cat }: { cat: TasrifCategory }) {
           catRu={cat.ru}
           catAr={cat.ar}
           catGloss={cat.gloss}
+          lang={lang}
           delay={i * 35}
         />
       ))}
@@ -159,8 +202,12 @@ export function Collapse({
 }
 
 // ── Диаграмма ميزان: слово ↔ فعل (с анимированными стрелками) ────────────────
-export function MizanDiagram({ root }: { root: [string, string, string] }) {
+export function MizanDiagram({ root, lang = 'ru' }: { root: [string, string, string]; lang?: string }) {
   const mizan = ['ف', 'ع', 'ل'];
+  const capT = {
+    ru: 'Каждую коренную сопоставляют с', en: 'Each root letter maps to',
+    uz: 'Har bir oʻzak harfi mos keladi:', tj: 'Ҳар ҳарфи реша мувофиқ мешавад бо',
+  };
   // В арабском пишем справа налево: первая коренная — справа.
   const cols = [0, 1, 2];
   return (
@@ -186,7 +233,7 @@ export function MizanDiagram({ root }: { root: [string, string, string] }) {
         ))}
       </div>
       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, textAlign: 'center' }}>
-        Каждую коренную сопоставляют с <b style={{ color: 'var(--accent-gold)' }}>ف</b> · <b style={{ color: 'var(--accent-gold)' }}>ع</b> · <b style={{ color: 'var(--accent-gold)' }}>ل</b>
+        {ttB(lang, capT)} <b style={{ color: 'var(--accent-gold)' }}>ف</b> · <b style={{ color: 'var(--accent-gold)' }}>ع</b> · <b style={{ color: 'var(--accent-gold)' }}>ل</b>
       </div>
     </div>
   );
@@ -212,14 +259,15 @@ export function IshtiqaqArrow({
 }
 
 // ── Полный تصريف глагола (аккордеон по всем категориям) ──────────────────────
-export function FullTasrif({ verb }: { verb: SarfVerb }) {
+export function FullTasrif({ verb, lang = 'ru' }: { verb: SarfVerb; lang?: string }) {
   const r = verbForms(verb);
+  const fullT = { ru: 'Полный تصريف', en: 'Full tasrif', uz: 'Toʻliq tasrif', tj: 'Тасрифи пурра' };
   return (
     <div>
       {/* шапка глагола */}
       <div className="glass-card glass-card--gold" style={{ textAlign: 'center', marginBottom: 14, padding: '18px 16px' }}>
         <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
-          Полный تصريف · {verb.ru}
+          {ttB(lang, fullT)} · {verb.ru}
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
           <ArabicForm text={r.madi} size="lg" />
@@ -233,7 +281,7 @@ export function FullTasrif({ verb }: { verb: SarfVerb }) {
           subtitle={cat.ar}
           defaultOpen={i < 1}
         >
-          <FormsTable cat={cat} />
+          <FormsTable cat={cat} lang={lang} />
         </Collapse>
       ))}
     </div>
