@@ -27,6 +27,7 @@ import ReviewScreen     from './screens/ReviewScreen';
 import TeacherDashboard from './screens/TeacherDashboard';
 import Themes           from './screens/Themes';
 import Sarf             from './screens/Sarf';
+import WordTrainer      from './screens/WordTrainer';
 import { loadTheme, applyTheme } from './utils/theme';
 
 type Screen =
@@ -43,7 +44,8 @@ type Screen =
   | 'ask_teacher'
   | 'review'
   | 'themes'
-  | 'sarf';
+  | 'sarf'
+  | 'trainer';
 
 // ── Background helpers ────────────────────────────────────────────
 const BG_STORAGE_KEY = 'ap_bg_url';
@@ -514,6 +516,12 @@ export default function App() {
     );
   }
 
+  if (screen === 'trainer') {
+    return (
+      <>{navFloat}<WordTrainer lang={lang} onBack={goBack} /></>
+    );
+  }
+
   if (screen === 'ask_teacher') {
     return (
       <>{navFloat}<AskTeacher lang={lang} onBack={goBack} /></>
@@ -545,6 +553,7 @@ export default function App() {
         onLangChange={handleLangChange}
         onBgChange={handleBgChange}
         onOpenThemes={() => setScreen('themes')}
+        onOpenTrainer={() => setScreen('trainer')}
       />
     );
   }
@@ -585,6 +594,7 @@ export default function App() {
               onOpenSettings={() => handleTabChange('settings')}
               onOpenThemes={() => setScreen('themes')}
               onOpenSarf={() => setScreen('sarf')}
+              onOpenTrainer={() => setScreen('trainer')}
             />
           )}
 

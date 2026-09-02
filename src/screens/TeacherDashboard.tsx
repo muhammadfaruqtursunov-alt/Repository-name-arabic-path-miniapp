@@ -18,6 +18,7 @@ interface Props {
   onLangChange: (lang: Lang) => void;
   onBgChange: (url: string) => void;
   onOpenThemes: () => void;
+  onOpenTrainer: () => void;
 }
 
 type Panel = 'questions' | 'broadcast' | 'message' | 'bg' | 'lazy_broadcast' | null;
@@ -33,7 +34,7 @@ function rankMedal(idx: number): string {
   return `${idx + 1}.`;
 }
 
-export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpenThemes }: Props) {
+export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpenThemes, onOpenTrainer }: Props) {
   const [tab, setTab] = useState<TeacherTab>('dashboard');
 
   const handleSwipeLeft = useCallback(() => {
@@ -444,6 +445,18 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
             active={panel === 'lazy_broadcast'}
             onClick={() => togglePanel('lazy_broadcast')}
             color="var(--accent-gold)"
+            wide
+          />
+        </div>
+
+        {/* ── Тренажёр слов (свой словарь) ──────────────────────── */}
+        <div style={{ marginBottom: 10 }}>
+          <ActionBtn
+            icon={<span style={{ fontSize: 20 }}>📝</span>}
+            label="Тренажёр слов — свой словарь"
+            active={false}
+            onClick={onOpenTrainer}
+            color="var(--accent-teal)"
             wide
           />
         </div>

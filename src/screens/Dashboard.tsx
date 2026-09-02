@@ -21,6 +21,7 @@ interface Props {
   onOpenThemes: () => void;
   onOpenReview: () => void;
   onOpenSarf: () => void;
+  onOpenTrainer: () => void;
 }
 
 function getLevel(totalLearned: number, lang: Lang): string {
@@ -32,7 +33,7 @@ function getLevel(totalLearned: number, lang: Lang): string {
 export default function Dashboard({
   lang, onLangChange: _onLangChange, user, volumes, onOpenVolume,
   onOpenGuide, onOpenTests, onOpenAskTeacher, onOpenSettings: _onOpenSettings,
-  onOpenThemes, onOpenReview, onOpenSarf,
+  onOpenThemes, onOpenReview, onOpenSarf, onOpenTrainer,
 }: Props) {
   const [medExpanded, setMedExpanded] = useState(false);
 
@@ -242,6 +243,23 @@ export default function Dashboard({
             </div>
             <div className="text-muted" style={{ fontSize: 12 }}>
               {lang === 'ru' ? 'Урок · Тест' : lang === 'en' ? 'Lesson · Test' : lang === 'uz' ? 'Dars · Test' : 'Дарс · Санҷиш'}
+            </div>
+          </div>
+
+          {/* ── Тренажёр слов ── */}
+          <div
+            className="glass-card"
+            style={{ cursor: 'pointer', position: 'relative' }}
+            onClick={onOpenTrainer}
+          >
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              <span style={{ fontSize: 22 }}>📝</span>
+            </div>
+            <div className="title-card" style={{ marginBottom: 2 }}>
+              {lang === 'en' ? 'Word trainer' : lang === 'uz' ? 'Soʻz mashqi' : lang === 'tj' ? 'Машқи калимаҳо' : 'Тренажёр слов'}
+            </div>
+            <div className="text-muted" style={{ fontSize: 12 }}>
+              {lang === 'en' ? 'Your own words' : lang === 'uz' ? 'Oʻz soʻzlaringiz' : lang === 'tj' ? 'Луғати худ' : 'Свой словарь'}
             </div>
           </div>
 
