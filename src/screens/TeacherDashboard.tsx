@@ -798,9 +798,17 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
                     <span style={{ fontSize: 16, width: 24, textAlign: 'center', flexShrink: 0 }}>
                       {rankMedal(i)}
                     </span>
-                    <span style={{ flex: 1, fontWeight: 500, fontSize: 13, color: isDone ? 'var(--text-muted)' : 'var(--text-main)' }}>
+                    {/* Иконка книги — на каком уровне ученик */}
+                    <span style={{ fontSize: 14, flexShrink: 0 }}>
+                      {s.current_book === 1 ? '📗' : s.current_book === 2 ? '📘' : '📕'}
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500, fontSize: 13, color: isDone ? 'var(--text-muted)' : 'var(--text-main)' }}>
                       {s.name}
                       {isDone && <span style={{ fontSize: 10, color: 'var(--danger)', marginLeft: 6 }}>✓ сброшен</span>}
+                    </span>
+                    {/* Жирное число — слов выучено */}
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 13, fontWeight: 800, color: 'var(--accent-gold)', flexShrink: 0 }}>
+                      📚 {s.learned}
                     </span>
                     <span style={{ fontSize: 11, color: isExpanded ? 'var(--accent-teal)' : 'var(--text-muted)', marginLeft: 2 }}>
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
