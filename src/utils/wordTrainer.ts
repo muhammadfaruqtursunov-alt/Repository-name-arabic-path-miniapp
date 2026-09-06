@@ -79,22 +79,44 @@ export function parseWords(text: string): TrainerWord[] {
 }
 
 // ── Сравнение письменного ответа ─────────────────────────────────
+// Диапазон Unicode "combining diacritical marks" (U+0300–U+036F), собран
+// через String.fromCharCode, чтобы не тащить в исходник escape-последовательности.
+const REMOVE_ACCENTS = new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g');
+
 export function normAnswer(s: string): string {
   return s
+    .normalize('NFKC')            // полноширинные/составные символы → обычные
+    .replace(REMOVE_ACCENTS, '')  // убрать диакритику (стресс-ударение, которое
+                                   // телефон иногда сам подставляет при автокоррекции)
     .toLowerCase()
     .replace(/ё/g, 'е')
-    .replace(/[.,!?;:"'`()[\]]/g, ' ')
+    .replace(/[.,!?;:"'`()[\]«»""'']/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-/** Допустимые варианты перевода: "книга, том" / "книга; том" / "книга (том)". */
+/**
+ * Допустимые варианты перевода: "книга, том" / "книга; том" / "книга (том)" /
+ * "книга [уточнение]". Содержимое скобок считаем и альтернативой (через
+ * запятую), и необязательным уточнением — ответ засчитывается и без него,
+ * чтобы студента не наказывало за короткий, но верный ответ.
+ */
 export function answerVariants(trans: string): string[] {
-  const base = trans.replace(/[()]/g, ',');
-  return base
-    .split(/[,;/]/)
-    .map((v) => normAnswer(v))
-    .filter(Boolean);
+  const out = new Set<string>();
+
+  const asAlternatives = trans.replace(/[([]/g, ',').replace(/[)\]]/g, ',');
+  for (const v of asAlternatives.split(/[,;/]/)) {
+    const n = normAnswer(v);
+    if (n) out.add(n);
+  }
+
+  const withoutParenthetical = trans.replace(/[([][^)\]]*[)\]]/g, '');
+  for (const v of withoutParenthetical.split(/[,;/]/)) {
+    const n = normAnswer(v);
+    if (n) out.add(n);
+  }
+
+  return [...out];
 }
 
 // ── Утилиты ──────────────────────────────────────────────────────
