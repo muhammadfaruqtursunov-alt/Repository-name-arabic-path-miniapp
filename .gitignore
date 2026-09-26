@@ -4,3 +4,6 @@ dist
 .env.local
 .DS_Store
 *.log
+
+# Quran data build cache
+scripts/quran/.cache/
