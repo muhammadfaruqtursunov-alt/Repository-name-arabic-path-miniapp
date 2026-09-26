@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSwipe } from './hooks/useSwipe';
+import { useEdgeSwipeBack, useTelegramBackButton } from './hooks/useBackNavigation';
 import { t, normalizeLang, getLangDir } from './i18n';
 import type { Lang } from './i18n';
 import { api } from './api/client';
@@ -28,6 +29,8 @@ import TeacherDashboard from './screens/TeacherDashboard';
 import Themes           from './screens/Themes';
 import Sarf             from './screens/Sarf';
 import WordTrainer      from './screens/WordTrainer';
+import Section          from './screens/Section';
+import type { SectionKey } from './screens/Section';
 import { loadTheme, applyTheme } from './utils/theme';
 
 type Screen =
@@ -45,7 +48,11 @@ type Screen =
   | 'review'
   | 'themes'
   | 'sarf'
-  | 'trainer';
+  | 'trainer'
+  | 'section';      // раздел главного экрана (Арабский язык, Коран, …)
+
+// Экраны без «назад»: корень приложения и онбординг.
+const ROOT_SCREENS: Screen[] = ['loading', 'welcome', 'error_retry', 'lang_select', 'name_input', 'dashboard'];
 
 // ── Background helpers ────────────────────────────────────────────
 const BG_STORAGE_KEY = 'ap_bg_url';
@@ -72,6 +79,7 @@ export default function App() {
   const [selectedBook, setSelectedBook] = useState(1);
   const [selectedLesson, setSelectedLesson] = useState(1);
   const [onboardingLang, setOnboardingLang] = useState<Lang>('ru');
+  const [sectionKey, setSectionKey] = useState<SectionKey>('arabic');
   const [initError, setInitError] = useState<string | null>(null);
 
   // ── История навигации экранов (для плавающей кнопки «Назад») ──────
@@ -127,6 +135,12 @@ export default function App() {
   }
 
   const navFloat = <NavFloat onHome={onFloatHome} onBack={onFloatBack} />;
+
+  // Шаг назад жестом: свайп от края экрана + нативная кнопка «Назад» Telegram
+  // (на Android её же вызывает системный жест «назад»). Ведут себя как стрелка NavFloat.
+  const canGoBack = !!user && !ROOT_SCREENS.includes(screen);
+  useEdgeSwipeBack(onFloatBack, canGoBack);
+  useTelegramBackButton(canGoBack, onFloatBack);
 
   // Achievements
   const [achQueue, setAchQueue] = useState<Achievement[]>([]);
@@ -336,7 +350,8 @@ export default function App() {
     if (idx > 0) handleTabChange(TAB_ORDER[idx - 1], 'right');
   }, [tab]);
 
-  const swipeHandlers = useSwipe(handleSwipeLeft, handleSwipeRight);
+  // На корне «назад» нет — свайп от края тоже листает нижние вкладки.
+  const swipeHandlers = useSwipe(handleSwipeLeft, handleSwipeRight, 55, false);
 
   // ── Screen routing ────────────────────────────────────────────
 
@@ -522,6 +537,29 @@ export default function App() {
     );
   }
 
+  if (screen === 'section' && user) {
+    return (
+      <>{navFloat}<Section
+        lang={lang}
+        section={sectionKey}
+        volumes={volumes}
+        onBack={goBack}
+        onOpenVolume={(bookId) => {
+          setSelectedBook(bookId || user.current_book);
+          setScreen('volume');
+        }}
+        onOpenTests={() => {
+          setSelectedBook(user.current_book);
+          setSelectedLesson(user.current_lesson);
+          setScreen('lesson');  // ← study first, then test
+        }}
+        onOpenGuide={() => setScreen('umrah')}
+        onOpenSarf={() => setScreen('sarf')}
+        onOpenTrainer={() => setScreen('trainer')}
+      /></>
+    );
+  }
+
   if (screen === 'ask_teacher') {
     return (
       <>{navFloat}<AskTeacher lang={lang} onBack={goBack} /></>
@@ -583,18 +621,14 @@ export default function App() {
                 setSelectedBook(bookId || user.current_book);
                 setScreen('volume');
               }}
-              onOpenGuide={() => setScreen('umrah')}
-              onOpenTests={() => {
-                setSelectedBook(user.current_book);
-                setSelectedLesson(user.current_lesson);
-                setScreen('lesson');  // ← study first, then test
+              onOpenSection={(key) => {
+                setSectionKey(key);
+                setScreen('section');
               }}
               onOpenAskTeacher={() => setScreen('ask_teacher')}
               onOpenReview={() => setScreen('review')}
               onOpenSettings={() => handleTabChange('settings')}
               onOpenThemes={() => setScreen('themes')}
-              onOpenSarf={() => setScreen('sarf')}
-              onOpenTrainer={() => setScreen('trainer')}
             />
           )}
 

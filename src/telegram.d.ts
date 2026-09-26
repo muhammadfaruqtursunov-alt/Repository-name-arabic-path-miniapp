@@ -40,6 +40,13 @@ interface TelegramWebApp {
     hide: () => void;
     onClick: (fn: () => void) => void;
   };
+  BackButton?: {
+    isVisible: boolean;
+    show: () => void;
+    hide: () => void;
+    onClick: (fn: () => void) => void;
+    offClick: (fn: () => void) => void;
+  };
   requestWriteAccess?: (callback?: (granted: boolean) => void) => void;
   HapticFeedback?: {
     impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;

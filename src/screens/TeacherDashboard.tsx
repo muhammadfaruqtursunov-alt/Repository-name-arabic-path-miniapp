@@ -47,7 +47,8 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
     if (idx > 0) setTab(TAB_ORDER[idx - 1]);
   }, [tab]);
 
-  const swipeHandlers = useSwipe(handleSwipeLeft, handleSwipeRight);
+  // Корень панели учителя: «назад» нет, свайп от края тоже листает вкладки.
+  const swipeHandlers = useSwipe(handleSwipeLeft, handleSwipeRight, 55, false);
 
   // ── Core data ──────────────────────────────────────────────────
   const [stats, setStats]   = useState<TeacherStats | null>(null);

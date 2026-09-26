@@ -1,12 +1,14 @@
-import { useState } from 'react';
 import {
-  BookOpen, Compass, PenLine, Eye, MessageCircleQuestion,
-  Palette, Layers, Flame, TrendingUp, RotateCcw, ChevronDown,
+  MessageCircleQuestion, Palette, Layers, Flame, TrendingUp, RotateCcw,
+  Languages, BookOpenText, MoonStar, ScrollText,
 } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import type { UserProfile, VolumeInfo } from '../api/client';
 import ProgressBar from '../components/ProgressBar';
+import SectionTile from '../components/SectionTile';
+import { sectionTitle, soonLabel } from './Section';
+import type { SectionKey } from './Section';
 
 interface Props {
   lang: Lang;
@@ -14,14 +16,15 @@ interface Props {
   user: UserProfile;
   volumes: VolumeInfo[];
   onOpenVolume: (bookId: number) => void;
-  onOpenGuide: () => void;
-  onOpenTests: () => void;
+  onOpenSection: (key: SectionKey) => void;
   onOpenAskTeacher: () => void;
   onOpenSettings: () => void;
   onOpenThemes: () => void;
   onOpenReview: () => void;
-  onOpenSarf: () => void;
-  onOpenTrainer: () => void;
+}
+
+function L(lang: Lang, ru: string, en: string, uz: string, tj: string): string {
+  return lang === 'en' ? en : lang === 'uz' ? uz : lang === 'tj' ? tj : ru;
 }
 
 function getLevel(totalLearned: number, lang: Lang): string {
@@ -31,12 +34,9 @@ function getLevel(totalLearned: number, lang: Lang): string {
 }
 
 export default function Dashboard({
-  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume,
-  onOpenGuide, onOpenTests, onOpenAskTeacher, onOpenSettings: _onOpenSettings,
-  onOpenThemes, onOpenReview, onOpenSarf, onOpenTrainer,
+  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume, onOpenSection,
+  onOpenAskTeacher, onOpenSettings: _onOpenSettings, onOpenThemes, onOpenReview,
 }: Props) {
-  const [medExpanded, setMedExpanded] = useState(false);
-
   const tgUser  = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const avatarUrl = tgUser?.photo_url;
 
@@ -135,177 +135,47 @@ export default function Dashboard({
           </div>
         </div>
 
-        {/* Сетка кнопок */}
+        {/* Разделы */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-
-          {/* ── Мединский курс — сворачиваемый ── */}
-          <div style={{ gridColumn: 'span 2' }}>
-            {/* Заголовок группы */}
-            <div
-              className={`glass-card${volumes.some(v => v.is_current) ? ' glass-card--gold' : ''}`}
-              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, marginBottom: medExpanded ? 8 : 0 }}
-              onClick={() => setMedExpanded(!medExpanded)}
-            >
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <BookOpen size={22} color="var(--accent)" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div className="title-card">{t(lang, 'medina')}</div>
-                <div className="text-muted" style={{ fontSize: 12 }}>
-                  {t(lang, 'book_1')} · {t(lang, 'book_2')} · {t(lang, 'book_3')}
-                </div>
-              </div>
-              <ChevronDown
-                size={18}
-                color="var(--text-muted)"
-                style={{ transform: medExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
-              />
-            </div>
-
-            {/* Три книги — раскрываются */}
-            {medExpanded && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                {volumes.slice(0, 3).map(vol => (
-                  <div
-                    key={vol.book_id}
-                    className={`glass-card${vol.is_current ? ' glass-card--gold' : ''}`}
-                    style={{ cursor: 'pointer', position: 'relative', padding: '10px 10px 12px' }}
-                    onClick={() => onOpenVolume(vol.book_id)}
-                  >
-                    {vol.is_current && (
-                      <div className="badge badge--gold text-badge" style={{ position: 'absolute', top: 6, right: 6, fontSize: 8 }}>
-                        {t(lang, 'current_badge')}
-                      </div>
-                    )}
-                    <div className="title-card" style={{ fontSize: 12, marginBottom: 6, paddingRight: vol.is_current ? 28 : 0 }}>
-                      {t(lang, `book_${vol.book_id}` as 'book_1')}
-                    </div>
-                    <ProgressBar pct={vol.pct} />
-                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-                      {vol.learned_words}/{vol.total_words}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ── Умра разговорник ── */}
-          <div className="glass-card" style={{ cursor: 'pointer' }} onClick={onOpenGuide}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              <Compass size={22} color="var(--accent)" />
-            </div>
-            <div className="title-card" style={{ marginBottom: 2 }}>
-              {t(lang, 'umrah_title')}
-            </div>
-            <div className="text-muted" style={{ fontSize: 12 }}>
-              🕋 {t(lang, 'umrah_subtitle')}
-            </div>
-          </div>
-
-          {/* ── Тесты ── */}
-          <div className="glass-card" style={{ cursor: 'pointer' }} onClick={onOpenTests}>
-            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Eye size={20} color="var(--accent)" />
-              </div>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <PenLine size={20} color="var(--accent)" />
-              </div>
-            </div>
-            <div className="title-card" style={{ marginBottom: 2 }}>{t(lang, 'tests_title')}</div>
-            <div className="text-muted" style={{ fontSize: 12 }}>
-              {t(lang, 'tab_visual')} · {t(lang, 'tab_written')}
-            </div>
-          </div>
-
-          {/* ── Вопрос учителю ── */}
-          <div className="glass-card" style={{ cursor: 'pointer' }} onClick={onOpenAskTeacher}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              <MessageCircleQuestion size={22} color="var(--accent)" />
-            </div>
-            <div className="title-card" style={{ marginBottom: 2 }}>
-              {t(lang, 'teacher_title')}
-            </div>
-          </div>
-
-          {/* ── Сарф ── */}
-          <div
-            className="glass-card"
-            style={{ cursor: 'pointer', position: 'relative' }}
-            onClick={onOpenSarf}
-          >
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              <span style={{ fontSize: 22 }}>📖</span>
-            </div>
-            <div className="title-card" style={{ marginBottom: 2 }}>
-              {lang === 'ru' ? 'Сарф' : lang === 'en' ? 'Sarf' : 'Сарф'}
-            </div>
-            <div className="text-muted" style={{ fontSize: 12 }}>
-              {lang === 'ru' ? 'Урок · Тест' : lang === 'en' ? 'Lesson · Test' : lang === 'uz' ? 'Dars · Test' : 'Дарс · Санҷиш'}
-            </div>
-          </div>
-
-          {/* ── Тренажёр слов ── */}
-          <div
-            className="glass-card"
-            style={{ cursor: 'pointer', position: 'relative' }}
-            onClick={onOpenTrainer}
-          >
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              <span style={{ fontSize: 22 }}>📝</span>
-            </div>
-            <div className="title-card" style={{ marginBottom: 2 }}>
-              {lang === 'en' ? 'Word trainer' : lang === 'uz' ? 'Soʻz mashqi' : lang === 'tj' ? 'Машқи калимаҳо' : 'Тренажёр слов'}
-            </div>
-            <div className="text-muted" style={{ fontSize: 12 }}>
-              {lang === 'en' ? 'Your own words' : lang === 'uz' ? 'Oʻz soʻzlaringiz' : lang === 'tj' ? 'Луғати худ' : 'Свой словарь'}
-            </div>
-          </div>
-
-          {/* ── Нахв (скоро) ── */}
-          <div
-            className="glass-card"
-            style={{ opacity: 0.55, cursor: 'default', position: 'relative' }}
-          >
-            <div style={{
-              position: 'absolute', top: 8, right: 8,
-              background: 'var(--accent-tint)', color: 'var(--accent)',
-              borderRadius: 10, padding: '2px 7px', fontSize: 9, fontWeight: 700,
-              border: '1px solid var(--accent-border)',
-            }}>
-              {lang === 'ru' ? 'Скоро' : lang === 'en' ? 'Soon' : lang === 'uz' ? 'Tez kunda' : 'Зуд'}
-            </div>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              <span style={{ fontSize: 22 }}>✏️</span>
-            </div>
-            <div className="title-card" style={{ marginBottom: 2 }}>
-              {lang === 'ru' ? 'Нахв' : lang === 'en' ? 'Nahw' : 'Нахв'}
-            </div>
-            <div className="text-muted" style={{ fontSize: 12 }}>
-              {lang === 'ru' ? 'Синтаксис' : lang === 'en' ? 'Syntax' : lang === 'uz' ? 'Sintaksis' : 'Синтаксис'}
-            </div>
-          </div>
-
-          {/* ── Повторение SRS ── */}
-          <div
-            className="glass-card glass-card--gold"
-            style={{ cursor: 'pointer', gridColumn: 'span 2' }}
+          <SectionTile
+            icon={<Languages size={22} color="var(--accent)" />}
+            title={sectionTitle(lang, 'arabic')}
+            subtitle={L(lang, 'Мединский курс · Сарф · Разговорник', 'Medina course · Sarf · Phrasebook', 'Madina kursi · Sarf · Soʻzlashgich', 'Курси Мадина · Сарф · Гуфтугӯ')}
+            onClick={() => onOpenSection('arabic')}
+            gold={volumes.some(v => v.is_current)}
+          />
+          <SectionTile
+            icon={<BookOpenText size={22} color="var(--accent)" />}
+            title={sectionTitle(lang, 'quran')}
+            subtitle={L(lang, 'Слова Корана по страницам', 'Quran words page by page', 'Qurʼon soʻzlari sahifalab', 'Калимаҳои Қуръон саҳифа ба саҳифа')}
+            onClick={() => onOpenSection('quran')}
+          />
+          <SectionTile
+            icon={<MoonStar size={22} color="var(--accent)" />}
+            title={L(lang, 'Акида', 'Aqidah', 'Aqida', 'Ақида')}
+            subtitle={L(lang, 'Книги по вероучению', 'Books on creed', 'Aqida kitoblari', 'Китобҳо оид ба ақида')}
+            soonLabel={soonLabel(lang)}
+          />
+          <SectionTile
+            icon={<ScrollText size={22} color="var(--accent)" />}
+            title={L(lang, 'Хадисы', 'Hadith', 'Hadislar', 'Ҳадисҳо')}
+            subtitle={L(lang, 'Сборники хадисов', 'Hadith collections', 'Hadis toʻplamlari', 'Маҷмӯаҳои ҳадис')}
+            soonLabel={soonLabel(lang)}
+          />
+          <SectionTile
+            icon={<RotateCcw size={22} color="var(--accent)" />}
+            title={t(lang, 'review_title')}
+            subtitle={`${t(lang, 'review_all_words')} · SRS`}
             onClick={onOpenReview}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <RotateCcw size={22} color="var(--accent)" />
-              </div>
-              <div>
-                <div className="title-card">{t(lang, 'review_title')}</div>
-                <div className="text-muted" style={{ fontSize: 12, marginTop: 2 }}>
-                  {t(lang, 'review_all_words')} · SRS
-                </div>
-              </div>
-            </div>
-          </div>
-
+            wide
+            gold
+          />
+          <SectionTile
+            icon={<MessageCircleQuestion size={22} color="var(--accent)" />}
+            title={t(lang, 'teacher_title')}
+            onClick={onOpenAskTeacher}
+            wide
+          />
         </div>
       </div>
     </div>
