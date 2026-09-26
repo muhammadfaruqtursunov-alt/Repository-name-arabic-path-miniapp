@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, Play, Square, GraduationCap, RotateCcw, Chec
 import type { Lang } from '../i18n';
 import { useSwipe } from '../hooks/useSwipe';
 import {
-  loadPage, loadLexicon, loadMeanings, loadSiraj, prefetchPage, parseKey, wordPosition, TOTAL_PAGES,
+  loadPage, loadLexicon, loadMeanings, loadSiraj, prefetchPage, parseKey, wordPosition, meaningLang, TOTAL_PAGES,
 } from '../utils/quranData';
 import type { QuranPageData, Lexicon, Meanings, PageWord, SirajEntry } from '../utils/quranData';
 import {
@@ -181,7 +181,7 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
     const firstCardOfAyah = cards.find(c => c.ref.fi === r.fi)?.ref.wi === r.wi;
     return data.siraj
       .filter(([fi, wi, len]) => fi === r.fi && (wi === -1 ? isPeek || firstCardOfAyah : r.wi >= wi && r.wi < wi + len))
-      .map(([, , , phrase, expl]) => ({ phrase, expl }));
+      .map(([, , , phrase, expl, tr]) => ({ phrase, expl, tr: tr?.[meaningLang(lang)] }));
   };
 
   const cardFor = (r: WordRef, isPeek: boolean) => {

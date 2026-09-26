@@ -12,7 +12,7 @@ interface Props {
   reviewed: boolean;          // переводы проверены знающим человеком
   learned: boolean;
   newAffixes: string[];       // объяснения приставок/окончаний, встреченных впервые
-  siraj?: { phrase: string; expl: string }[];   // «ас-Сирадж»: объяснение трудного слова
+  siraj?: { phrase: string; expl: string; tr?: string }[];   // «ас-Сирадж»: объяснение + перевод
   onPlay: () => void;
   onKnow?: () => void;
   onRepeat?: () => void;
@@ -72,9 +72,12 @@ export default function WordCard(p: Props) {
             📖 {L(lang, '«ас-Сирадж» — объяснение', 'Al-Siraj — explanation', '«as-Siroj» — izoh', '«ас-Сироҷ» — шарҳ')}
           </div>
           {p.siraj.map((s, i) => (
-            <div key={i} dir="rtl" style={{ textAlign: 'right', fontSize: 16, lineHeight: 1.8 }}>
-              <span className="quran-ar" style={{ color: 'var(--accent)' }}>{s.phrase}</span>
-              <span style={{ fontFamily: "'Noto Naskh Arabic', serif", color: 'var(--text-main)' }}> — {s.expl}</span>
+            <div key={i} style={{ marginTop: i ? 6 : 0 }}>
+              <div dir="rtl" style={{ textAlign: 'right', fontSize: 16, lineHeight: 1.8 }}>
+                <span className="quran-ar" style={{ color: 'var(--accent)' }}>{s.phrase}</span>
+                <span style={{ fontFamily: "'Noto Naskh Arabic', serif", color: 'var(--text-main)' }}> — {s.expl}</span>
+              </div>
+              {s.tr && <div style={{ fontSize: 13, color: 'var(--text-main)', marginTop: 2 }}>{s.tr}</div>}
             </div>
           ))}
         </div>

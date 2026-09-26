@@ -52,8 +52,11 @@ export const loadSurahNames = () => load<SurahNames>('surah_names.json');
 export const loadMeanings = (lang: Lang) => load<Meanings>(`meanings/${meaningLang(lang)}.json`);
 export const loadPage = (p: number) => load<QuranPageData>(`pages/${String(p).padStart(3, '0')}.json`);
 
-/** «ас-Сирадж»: [индекс фрагмента, индекс слова (-1 = весь аят), сколько слов, фраза, объяснение] */
-export type SirajEntry = [number, number, number, string, string];
+/**
+ * «ас-Сирадж»: [индекс фрагмента, индекс слова (-1 = весь аят), сколько слов,
+ * фраза, объяснение по-арабски, переводы объяснения {tj, ru, uz, en}?]
+ */
+export type SirajEntry = [number, number, number, string, string, Partial<Record<'tj' | 'ru' | 'uz' | 'en', string>>?];
 /** Объяснения «Сираджа» для страницы (пустой список, если файла нет). */
 export const loadSiraj = (p: number) =>
   load<SirajEntry[]>(`siraj/${String(p).padStart(3, '0')}.json`).catch(() => [] as SirajEntry[]);
