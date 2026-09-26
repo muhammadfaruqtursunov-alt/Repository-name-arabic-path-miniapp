@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Add translations of the «ас-Сирадж» explanations to public/quran/siraj/NNN.json.
 
-Input:  scripts/quran/.cache/sj/tr_NN.json  {"page:index": {"tj": ..., "ru": ..., "uz": ..., "en": ...}}
+Input:  scripts/quran/.cache/sj/tr_*.json  {"page:index": {"tj": ..., "ru": ..., ...}} (any subset of languages per file)
 Output: each entry of public/quran/siraj/NNN.json gets a 6th element — an
         object with the available translations. Re-running is safe.
 
@@ -26,7 +26,9 @@ def main() -> int:
     partial = "--partial" in sys.argv
     tr = {}
     for path in sorted(glob.glob(os.path.join(HERE, ".cache", "sj", "tr_*.json"))):
-        tr.update(json.load(open(path, encoding="utf-8")))
+        # files may hold one language each (tr_tj_N.json, tr_ru_N.json …) — merge per id
+        for key, val in json.load(open(path, encoding="utf-8")).items():
+            tr.setdefault(key, {}).update(val)
 
     total, bad, missing = 0, [], 0
     for p in range(1, 605):
