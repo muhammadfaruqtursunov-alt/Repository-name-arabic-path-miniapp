@@ -194,7 +194,7 @@ export default function Quran({ lang, onBack, onLocalBack }: Props) {
           onPage={p => openPage(p, { kind: 'home' })} />
 
         <p className="text-muted" style={{ fontSize: 10, marginTop: 20, lineHeight: 1.5 }}>
-          {L(lang, 'Источники', 'Sources', 'Manbalar', 'Сарчашмаҳо')}: Quranic Arabic Corpus (corpus.quran.com) · Quran.com · EveryAyah.com · SakinaDevGroup
+          {L(lang, 'Источники', 'Sources', 'Manbalar', 'Сарчашмаҳо')}: Quranic Arabic Corpus (corpus.quran.com) · Quran.com · EveryAyah.com · SakinaDevGroup · «السراج في بيان غريب القرآن» — د. محمد الخضيري (shamela.ws)
         </p>
       </div>
     </div>

@@ -3,9 +3,9 @@ import { ChevronLeft, ChevronRight, Play, Square, GraduationCap, RotateCcw, Chec
 import type { Lang } from '../i18n';
 import { useSwipe } from '../hooks/useSwipe';
 import {
-  loadPage, loadLexicon, loadMeanings, prefetchPage, parseKey, wordPosition, TOTAL_PAGES,
+  loadPage, loadLexicon, loadMeanings, loadSiraj, prefetchPage, parseKey, wordPosition, TOTAL_PAGES,
 } from '../utils/quranData';
-import type { QuranPageData, Lexicon, Meanings, PageWord } from '../utils/quranData';
+import type { QuranPageData, Lexicon, Meanings, PageWord, SirajEntry } from '../utils/quranData';
 import {
   isLemmaLearned, isAffixSeen, setLemmasLearned, markAffixesSeen, markPageDone, setLastPage, reciter,
   reportQuranStats, useQuranProgress,
@@ -31,7 +31,7 @@ type Step = 'study' | 'test' | 'result';
 
 export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: Props) {
   useQuranProgress();
-  const [data, setData] = useState<{ page: QuranPageData; lex: Lexicon; mean: Meanings } | null>(null);
+  const [data, setData] = useState<{ page: QuranPageData; lex: Lexicon; mean: Meanings; siraj: SirajEntry[] } | null>(null);
   const [error, setError] = useState(false);
   const [cards, setCards] = useState<Card[]>([]);
   const [idx, setIdx] = useState(0);
@@ -44,10 +44,10 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
   useEffect(() => {
     let alive = true;
     setData(null); setError(false); setStep('study'); setIdx(0); setKnown(new Set()); setPeek(null);
-    Promise.all([loadPage(pageNo), loadLexicon(), loadMeanings(lang)])
-      .then(([page, lex, mean]) => {
+    Promise.all([loadPage(pageNo), loadLexicon(), loadMeanings(lang), loadSiraj(pageNo)])
+      .then(([page, lex, mean, siraj]) => {
         if (!alive) return;
-        setData({ page, lex, mean });
+        setData({ page, lex, mean, siraj });
         setCards(buildCards(page));
         setLastPage(pageNo);
         prefetchPage(pageNo + 1);
@@ -175,6 +175,15 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
   const cur = cards[idx];
   const shownRef = peek ?? cur?.ref ?? null;
 
+  // «Сирадж»: объяснения, покрывающие это слово; объяснения ко всему аяту —
+  // на первой карточке этого аята (или при нажатии на слово)
+  const sirajFor = (r: WordRef, isPeek: boolean) => {
+    const firstCardOfAyah = cards.find(c => c.ref.fi === r.fi)?.ref.wi === r.wi;
+    return data.siraj
+      .filter(([fi, wi, len]) => fi === r.fi && (wi === -1 ? isPeek || firstCardOfAyah : r.wi >= wi && r.wi < wi + len))
+      .map(([, , , phrase, expl]) => ({ phrase, expl }));
+  };
+
   const cardFor = (r: WordRef, isPeek: boolean) => {
     const w = word(r)!;
     const lid = w[1];
@@ -191,6 +200,7 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
         learned={isLemmaLearned(lid)}
         newAffixes={(isPeek ? [...w[2], ...w[3]].filter(a => !isAffixSeen(a)) : c?.affixes ?? [])
           .map(a => data.mean.affixes[a]).filter(Boolean)}
+        siraj={sirajFor(r, isPeek)}
         onPlay={() => playRef(r)}
         onKnow={isPeek ? undefined : () => answer(true)}
         onRepeat={isPeek ? undefined : () => answer(false)}

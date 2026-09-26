@@ -12,6 +12,7 @@ interface Props {
   reviewed: boolean;          // переводы проверены знающим человеком
   learned: boolean;
   newAffixes: string[];       // объяснения приставок/окончаний, встреченных впервые
+  siraj?: { phrase: string; expl: string }[];   // «ас-Сирадж»: объяснение трудного слова
   onPlay: () => void;
   onKnow?: () => void;
   onRepeat?: () => void;
@@ -60,6 +61,20 @@ export default function WordCard(p: Props) {
           {p.newAffixes.map(a => (
             <div key={a} style={{ fontSize: 12, padding: '6px 10px', borderRadius: 10, background: 'var(--accent-tint)', border: '1px solid var(--accent-border)', color: 'var(--text-main)' }}>
               <b style={{ color: 'var(--accent)' }}>{L(lang, 'Новое', 'New', 'Yangi', 'Нав')}:</b> {a}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {p.siraj && p.siraj.length > 0 && (
+        <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>
+            📖 {L(lang, '«ас-Сирадж» — объяснение', 'Al-Siraj — explanation', '«as-Siroj» — izoh', '«ас-Сироҷ» — шарҳ')}
+          </div>
+          {p.siraj.map((s, i) => (
+            <div key={i} dir="rtl" style={{ textAlign: 'right', fontSize: 16, lineHeight: 1.8 }}>
+              <span className="quran-ar" style={{ color: 'var(--accent)' }}>{s.phrase}</span>
+              <span style={{ fontFamily: "'Noto Naskh Arabic', serif", color: 'var(--text-main)' }}> — {s.expl}</span>
             </div>
           ))}
         </div>
