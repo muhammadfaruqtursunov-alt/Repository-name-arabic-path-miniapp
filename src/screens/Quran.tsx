@@ -8,6 +8,7 @@ import type { QuranIndex, SurahNames, Lexicon, Meanings } from '../utils/quranDa
 import {
   RECITERS, isPageDone, learnedCount, pagesDoneCount, nextPageToLearn, reciter, setReciter,
   lastReview, setLastReview, learnedLemmaIds, setLemmasLearned, syncFromCloud, useQuranProgress,
+  reportQuranStats,
 } from '../utils/quranProgress';
 import ProgressBar from '../components/ProgressBar';
 import QuranQuiz from '../components/quran/QuranQuiz';
@@ -305,6 +306,7 @@ function ReviewView({ lang, onDone }: { lang: Lang; onDone: () => void }) {
             onDone={firstOk => {
               setLemmasLearned(ids.filter(i => !firstOk.has(i)), false);
               setLastReview(Date.now());
+              reportQuranStats();
               onDone();
             }}
           />

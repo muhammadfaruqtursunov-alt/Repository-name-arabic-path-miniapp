@@ -33,6 +33,7 @@ import Section          from './screens/Section';
 import Quran            from './screens/Quran';
 import type { SectionKey } from './screens/Section';
 import { loadTheme, applyTheme } from './utils/theme';
+import { markLastSection } from './utils/quranProgress';
 
 type Screen =
   | 'loading'
@@ -100,6 +101,7 @@ export default function App() {
       navStackRef.current = [...navStackRef.current, prev];
     }
     prevScreenRef.current = screen;
+    if (screen === 'lesson') markLastSection('medina');   // для карточки «где учился последним»
   }, [screen]);
 
   function goHome() {
@@ -634,6 +636,7 @@ export default function App() {
                 setSectionKey(key);
                 setScreen('section');
               }}
+              onOpenQuran={() => setScreen('quran')}
               onOpenAskTeacher={() => setScreen('ask_teacher')}
               onOpenReview={() => setScreen('review')}
               onOpenSettings={() => handleTabChange('settings')}

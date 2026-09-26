@@ -7,6 +7,7 @@
  * в один ключ CloudStorage (лимит 4 096 символов).
  */
 import { useEffect, useState } from 'react';
+import { api } from '../api/client';
 
 const LEMMA_BITS = 4800;
 const AFFIX_BITS = 64;
@@ -168,7 +169,27 @@ export function markAffixesSeen(ids: number[]) {
   changed();
 }
 export function markPageDone(p: number) { setBit(state.pages, p, true); changed(); }
-export function setLastPage(p: number) { state.meta.last = p; changed(); }
+export function setLastPage(p: number) {
+  state.meta.last = p;
+  markLastSection('quran');
+  changed();
+}
+
+/** Отправить учителю только цифры (сколько слов / страниц). Ошибки сети не мешают уроку. */
+export function reportQuranStats() {
+  if (!window.Telegram?.WebApp?.initData) return;
+  api.saveQuranProgress(learnedCount(), pagesDoneCount()).catch(() => {});
+}
+
+/** Где ученик учился последним — для карточки прогресса на главном экране. */
+export type LastSection = 'medina' | 'quran';
+const LAST_SECTION_KEY = 'ap_last_section';
+export function markLastSection(s: LastSection) {
+  try { localStorage.setItem(LAST_SECTION_KEY, s); } catch { /* нет доступа к хранилищу */ }
+}
+export function getLastSection(): LastSection {
+  try { return localStorage.getItem(LAST_SECTION_KEY) === 'quran' ? 'quran' : 'medina'; } catch { return 'medina'; }
+}
 export function setReciter(id: string) { state.meta.reciter = id; changed(); }
 export function setLastReview(ts: number) { state.meta.lastReview = ts; changed(); }
 

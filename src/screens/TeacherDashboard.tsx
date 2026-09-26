@@ -833,6 +833,11 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
                         <span style={{ fontSize: 12, color: 'var(--accent-teal)' }}>
                           ⏱ {formatAppTime(s.total_app_time ?? 0)}
                         </span>
+                        {((s as AllStudent).quran_words ?? 0) > 0 && (
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent-gold)' }}>
+                            📖 Коран: {(s as AllStudent).quran_words} слов · {(s as AllStudent).quran_pages ?? 0} стр.
+                          </span>
+                        )}
                       </div>
                       {/* Action buttons — только 2 */}
                       <div style={{ display: 'flex', gap: 8 }}>

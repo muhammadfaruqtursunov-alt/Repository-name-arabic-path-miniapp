@@ -9,6 +9,7 @@ import ProgressBar from '../components/ProgressBar';
 import SectionTile from '../components/SectionTile';
 import { sectionTitle, soonLabel } from './Section';
 import type { SectionKey } from './Section';
+import { getLastSection, lastPage, learnedCount } from '../utils/quranProgress';
 
 interface Props {
   lang: Lang;
@@ -17,6 +18,7 @@ interface Props {
   volumes: VolumeInfo[];
   onOpenVolume: (bookId: number) => void;
   onOpenSection: (key: SectionKey) => void;
+  onOpenQuran: () => void;
   onOpenAskTeacher: () => void;
   onOpenSettings: () => void;
   onOpenThemes: () => void;
@@ -34,9 +36,12 @@ function getLevel(totalLearned: number, lang: Lang): string {
 }
 
 export default function Dashboard({
-  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume, onOpenSection,
+  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume, onOpenSection, onOpenQuran,
   onOpenAskTeacher, onOpenSettings: _onOpenSettings, onOpenThemes, onOpenReview,
 }: Props) {
+  // Карточка прогресса показывает, где ученик учился последним
+  const quranLast = getLastSection() === 'quran' && lastPage() > 0;
+  const quranLearned = learnedCount();
   const tgUser  = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const avatarUrl = tgUser?.photo_url;
 
@@ -90,6 +95,30 @@ export default function Dashboard({
 
         {/* Прогресс-карточка */}
         <div className="glass-card" style={{ marginBottom: 16 }}>
+          {quranLast ? (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                <div>
+                  <div className="text-badge text-muted" style={{ marginBottom: 4 }}>
+                    {L(lang, 'Вы учили последним', 'Last studied', 'Oxirgi oʻrganilgan', 'Охирин омӯхташуда')}
+                  </div>
+                  <div className="title-card">{L(lang, 'Слова Корана', 'Quran words', 'Qurʼon soʻzlari', 'Калимаҳои Қуръон')}</div>
+                  <div className="text-muted" style={{ fontSize: 12, marginTop: 2 }}>
+                    {L(lang, 'Страница', 'Page', 'Sahifa', 'Саҳифа')} {lastPage()} / 604
+                  </div>
+                </div>
+                <button className="btn btn-ghost btn-sm" style={{ gap: 4 }} onClick={onOpenQuran}>
+                  <BookOpenText size={14} /> {L(lang, 'Продолжить', 'Continue', 'Davom etish', 'Идома')}
+                </button>
+              </div>
+              <ProgressBar pct={Math.round((quranLearned / 4800) * 100)} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                <span className="text-muted" style={{ fontSize: 12 }}>
+                  {t(lang, 'words_learned')}: <span style={{ color: 'var(--accent-teal)', fontWeight: 700 }}>{quranLearned}</span> / 4800
+                </span>
+              </div>
+            </>
+          ) : (<>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
             <div>
               <div className="text-badge text-muted" style={{ marginBottom: 4 }}>
@@ -117,6 +146,7 @@ export default function Dashboard({
               {user.book_progress?.pct}%
             </span>
           </div>
+          </>)}
 
           <div className="gold-divider" />
 

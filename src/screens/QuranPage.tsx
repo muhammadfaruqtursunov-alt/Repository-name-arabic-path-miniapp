@@ -8,7 +8,7 @@ import {
 import type { QuranPageData, Lexicon, Meanings, PageWord } from '../utils/quranData';
 import {
   isLemmaLearned, isAffixSeen, setLemmasLearned, markAffixesSeen, markPageDone, setLastPage, reciter,
-  useQuranProgress,
+  reportQuranStats, useQuranProgress,
 } from '../utils/quranProgress';
 import { playWord, playAyahs, stopQuranAudio } from '../utils/quranAudio';
 import AyahPane from '../components/quran/AyahPane';
@@ -102,6 +102,7 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
     setLemmasLearned(learned, true);
     markAffixesSeen(cards.flatMap(c => c.affixes));
     markPageDone(pageNo);
+    reportQuranStats();
     setLearnedNow(learned);
     setStep('result');
   }
@@ -109,6 +110,7 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
   function finishWithoutNewWords() {
     markAffixesSeen(cards.flatMap(c => c.affixes));
     markPageDone(pageNo);
+    reportQuranStats();
     setLearnedNow([]);
     setStep('result');
   }

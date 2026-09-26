@@ -151,6 +151,8 @@ export interface AllStudent {
   created_at?: string | null;     // ISO timestamp of registration
   last_activity?: string | null;  // "YYYY-MM-DD" of last active day
   streak?: number;
+  quran_words?: number;           // learned Quran words (lemmas)
+  quran_pages?: number;           // finished mushaf pages
 }
 
 export interface LazyStudent {
@@ -168,6 +170,8 @@ export const api = {
     request<{ ok: boolean }>('PUT', '/api/webapp/user/lang', { lang }),
   setName: (name: string) =>
     request<{ ok: boolean }>('PUT', '/api/webapp/user/name', { name }),
+  saveQuranProgress: (words: number, pages: number) =>
+    request<{ ok: boolean }>('POST', '/api/webapp/quran/progress', { words, pages }),
   getReminder: () => request<ReminderSettings>('GET', '/api/webapp/user/reminder'),
   setReminder: (reminder_time: string | null, timezone: string) =>
     request<{ ok: boolean }>('PUT', '/api/webapp/user/reminder', { reminder_time, timezone }),
