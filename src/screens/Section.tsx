@@ -18,6 +18,7 @@ interface Props {
   onOpenGuide: () => void;
   onOpenSarf: () => void;
   onOpenTrainer: () => void;
+  onOpenQuran: () => void;
 }
 
 // ru, en, uz, tj — пустые uz/tj падают на ru (как в Sarf.tsx)
@@ -55,7 +56,7 @@ export default function Section(props: Props) {
         <h1 className="title-card" style={{ flex: 1 }}>{sectionTitle(lang, section)}</h1>
       </div>
       <div className="page-content">
-        {section === 'arabic' ? <ArabicSection {...props} /> : <QuranSection lang={lang} />}
+        {section === 'arabic' ? <ArabicSection {...props} /> : <QuranSection lang={lang} onOpenQuran={props.onOpenQuran} />}
       </div>
     </div>
   );
@@ -151,7 +152,7 @@ function ArabicSection({ lang, volumes, onOpenVolume, onOpenTests, onOpenGuide, 
   );
 }
 
-function QuranSection({ lang }: { lang: Lang }) {
+function QuranSection({ lang, onOpenQuran }: { lang: Lang; onOpenQuran: () => void }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
       <SectionTile
@@ -164,7 +165,8 @@ function QuranSection({ lang }: { lang: Lang }) {
           'Bir dars = mushafning bir sahifasi · 114 sura · 30 pora',
           'Як дарс = як саҳифаи мусҳаф · 114 сура · 30 пора',
         )}
-        soonLabel={soonLabel(lang)}
+        onClick={onOpenQuran}
+        gold
         wide
       />
       <SectionTile

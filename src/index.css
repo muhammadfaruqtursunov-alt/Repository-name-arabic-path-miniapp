@@ -209,6 +209,39 @@ body {
   font-size: var(--translation-size, 13px);
   color: var(--translation-color);
 }
+/* ─── Коран: текст мусхафа (шрифт Amiri Quran рисует знаки усмани) ─── */
+.quran-ar {
+  font-family: 'Amiri Quran', 'Noto Naskh Arabic', serif;
+  color: var(--arabic-color, var(--text-main));
+  direction: rtl;
+}
+.quran-pane {
+  max-height: 38vh;
+  overflow-y: auto;
+  padding: 18px 6px;
+  margin-bottom: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  /* титры: края плавно растворяются */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
+  scrollbar-width: none;
+}
+.quran-pane::-webkit-scrollbar { display: none; }
+.quran-ayah {
+  font-size: 25px;
+  line-height: 2.15;
+  text-align: center;
+  margin: 0 0 10px;
+  transition: opacity .35s ease;
+}
+.qw { cursor: pointer; border-radius: 8px; padding: 0 2px; transition: background .2s, color .2s; }
+.qw--new { color: var(--text-main); }
+.qw--learned { color: var(--text-muted); opacity: .6; }
+.qw--focus { background: var(--accent-tint); color: var(--accent); box-shadow: 0 0 0 1px var(--accent-border); }
+.qw-ayah { font-size: 18px; color: var(--accent); margin-right: 2px; }
+
 .text-muted { color: var(--text-muted); }
 .text-teal  { color: var(--accent-teal); }
 .text-gold  { color: var(--accent-gold); }

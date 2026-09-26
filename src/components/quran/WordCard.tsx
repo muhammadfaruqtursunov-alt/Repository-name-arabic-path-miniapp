@@ -1,0 +1,95 @@
+import { Volume2, CheckCircle2 } from 'lucide-react';
+import type { Lang } from '../../i18n';
+import { L } from './qi18n';
+
+interface Props {
+  lang: Lang;
+  text: string;               // слово как в мусхафе
+  translit: string;
+  lemmaAr: string;            // словарная форма
+  meaning: string;            // значение на языке ученика
+  context: string;            // перевод в этом аяте
+  reviewed: boolean;          // переводы проверены знающим человеком
+  learned: boolean;
+  newAffixes: string[];       // объяснения приставок/окончаний, встреченных впервые
+  onPlay: () => void;
+  onKnow?: () => void;
+  onRepeat?: () => void;
+  onClose?: () => void;       // для просмотра слова по нажатию в аяте
+}
+
+export default function WordCard(p: Props) {
+  const { lang } = p;
+  return (
+    <div className="glass-card" style={{ padding: '14px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="quran-ar" dir="rtl" style={{ fontSize: 34, lineHeight: 1.6, flex: 1, textAlign: 'right' }}>
+          {p.text}
+        </div>
+        <button
+          onClick={p.onPlay}
+          aria-label={L(lang, 'Послушать слово', 'Listen to the word', 'Soʻzni tinglash', 'Шунидани калима')}
+          style={{ width: 42, height: 42, borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--accent-tint)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+        >
+          <Volume2 size={20} />
+        </button>
+      </div>
+      {p.translit && <div className="text-trans" style={{ marginTop: 2 }}>{p.translit}</div>}
+
+      <div style={{ borderTop: '1px solid var(--border)', marginTop: 10, paddingTop: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 19, fontWeight: 800, color: 'var(--text-main)' }}>{p.meaning || '…'}</span>
+          {p.lemmaAr && p.lemmaAr !== p.text && (
+            <span className="quran-ar" dir="rtl" style={{ fontSize: 18, color: 'var(--text-muted)' }}>{p.lemmaAr}</span>
+          )}
+        </div>
+        {p.context && (
+          <div className="text-muted" style={{ fontSize: 12, marginTop: 4 }}>
+            {L(lang, 'В этом аяте', 'In this ayah', 'Bu oyatda', 'Дар ин оят')}: «{p.context}»
+          </div>
+        )}
+        {!p.reviewed && (
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, opacity: 0.8 }}>
+            ⓘ {L(lang, 'перевод на проверке', 'translation under review', 'tarjima tekshirilmoqda', 'тарҷума дар санҷиш')}
+          </div>
+        )}
+      </div>
+
+      {p.newAffixes.length > 0 && (
+        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {p.newAffixes.map(a => (
+            <div key={a} style={{ fontSize: 12, padding: '6px 10px', borderRadius: 10, background: 'var(--accent-tint)', border: '1px solid var(--accent-border)', color: 'var(--text-main)' }}>
+              <b style={{ color: 'var(--accent)' }}>{L(lang, 'Новое', 'New', 'Yangi', 'Нав')}:</b> {a}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {p.learned && (
+        <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--accent-teal)' }}>
+          <CheckCircle2 size={16} /> {L(lang, 'Уже выучено', 'Already learned', 'Allaqachon oʻrganilgan', 'Аллакай омӯхта шуд')}
+        </div>
+      )}
+
+      {(p.onKnow || p.onClose) && (
+        <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+          {p.onRepeat && (
+            <button className="btn btn-ghost" style={{ flex: 1 }} onClick={p.onRepeat}>
+              {L(lang, 'Повторить', 'Repeat', 'Takrorlash', 'Такрор')}
+            </button>
+          )}
+          {p.onKnow && (
+            <button className="btn btn-primary" style={{ flex: 1 }} onClick={p.onKnow}>
+              {L(lang, 'Знаю', 'I know it', 'Bilaman', 'Медонам')}
+            </button>
+          )}
+          {p.onClose && (
+            <button className="btn btn-ghost" style={{ flex: 1 }} onClick={p.onClose}>
+              {L(lang, 'Назад к уроку', 'Back to lesson', 'Darsga qaytish', 'Бозгашт ба дарс')}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

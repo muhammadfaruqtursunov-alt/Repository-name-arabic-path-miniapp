@@ -30,6 +30,7 @@ import Themes           from './screens/Themes';
 import Sarf             from './screens/Sarf';
 import WordTrainer      from './screens/WordTrainer';
 import Section          from './screens/Section';
+import Quran            from './screens/Quran';
 import type { SectionKey } from './screens/Section';
 import { loadTheme, applyTheme } from './utils/theme';
 
@@ -49,7 +50,8 @@ type Screen =
   | 'themes'
   | 'sarf'
   | 'trainer'
-  | 'section';      // раздел главного экрана (Арабский язык, Коран, …)
+  | 'section'       // раздел главного экрана (Арабский язык, Коран, …)
+  | 'quran';        // тренажёр слов Корана
 
 // Экраны без «назад»: корень приложения и онбординг.
 const ROOT_SCREENS: Screen[] = ['loading', 'welcome', 'error_retry', 'lang_select', 'name_input', 'dashboard'];
@@ -556,7 +558,14 @@ export default function App() {
         onOpenGuide={() => setScreen('umrah')}
         onOpenSarf={() => setScreen('sarf')}
         onOpenTrainer={() => setScreen('trainer')}
+        onOpenQuran={() => setScreen('quran')}
       /></>
+    );
+  }
+
+  if (screen === 'quran') {
+    return (
+      <>{navFloat}<Quran lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
     );
   }
 

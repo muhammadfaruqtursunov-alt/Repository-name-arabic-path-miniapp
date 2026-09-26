@@ -40,6 +40,11 @@ interface TelegramWebApp {
     hide: () => void;
     onClick: (fn: () => void) => void;
   };
+  CloudStorage?: {
+    setItem: (key: string, value: string, cb?: (err: string | null, ok?: boolean) => void) => void;
+    getItems: (keys: string[], cb: (err: string | null, values?: Record<string, string>) => void) => void;
+  };
+  isVersionAtLeast?: (version: string) => boolean;
   BackButton?: {
     isVisible: boolean;
     show: () => void;
