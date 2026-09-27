@@ -10,7 +10,7 @@ import {
   isLemmaLearned, isAffixSeen, setLemmasLearned, markAffixesSeen, markPageDone, setLastPage, reciter,
   reportQuranStats, useQuranProgress,
 } from '../utils/quranProgress';
-import { playWord, playAyahs, stopQuranAudio } from '../utils/quranAudio';
+import { playWord, playAyahs, stopQuranAudio, getPlaybackRate, setPlaybackRate, PLAYBACK_RATES } from '../utils/quranAudio';
 import AyahPane from '../components/quran/AyahPane';
 import type { WordRef } from '../components/quran/AyahPane';
 import WordCard from '../components/quran/WordCard';
@@ -44,6 +44,12 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
   const [learnedNow, setLearnedNow] = useState<number[]>([]);
   const [playing, setPlaying] = useState<number | null>(null);
   const [showReciter, setShowReciter] = useState(false);
+  const [rate, setRate] = useState(getPlaybackRate());
+  const cycleRate = useCallback(() => {
+    const next = PLAYBACK_RATES[(PLAYBACK_RATES.indexOf(rate as typeof PLAYBACK_RATES[number]) + 1) % PLAYBACK_RATES.length];
+    setPlaybackRate(next);
+    setRate(next);
+  }, [rate]);
 
   useEffect(() => {
     let alive = true;
@@ -145,6 +151,10 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
           <button onClick={() => setShowReciter(true)} className="btn btn-ghost btn-sm"
             aria-label={L(lang, 'Выбрать чтеца', 'Choose reciter', 'Qorini tanlash', 'Интихоби қорӣ')}>
             <Mic2 size={14} />
+          </button>
+          <button onClick={cycleRate} className="btn btn-ghost btn-sm" style={{ width: 'auto', padding: '0 9px', fontSize: 12, fontWeight: 700 }}
+            aria-label={L(lang, 'Скорость воспроизведения', 'Playback speed', 'Tinglash tezligi', 'Суръати шунидан')}>
+            {rate}×
           </button>
           <button onClick={togglePlayPage} className="btn btn-ghost btn-sm" style={{ gap: 6, marginRight: 56 }}
             aria-label={L(lang, 'Слушать страницу', 'Listen to the page', 'Sahifani tinglash', 'Шунидани саҳифа')}>

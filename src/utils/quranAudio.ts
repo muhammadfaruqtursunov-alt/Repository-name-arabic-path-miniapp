@@ -6,12 +6,32 @@
  */
 const pad3 = (n: number) => String(n).padStart(3, '0');
 
+const RATE_KEY = 'ap_quran_rate';
+export const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5] as const;
+
+function loadRate(): number {
+  const v = Number(localStorage.getItem(RATE_KEY));
+  return PLAYBACK_RATES.includes(v as typeof PLAYBACK_RATES[number]) ? v : 1;
+}
+
+let rate = loadRate();
 let audio: HTMLAudioElement | null = null;
 let queueToken = 0;
 
 function player(): HTMLAudioElement {
   if (!audio) audio = new Audio();
+  audio.playbackRate = rate;
   return audio;
+}
+
+export function getPlaybackRate(): number {
+  return rate;
+}
+
+export function setPlaybackRate(r: number) {
+  rate = r;
+  localStorage.setItem(RATE_KEY, String(r));
+  if (audio) audio.playbackRate = r;
 }
 
 export function stopQuranAudio() {

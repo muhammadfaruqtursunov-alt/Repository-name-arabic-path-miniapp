@@ -46,7 +46,7 @@ export default function LanguageSwitcher({ current, onChange }: Props) {
             className="glass-card"
             style={{
               minWidth: 220, padding: 8, maxHeight: '70vh', overflowY: 'auto',
-              background: 'rgba(10, 11, 20, 0.92)',
+              background: 'var(--bg-glass)',
               backdropFilter: 'blur(24px)',
               WebkitBackdropFilter: 'blur(24px)',
             }}

@@ -30,7 +30,7 @@ export default function AchievementPopup({ achievement, onDone }: Props) {
       }}
     >
       <div style={{
-        background: 'rgba(10,11,20,0.94)',
+        background: 'var(--bg-glass)',
         border: '1.5px solid rgba(192,150,60,0.40)',
         borderRadius: 18,
         padding: '14px 20px',
