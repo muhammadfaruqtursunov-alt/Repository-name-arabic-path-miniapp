@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Volume2, CheckCircle2, BookText, Copy, Check } from 'lucide-react';
 import type { Lang } from '../../i18n';
 import { L } from './qi18n';
+import FirstTapHint from './FirstTapHint';
 
 interface Props {
   lang: Lang;
@@ -89,9 +90,13 @@ export default function WordCard(p: Props) {
           </div>
           <div style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--text-main)' }}>{withInsertions(p.ayahMeaning)}</div>
           {p.onTafsir && (
-            <button className="btn btn-ghost btn-sm" style={{ marginTop: 8, width: 'auto', gap: 6 }} onClick={p.onTafsir}>
-              <BookText size={14} /> {L(lang, 'Тафсир', 'Tafsir', 'Tafsir', 'Тафсир')}
-            </button>
+            <div style={{ position: 'relative', display: 'inline-block', marginTop: 8 }}>
+              <FirstTapHint storageKey="ap_hint_tafsir_seen"
+                text={L(lang, 'Полное толкование аята', 'Full commentary on the ayah', 'Oyatning toʻliq tafsiri', 'Тафсири пурраи оят')} />
+              <button className="btn btn-ghost btn-sm" style={{ width: 'auto', gap: 6 }} onClick={p.onTafsir}>
+                <BookText size={14} /> {L(lang, 'Тафсир', 'Tafsir', 'Tafsir', 'Тафсир')}
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -108,15 +113,21 @@ export default function WordCard(p: Props) {
                 <span style={{ fontFamily: "'Noto Naskh Arabic', serif", color: 'var(--text-main)' }}> — {s.expl}</span>
               </div>
               {s.tr && <div style={{ fontSize: 13, color: 'var(--text-main)', marginTop: 2 }}>{s.tr}</div>}
-              <button
-                onClick={() => copySiraj(i, `${s.phrase} — ${s.expl}`)}
-                className="btn btn-ghost btn-sm"
-                style={{ marginTop: 6, width: 'auto', gap: 6, fontSize: 11, padding: '4px 10px' }}
-              >
-                {copiedIdx === i
-                  ? <><Check size={13} /> {L(lang, 'Скопировано', 'Copied', 'Nusxalandi', 'Нусхабардорӣ шуд')}</>
-                  : <><Copy size={13} /> {L(lang, 'Копировать текст', 'Copy text', 'Matnni nusxalash', 'Нусхабардории матн')}</>}
-              </button>
+              <div style={{ position: 'relative', display: 'inline-block', marginTop: 6 }}>
+                {i === 0 && (
+                  <FirstTapHint storageKey="ap_hint_siraj_copy_seen"
+                    text={L(lang, 'Скопируй и вставь в переводчик', 'Copy and paste into a translator', 'Nusxalab tarjimonga joylashtiring', 'Нусха бардошта, ба тарҷумон гузоред')} />
+                )}
+                <button
+                  onClick={() => copySiraj(i, `${s.phrase} — ${s.expl}`)}
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: 'auto', gap: 6, fontSize: 11, padding: '4px 10px' }}
+                >
+                  {copiedIdx === i
+                    ? <><Check size={13} /> {L(lang, 'Скопировано', 'Copied', 'Nusxalandi', 'Нусхабардорӣ шуд')}</>
+                    : <><Copy size={13} /> {L(lang, 'Копировать текст', 'Copy text', 'Matnni nusxalash', 'Нусхабардории матн')}</>}
+                </button>
+              </div>
             </div>
           ))}
         </div>
