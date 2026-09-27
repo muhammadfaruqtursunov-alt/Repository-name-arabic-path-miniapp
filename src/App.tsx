@@ -31,6 +31,7 @@ import Sarf             from './screens/Sarf';
 import WordTrainer      from './screens/WordTrainer';
 import Section          from './screens/Section';
 import Quran            from './screens/Quran';
+import Aqidah           from './screens/Aqidah';
 import EdgeSwipeHint, { edgeHintSeen, markEdgeHintSeen } from './components/EdgeSwipeHint';
 import type { SectionKey } from './screens/Section';
 import { loadTheme, applyTheme } from './utils/theme';
@@ -53,7 +54,8 @@ type Screen =
   | 'sarf'
   | 'trainer'
   | 'section'       // раздел главного экрана (Арабский язык, Коран, …)
-  | 'quran';        // тренажёр слов Корана
+  | 'quran'         // тренажёр слов Корана
+  | 'aqidah';       // раздел «Акида»
 
 // Экраны без «назад»: корень приложения и онбординг.
 const ROOT_SCREENS: Screen[] = ['loading', 'welcome', 'error_retry', 'lang_select', 'name_input', 'dashboard'];
@@ -596,6 +598,12 @@ export default function App() {
     );
   }
 
+  if (screen === 'aqidah') {
+    return (
+      <>{navFloatWithHint}<Aqidah lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
+    );
+  }
+
   if (screen === 'ask_teacher') {
     return (
       <>{navFloatWithHint}<AskTeacher lang={lang} onBack={goBack} /></>
@@ -662,6 +670,7 @@ export default function App() {
                 setScreen('section');
               }}
               onOpenQuran={() => setScreen('quran')}
+              onOpenAqidah={() => setScreen('aqidah')}
               onOpenAskTeacher={() => setScreen('ask_teacher')}
               onOpenReview={() => setScreen('review')}
               onOpenSettings={() => handleTabChange('settings')}

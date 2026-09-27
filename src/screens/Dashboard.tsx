@@ -19,6 +19,7 @@ interface Props {
   onOpenVolume: (bookId: number) => void;
   onOpenSection: (key: SectionKey) => void;
   onOpenQuran: () => void;
+  onOpenAqidah: () => void;
   onOpenAskTeacher: () => void;
   onOpenSettings: () => void;
   onOpenThemes: () => void;
@@ -36,7 +37,7 @@ function getLevel(totalLearned: number, lang: Lang): string {
 }
 
 export default function Dashboard({
-  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume, onOpenSection, onOpenQuran,
+  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume, onOpenSection, onOpenQuran, onOpenAqidah,
   onOpenAskTeacher, onOpenSettings: _onOpenSettings, onOpenThemes, onOpenReview,
 }: Props) {
   // Карточка прогресса показывает, где ученик учился последним
@@ -184,7 +185,7 @@ export default function Dashboard({
             icon={<MoonStar size={22} color="var(--accent)" />}
             title={L(lang, 'Акида', 'Aqidah', 'Aqida', 'Ақида')}
             subtitle={L(lang, 'Книги по вероучению', 'Books on creed', 'Aqida kitoblari', 'Китобҳо оид ба ақида')}
-            soonLabel={soonLabel(lang)}
+            onClick={onOpenAqidah}
           />
           <SectionTile
             icon={<ScrollText size={22} color="var(--accent)" />}
