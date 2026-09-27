@@ -7,4 +7,5 @@ dist
 
 # Quran data build cache
 scripts/quran/.cache/
+scripts/aqidah/.cache/
 __pycache__/
