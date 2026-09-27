@@ -166,4 +166,8 @@ export const ar = {
   voice_female: 'أنثى',
   voice_test: 'اختبار',
   voice_note: 'يعتمد على جهازك',
+
+  home_screen_title: 'الشاشة الرئيسية',
+  home_screen_note: 'أيقونة التطبيق — بجانب التطبيقات الأخرى على هاتفك',
+  home_screen_add: 'إضافة إلى الشاشة الرئيسية',
 };

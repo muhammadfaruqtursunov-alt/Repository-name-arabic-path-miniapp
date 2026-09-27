@@ -185,4 +185,8 @@ export const uz = {
   voice_female: 'Ayol',
   voice_test: 'Sinab ko\'rish',
   voice_note: 'Qurilmangizga bog\'liq',
+
+  home_screen_title: 'Bosh ekranga',
+  home_screen_note: 'Ilova belgisi — telefoningizdagi boshqalar qatorida',
+  home_screen_add: 'Bosh ekranga qoʻshish',
 };

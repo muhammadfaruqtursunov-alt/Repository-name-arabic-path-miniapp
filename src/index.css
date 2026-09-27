@@ -765,16 +765,19 @@ input[type=range]::-webkit-slider-thumb {
 .edge-hint__sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
 .edge-hint__arrows { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--accent); font-size: 22px; letter-spacing: 2px; }
 .edge-hint__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: edge-hint-pulse 1.2s ease-in-out infinite; }
-.edge-hint__side { position: absolute; top: 50%; width: 64px; height: 64px; margin-top: -32px; }
-.edge-hint__side--l { left: 0; }
-.edge-hint__side--r { right: 0; }
-.edge-hint__finger { position: absolute; top: 0; font-size: 34px; }
-.edge-hint__side--l .edge-hint__finger { left: 6px; animation: edge-hint-swipe-l 1.8s ease-in-out infinite; }
-.edge-hint__side--r .edge-hint__finger { right: 6px; animation: edge-hint-swipe-r 1.8s ease-in-out infinite; }
+.edge-hint__side {
+  position: absolute; top: 50%; margin-top: -40px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: var(--accent);
+}
+.edge-hint__side--l { left: 12px; }
+.edge-hint__side--r { right: 12px; }
+.edge-hint__wave { animation: edge-hint-wave-l 1.4s ease-in-out infinite; }
+.edge-hint__wave--r { animation-name: edge-hint-wave-r; }
 @keyframes edge-hint-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes edge-hint-pulse { 0%,100% { transform: scale(1); opacity: .6; } 50% { transform: scale(1.6); opacity: 1; } }
-@keyframes edge-hint-swipe-l { 0% { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } 70% { transform: translateX(110px); opacity: 1; } 100% { transform: translateX(110px); opacity: 0; } }
-@keyframes edge-hint-swipe-r { 0% { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } 70% { transform: translateX(-110px); opacity: 1; } 100% { transform: translateX(-110px); opacity: 0; } }
+@keyframes edge-hint-wave-l { 0%, 100% { transform: translateX(0); opacity: .35; } 50% { transform: translateX(10px); opacity: 1; } }
+@keyframes edge-hint-wave-r { 0%, 100% { transform: translateX(0); opacity: .35; } 50% { transform: translateX(-10px); opacity: 1; } }
 
 /* ─── Тафсир: нижняя панель ─── */
 .sheet-overlay { position: fixed; inset: 0; z-index: 350; background: rgba(8,8,12,.6); display: flex; align-items: flex-end; animation: edge-hint-in .2s ease both; }

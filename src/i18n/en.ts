@@ -166,4 +166,8 @@ export const en = {
   voice_female: 'Female',
   voice_test: 'Test',
   voice_note: 'Depends on your device',
+
+  home_screen_title: 'Home screen',
+  home_screen_note: 'App icon — right alongside the others on your phone',
+  home_screen_add: 'Add to home screen',
 };

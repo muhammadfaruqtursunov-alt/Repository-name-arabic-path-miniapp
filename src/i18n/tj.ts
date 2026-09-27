@@ -166,4 +166,8 @@ export const tj = {
   voice_female: 'Занона',
   voice_test: 'Санҷидан',
   voice_note: 'Аз дастгоҳи шумо вобаста аст',
+
+  home_screen_title: 'Ба экрани асосӣ',
+  home_screen_note: 'Нишони барнома — дар паҳлӯи дигарҳо дар телефон',
+  home_screen_add: 'Илова ба экрани асосӣ',
 };

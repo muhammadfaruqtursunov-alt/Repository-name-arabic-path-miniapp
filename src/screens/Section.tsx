@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronDown, BookOpen, Compass, Eye, PenLine, BookOpenText } from 'lucide-react';
+import { ChevronLeft, ChevronDown, BookOpen, Compass, Eye, PenLine, BookOpenText, Repeat, GitBranch, NotebookPen } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import type { VolumeInfo } from '../api/client';
@@ -124,13 +124,13 @@ function ArabicSection({ lang, volumes, onOpenVolume, onOpenTests, onOpenGuide, 
         onClick={onOpenTests}
       />
       <SectionTile
-        icon={<span style={{ fontSize: 22 }}>📖</span>}
+        icon={<Repeat {...ICON} />}
         title={L(lang, 'Сарф', 'Sarf', 'Sarf', 'Сарф')}
         subtitle={L(lang, 'Урок · Тест', 'Lesson · Test', 'Dars · Test', 'Дарс · Санҷиш')}
         onClick={onOpenSarf}
       />
       <SectionTile
-        icon={<span style={{ fontSize: 22 }}>✏️</span>}
+        icon={<GitBranch {...ICON} />}
         title={L(lang, 'Нахв', 'Nahw', 'Nahv', 'Наҳв')}
         subtitle={L(lang, 'Синтаксис', 'Syntax', 'Sintaksis', 'Синтаксис')}
         soonLabel={soonLabel(lang)}
@@ -142,7 +142,7 @@ function ArabicSection({ lang, volumes, onOpenVolume, onOpenTests, onOpenGuide, 
         onClick={onOpenGuide}
       />
       <SectionTile
-        icon={<span style={{ fontSize: 22 }}>📝</span>}
+        icon={<NotebookPen {...ICON} />}
         title={L(lang, 'Тренажёр слов', 'Word trainer', 'Soʻz mashqi', 'Машқи калимаҳо')}
         subtitle={L(lang, 'Свой словарь', 'Your own words', 'Oʻz soʻzlaringiz', 'Луғати худ')}
         onClick={onOpenTrainer}

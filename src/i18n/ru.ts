@@ -187,6 +187,11 @@ export const ru = {
   voice_female: 'Женский',
   voice_test: 'Проверить',
   voice_note: 'Зависит от вашего устройства',
+
+  // Add to home screen
+  home_screen_title: 'На главный экран',
+  home_screen_note: 'Иконка приложения — рядом с другими на телефоне',
+  home_screen_add: 'Добавить на главный экран',
 };
 
 export type TranslationKeys = keyof typeof ru;

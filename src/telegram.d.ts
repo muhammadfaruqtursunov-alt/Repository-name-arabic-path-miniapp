@@ -58,6 +58,11 @@ interface TelegramWebApp {
     notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
     selectionChanged: () => void;
   };
+  /** Bot API 8.0+: предложить добавить мини-приложение на главный экран телефона. */
+  addToHomeScreen?: () => void;
+  checkHomeScreenStatus?: (cb?: (status: 'unsupported' | 'unknown' | 'added' | 'missed') => void) => void;
+  onEvent?: (event: 'homeScreenAdded' | 'homeScreenChecked' | string, fn: (...args: unknown[]) => void) => void;
+  offEvent?: (event: 'homeScreenAdded' | 'homeScreenChecked' | string, fn: (...args: unknown[]) => void) => void;
 }
 
 interface Window {

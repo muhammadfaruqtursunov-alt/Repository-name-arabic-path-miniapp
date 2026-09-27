@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2, Palette, ChevronRight } from 'lucide-react';
+import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2, Palette, ChevronRight, Smartphone } from 'lucide-react';
 import { speakArabic } from '../utils/speak';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
@@ -105,6 +105,22 @@ function StyleToggle({ label, active, onClick, weight, italic }: {
 
 // ── Main Settings component ───────────────────────────────────────
 export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes }: Props) {
+
+  // «Добавить на главный экран» (Bot API 8.0+)
+  const [hsStatus, setHsStatus] = useState<'unsupported' | 'unknown' | 'added' | 'missed' | null>(null);
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.isVersionAtLeast?.('8.0') || !tg.checkHomeScreenStatus) { setHsStatus('unsupported'); return; }
+    const onChecked = () => tg.checkHomeScreenStatus?.(s => setHsStatus(s));
+    const onAdded = () => setHsStatus('added');
+    tg.checkHomeScreenStatus(s => setHsStatus(s));
+    tg.onEvent?.('homeScreenChecked', onChecked);
+    tg.onEvent?.('homeScreenAdded', onAdded);
+    return () => {
+      tg.offEvent?.('homeScreenChecked', onChecked);
+      tg.offEvent?.('homeScreenAdded', onAdded);
+    };
+  }, []);
 
   // Font sizes
   const [arabicSize, setArabicSize] = useState<number>(() => {
@@ -283,6 +299,35 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
   return (
     <div className="screen-enter page-content" style={{ paddingTop: 24 }}>
       <h1 className="title-screen" style={{ marginBottom: 24 }}>{t(lang, 'settings_title')}</h1>
+
+      {/* ── Добавить на главный экран ────────────────────────────── */}
+      {hsStatus !== 'unsupported' && (
+        <div className="glass-card" style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: hsStatus === 'added' ? 0 : 12 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Smartphone size={17} color="var(--accent)" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <span className="title-card">{t(lang, 'home_screen_title')}</span>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                {t(lang, 'home_screen_note')}
+              </div>
+            </div>
+            {hsStatus === 'added' && <CheckCircle2 size={18} color="var(--success)" />}
+          </div>
+          {hsStatus !== 'added' && (
+            <button
+              className="btn btn-primary"
+              style={{ gap: 8 }}
+              disabled={hsStatus === null}
+              onClick={() => window.Telegram?.WebApp?.addToHomeScreen?.()}
+            >
+              <Smartphone size={16} />
+              {t(lang, 'home_screen_add')}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* ── Voice ────────────────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>

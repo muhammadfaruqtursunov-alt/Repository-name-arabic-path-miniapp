@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import type { Lang } from '../i18n';
 
 const SEEN_KEY = 'ap_edge_hint_seen';
@@ -31,8 +32,16 @@ export default function EdgeSwipeHint({ lang, onClose }: { lang: Lang; onClose: 
 
   return (
     <div className="edge-hint" onClick={onClose} role="dialog" aria-label={title}>
-      <div className="edge-hint__side edge-hint__side--l"><span className="edge-hint__finger">👆</span></div>
-      <div className="edge-hint__side edge-hint__side--r"><span className="edge-hint__finger">👆</span></div>
+      <div className="edge-hint__side edge-hint__side--l" aria-hidden>
+        {[0, 1, 2].map(i => (
+          <ChevronRight key={i} className="edge-hint__wave" style={{ animationDelay: `${i * 0.22}s` }} size={26} />
+        ))}
+      </div>
+      <div className="edge-hint__side edge-hint__side--r" aria-hidden>
+        {[0, 1, 2].map(i => (
+          <ChevronLeft key={i} className="edge-hint__wave edge-hint__wave--r" style={{ animationDelay: `${i * 0.22}s` }} size={26} />
+        ))}
+      </div>
       <div className="edge-hint__card">
         <div className="edge-hint__arrows" aria-hidden>
           <span>›››</span><span className="edge-hint__dot" /><span>‹‹‹</span>
