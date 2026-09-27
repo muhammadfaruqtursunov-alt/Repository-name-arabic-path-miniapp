@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2, Palette, ChevronRight, Smartphone, Moon, Sun } from 'lucide-react';
+import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2, Palette, ChevronRight, Smartphone } from 'lucide-react';
 import { speakArabic } from '../utils/speak';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
@@ -8,6 +8,7 @@ import { resizeImageToDataUrl } from '../utils/imageResize';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { loadTheme, saveTheme } from '../utils/theme';
 import type { Mode } from '../utils/theme';
+import ThemeModeToggle from '../components/ThemeModeToggle';
 
 interface Props {
   lang: Lang;
@@ -145,15 +146,23 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
     return s ? parseInt(s) : getCssVar('--translation-size', 13);
   });
 
-  // Text colors
+  // Text colors — пустая строка = ученик не выбирал, используем цвет темы
   const [arabicColor, setArabicColor] = useState<string>(
-    () => localStorage.getItem('ap_arabic_color') ?? '#FFFFFF'
+    () => localStorage.getItem('ap_arabic_color') ?? ''
   );
-  const [transColor, setTransColor] = useState<string>(
-    () => localStorage.getItem('ap_trans_color') ?? '#C8D8D2'
-  );
+  const [transColor, setTransColor] = useState<string>(() => {
+    const v = localStorage.getItem('ap_trans_color');
+    // #C8D8D2 раньше писался в хранилище автоматически при первом заходе
+    // в Настройки, даже без касания палитры — это не выбор ученика.
+    if (v === '#C8D8D2') {
+      localStorage.removeItem('ap_trans_color');
+      document.documentElement.style.removeProperty('--trans-color');
+      return '';
+    }
+    return v ?? '';
+  });
   const [translationColor, setTranslationColor] = useState<string>(
-    () => localStorage.getItem('ap_translation_color') ?? '#FFFFFF'
+    () => localStorage.getItem('ap_translation_color') ?? ''
   );
 
   // Text style toggles
@@ -208,16 +217,19 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
   }, [translationSize]);
 
   useEffect(() => {
+    if (!arabicColor) return;
     setCssVar('--arabic-color', arabicColor);
     localStorage.setItem('ap_arabic_color', arabicColor);
   }, [arabicColor]);
 
   useEffect(() => {
+    if (!transColor) return;
     setCssVar('--trans-color', transColor);
     localStorage.setItem('ap_trans_color', transColor);
   }, [transColor]);
 
   useEffect(() => {
+    if (!translationColor) return;
     setCssVar('--translation-color', translationColor);
     localStorage.setItem('ap_translation_color', translationColor);
   }, [translationColor]);
@@ -394,22 +406,11 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
       </button>
 
       {/* ── Тёмная / светлая тема ────────────────────────────────── */}
-      <div className="glass-card" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: 10, flexShrink: 0, background: 'var(--accent-tint)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {mode === 'dark' ? <Moon size={18} color="var(--accent)" /> : <Sun size={18} color="var(--accent)" />}
+      <div className="glass-card" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div className="title-card" style={{ fontWeight: 700 }}>
+          {t(lang, 'appearance_title')}
         </div>
-        <div style={{ flex: 1 }}>
-          <div className="title-card" style={{ fontWeight: 700, marginBottom: 8 }}>
-            {t(lang, 'appearance_title')}
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <StyleToggle label={`🌙 ${t(lang, 'mode_dark')}`} active={mode === 'dark'} onClick={() => changeMode('dark')} />
-            <StyleToggle label={`☀️ ${t(lang, 'mode_light')}`} active={mode === 'light'} onClick={() => changeMode('light')} />
-          </div>
-        </div>
+        <ThemeModeToggle mode={mode} onChange={changeMode} />
       </div>
 
       {/* ── Language ─────────────────────────────────────────────── */}

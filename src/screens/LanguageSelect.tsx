@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { t, LANGS } from '../i18n';
 import type { Lang } from '../i18n';
+import { loadTheme, saveTheme } from '../utils/theme';
+import type { Mode } from '../utils/theme';
+import ThemeModeToggle from '../components/ThemeModeToggle';
 
 interface Props {
   lang: Lang;
@@ -10,15 +13,21 @@ interface Props {
 
 export default function LanguageSelect({ lang, onSelect }: Props) {
   const [selected, setSelected] = useState<Lang>(lang);
+  const [mode, setMode] = useState<Mode>(() => loadTheme().mode);
+  const changeMode = (m: Mode) => { setMode(m); saveTheme({ ...loadTheme(), mode: m }); };
 
   return (
     <div
       className="screen-enter"
       style={{ minHeight: '100dvh', padding: '48px 20px 32px', display: 'flex', flexDirection: 'column' }}
     >
-      <h1 className="title-screen" style={{ marginBottom: 32, textAlign: 'center' }}>
+      <h1 className="title-screen" style={{ marginBottom: 16, textAlign: 'center' }}>
         {t(lang, 'choose_lang')}
       </h1>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+        <ThemeModeToggle mode={mode} onChange={changeMode} />
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
         {LANGS.map(({ code, flag, label }) => {
