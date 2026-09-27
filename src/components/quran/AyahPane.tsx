@@ -10,6 +10,7 @@ interface Props {
   focus: WordRef | null;          // текущее слово урока
   newLemmas: Set<number>;         // новые слова этой страницы
   playingFrag: number | null;     // аят, который сейчас читает чтец
+  playingWord?: number | null;    // слово в такт озвучке (индекс внутри playingFrag)
   onTapWord: (ref: WordRef) => void;
 }
 
@@ -19,7 +20,7 @@ const toArabicDigits = (n: number) => String(n).replace(/\d/g, d => '٠١٢٣٤�
  * Аяты страницы — прокручиваются вверх/вниз как титры: текущий аят яркий,
  * соседние постепенно бледнеют. Текущее слово подсвечено, выученные — серые.
  */
-export default function AyahPane({ page, focus, newLemmas, playingFrag, onTapWord }: Props) {
+export default function AyahPane({ page, focus, newLemmas, playingFrag, playingWord, onTapWord }: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
   const activeFrag = playingFrag ?? focus?.fi ?? 0;
 
@@ -42,8 +43,9 @@ export default function AyahPane({ page, focus, newLemmas, playingFrag, onTapWor
           >
             {fr.w.map((w, wi) => {
               const isFocus = focus?.fi === fi && focus?.wi === wi;
+              const isPlaying = playingFrag === fi && playingWord === wi;
               const learned = isLemmaLearned(w[1]);
-              const cls = isFocus ? 'qw qw--focus' : learned ? 'qw qw--learned' : newLemmas.has(w[1]) ? 'qw qw--new' : 'qw';
+              const cls = isFocus || isPlaying ? 'qw qw--focus' : learned ? 'qw qw--learned' : newLemmas.has(w[1]) ? 'qw qw--new' : 'qw';
               return (
                 <span key={wi} className={cls} onClick={() => onTapWord({ fi, wi })}>
                   {w[0]}{' '}

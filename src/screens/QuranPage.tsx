@@ -10,7 +10,7 @@ import {
   isLemmaLearned, isAffixSeen, setLemmasLearned, markAffixesSeen, markPageDone, setLastPage, reciter,
   reportQuranStats, useQuranProgress,
 } from '../utils/quranProgress';
-import { playWord, playAyahs, stopQuranAudio, getPlaybackRate, setPlaybackRate, PLAYBACK_RATES } from '../utils/quranAudio';
+import { playWord, playAyahs, playAyahsSynced, stopQuranAudio, getPlaybackRate, setPlaybackRate, PLAYBACK_RATES } from '../utils/quranAudio';
 import AyahPane from '../components/quran/AyahPane';
 import type { WordRef } from '../components/quran/AyahPane';
 import WordCard from '../components/quran/WordCard';
@@ -43,6 +43,7 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
   const [step, setStep] = useState<Step>('study');
   const [learnedNow, setLearnedNow] = useState<number[]>([]);
   const [playing, setPlaying] = useState<number | null>(null);
+  const [playingWord, setPlayingWord] = useState<number | null>(null);
   const [showReciter, setShowReciter] = useState(false);
   const [rate, setRate] = useState(getPlaybackRate());
   const cycleRate = useCallback(() => {
@@ -127,9 +128,19 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
 
   function togglePlayPage() {
     if (!data) return;
-    if (playing !== null) { stopQuranAudio(); setPlaying(null); return; }
+    if (playing !== null) { stopQuranAudio(); setPlaying(null); setPlayingWord(null); return; }
     const keys = data.page.a.map(fr => parseKey(fr.k));
-    void playAyahs(reciter(), keys, i => setPlaying(i), () => setPlaying(null));
+    const onDone = () => { setPlaying(null); setPlayingWord(null); };
+    const surahs = new Set(keys.map(([s]) => s));
+    if (surahs.size === 1) {
+      void playAyahsSynced(reciter(), keys[0][0], keys,
+        i => { setPlaying(i); setPlayingWord(null); },
+        (_i, wordPos) => setPlayingWord(wordPos),
+        onDone);
+    } else {
+      // страница на стыке двух сур — подсветка слов недоступна (аудио «QDC» на суру целиком)
+      void playAyahs(reciter(), keys, i => { setPlaying(i); setPlayingWord(null); }, onDone);
+    }
   }
 
   function playRef(r: WordRef) {
@@ -247,6 +258,7 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
           focus={step === 'study' ? shownRef : null}
           newLemmas={newSet}
           playingFrag={playing}
+          playingWord={playing !== null && playingWord !== null ? playingWord - (data.page.a[playing].f ?? 1) : null}
           onTapWord={r => { if (step === 'study') { setPeek(r); playRef(r); } }}
         />
 
