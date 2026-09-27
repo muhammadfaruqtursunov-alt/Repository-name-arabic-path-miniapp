@@ -12,6 +12,7 @@ import {
 } from '../utils/quranProgress';
 import ProgressBar from '../components/ProgressBar';
 import QuranQuiz from '../components/quran/QuranQuiz';
+import QuranSearch from '../components/quran/QuranSearch';
 import { L } from '../components/quran/qi18n';
 import QuranPage from './QuranPage';
 
@@ -38,6 +39,7 @@ export default function Quran({ lang, onBack, onLocalBack }: Props) {
   const [tab, setTab] = useState<Tab>('surah');
   const [view, setView] = useState<View>({ kind: 'home' });
   const [error, setError] = useState(false);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     Promise.all([loadIndex(), loadSurahNames()])
@@ -148,42 +150,49 @@ export default function Quran({ lang, onBack, onLocalBack }: Props) {
           </button>
         </div>
 
-        {reviewDue && (
-          <button className="glass-card" onClick={() => setView({ kind: 'review' })}
-            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left', marginBottom: 12 }}>
-            <RotateCcw size={22} color="var(--accent)" />
-            <div style={{ flex: 1 }}>
-              <div className="title-card">{L(lang, 'Повторение', 'Review', 'Takrorlash', 'Такрор')}</div>
-              <div className="text-muted" style={{ fontSize: 12 }}>
-                {L(lang, `${REVIEW_SIZE} выученных слов · 1 минута`, `${REVIEW_SIZE} learned words · 1 minute`, `${REVIEW_SIZE} ta oʻrganilgan soʻz · 1 daqiqa`, `${REVIEW_SIZE} калимаи омӯхта · 1 дақиқа`)}
-              </div>
+        <QuranSearch lang={lang} index={index} names={names} onActiveChange={setSearching}
+          onOpenPage={p => openPage(p, { kind: 'home' })} />
+
+        {!searching && (
+          <>
+            {reviewDue && (
+              <button className="glass-card" onClick={() => setView({ kind: 'review' })}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left', marginBottom: 12 }}>
+                <RotateCcw size={22} color="var(--accent)" />
+                <div style={{ flex: 1 }}>
+                  <div className="title-card">{L(lang, 'Повторение', 'Review', 'Takrorlash', 'Такрор')}</div>
+                  <div className="text-muted" style={{ fontSize: 12 }}>
+                    {L(lang, `${REVIEW_SIZE} выученных слов · 1 минута`, `${REVIEW_SIZE} learned words · 1 minute`, `${REVIEW_SIZE} ta oʻrganilgan soʻz · 1 daqiqa`, `${REVIEW_SIZE} калимаи омӯхта · 1 дақиқа`)}
+                  </div>
+                </div>
+                <ChevronRight size={16} color="var(--text-muted)" />
+              </button>
+            )}
+
+            {/* Вкладки */}
+            <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', marginBottom: 12 }}>
+              {(['surah', 'juz', 'hizb', 'page'] as Tab[]).map(t => (
+                <button key={t} onClick={() => setTab(t)}
+                  style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                    background: tab === t ? 'var(--accent)' : 'transparent', color: tab === t ? 'var(--on-accent)' : 'var(--text-muted)' }}>
+                  {t === 'surah' ? L(lang, 'Суры', 'Surahs', 'Suralar', 'Сураҳо')
+                    : t === 'juz' ? L(lang, 'Джузы', 'Juz', 'Poralar', 'Пораҳо')
+                    : t === 'hizb' ? L(lang, 'Хизбы', 'Hizb', 'Hizblar', 'Ҳизбҳо')
+                    : L(lang, 'Страницы', 'Pages', 'Sahifalar', 'Саҳифаҳо')}
+                </button>
+              ))}
             </div>
-            <ChevronRight size={16} color="var(--text-muted)" />
-          </button>
+
+            <TabList lang={lang} tab={tab} index={index} names={names}
+              onList={(title, from, to) =>
+                from === to ? openPage(from, { kind: 'home' }) : setView({ kind: 'list', title, from, to })}
+              onPage={p => openPage(p, { kind: 'home' })} />
+
+            <p className="text-muted" style={{ fontSize: 10, marginTop: 20, lineHeight: 1.5 }}>
+              {L(lang, 'Источники', 'Sources', 'Manbalar', 'Сарчашмаҳо')}: Quranic Arabic Corpus (corpus.quran.com) · Quran.com · EveryAyah.com · SakinaDevGroup · QuranEnc.com (Rowwad Translation Center; Alauddin Mansour; Saheeh International) · Tafsir as-Sa'di · «السراج في بيان غريب القرآن» — د. محمد الخضيري (shamela.ws)
+            </p>
+          </>
         )}
-
-        {/* Вкладки */}
-        <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', marginBottom: 12 }}>
-          {(['surah', 'juz', 'hizb', 'page'] as Tab[]).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
-                background: tab === t ? 'var(--accent)' : 'transparent', color: tab === t ? 'var(--on-accent)' : 'var(--text-muted)' }}>
-              {t === 'surah' ? L(lang, 'Суры', 'Surahs', 'Suralar', 'Сураҳо')
-                : t === 'juz' ? L(lang, 'Джузы', 'Juz', 'Poralar', 'Пораҳо')
-                : t === 'hizb' ? L(lang, 'Хизбы', 'Hizb', 'Hizblar', 'Ҳизбҳо')
-                : L(lang, 'Страницы', 'Pages', 'Sahifalar', 'Саҳифаҳо')}
-            </button>
-          ))}
-        </div>
-
-        <TabList lang={lang} tab={tab} index={index} names={names}
-          onList={(title, from, to) =>
-            from === to ? openPage(from, { kind: 'home' }) : setView({ kind: 'list', title, from, to })}
-          onPage={p => openPage(p, { kind: 'home' })} />
-
-        <p className="text-muted" style={{ fontSize: 10, marginTop: 20, lineHeight: 1.5 }}>
-          {L(lang, 'Источники', 'Sources', 'Manbalar', 'Сарчашмаҳо')}: Quranic Arabic Corpus (corpus.quran.com) · Quran.com · EveryAyah.com · SakinaDevGroup · QuranEnc.com (Rowwad Translation Center; Alauddin Mansour; Saheeh International) · Tafsir as-Sa'di · «السراج في بيان غريب القرآن» — د. محمد الخضيري (shamela.ws)
-        </p>
       </div>
     </div>
   );

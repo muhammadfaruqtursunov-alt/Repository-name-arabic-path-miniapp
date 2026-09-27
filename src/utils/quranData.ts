@@ -70,6 +70,11 @@ export const loadAyahTrans = (p: number, lang: Lang) =>
 export const loadTafsir = (p: number, lang: Lang) =>
   load<AyahTexts>(`tafsir/${lang === 'en' ? 'ar' : 'ru'}/${pad3(p)}.json`).catch(() => ({} as AyahTexts));
 
+/** Индекс поиска по аятам: {"2:255": [страница, "текст перевода"]}, все 6236 аятов сразу. */
+export type SearchIndex = Record<string, [number, string]>;
+export const loadSearchIndex = (lang: Lang) =>
+  load<SearchIndex>(`search/${meaningLang(lang)}.json`).catch(() => ({} as SearchIndex));
+
 /** Предзагрузка соседней страницы, чтобы следующий урок открывался мгновенно. */
 export function prefetchPage(p: number) {
   if (p >= 1 && p <= TOTAL_PAGES) loadPage(p).catch(() => {});
