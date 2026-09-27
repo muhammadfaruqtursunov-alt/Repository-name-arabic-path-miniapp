@@ -176,9 +176,9 @@ export default function Dashboard({
           />
           <SectionTile
             icon={<BookOpenText size={22} color="var(--accent)" />}
-            title={sectionTitle(lang, 'quran')}
+            title={L(lang, 'Коран', 'Quran', 'Qurʼon', 'Қуръон')}
             subtitle={L(lang, 'Слова Корана по страницам', 'Quran words page by page', 'Qurʼon soʻzlari sahifalab', 'Калимаҳои Қуръон саҳифа ба саҳифа')}
-            onClick={() => onOpenSection('quran')}
+            onClick={onOpenQuran}
           />
           <SectionTile
             icon={<MoonStar size={22} color="var(--accent)" />}

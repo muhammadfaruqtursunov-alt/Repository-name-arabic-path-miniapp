@@ -586,7 +586,6 @@ export default function App() {
         onOpenGuide={() => setScreen('umrah')}
         onOpenSarf={() => setScreen('sarf')}
         onOpenTrainer={() => setScreen('trainer')}
-        onOpenQuran={() => setScreen('quran')}
       /></>
     );
   }

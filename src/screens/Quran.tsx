@@ -10,7 +10,6 @@ import {
   lastReview, setLastReview, learnedLemmaIds, setLemmasLearned, syncFromCloud, useQuranProgress,
   reportQuranStats,
 } from '../utils/quranProgress';
-import ProgressBar from '../components/ProgressBar';
 import QuranQuiz from '../components/quran/QuranQuiz';
 import QuranSearch from '../components/quran/QuranSearch';
 import { L } from '../components/quran/qi18n';
@@ -135,26 +134,16 @@ export default function Quran({ lang, onBack, onLocalBack }: Props) {
     <div className="screen-enter" style={{ minHeight: '100dvh' }}>
       {header(L(lang, 'Слова Корана', 'Quran words', 'Qurʼon soʻzlari', 'Калимаҳои Қуръон'), onBack)}
       <div className="page-content">
-        {/* Прогресс + продолжить */}
-        <div className="glass-card glass-card--gold" style={{ marginBottom: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-            <span className="text-muted">{L(lang, 'Выучено слов', 'Words learned', 'Oʻrganilgan soʻzlar', 'Калимаҳои омӯхта')}</span>
-            <b style={{ color: 'var(--accent-teal)' }}>{learned} / 4800</b>
-          </div>
-          <ProgressBar pct={Math.round((learned / 4800) * 100)} />
-          <div className="text-muted" style={{ fontSize: 12, margin: '6px 0 12px' }}>
-            {L(lang, 'Страниц пройдено', 'Pages done', 'Tugatilgan sahifalar', 'Саҳифаҳои анҷомёфта')}: {pagesDoneCount()} / {TOTAL_PAGES}
-          </div>
-          <button className="btn-continue" onClick={() => openPage(next, { kind: 'home' })}>
-            <span className="btn-continue__icon"><Play size={16} fill="currentColor" /></span>
-            <span className="btn-continue__text">
-              <span className="btn-continue__label">
-                {pagesDoneCount() ? L(lang, 'Продолжить', 'Continue', 'Davom etish', 'Идома') : L(lang, 'Начать', 'Start', 'Boshlash', 'Оғоз')}
-              </span>
-              <span className="btn-continue__title">{pageTitle(next)}</span>
+        {/* Продолжить (статистика перенесена на экран «Статистика») */}
+        <button className="btn-continue" style={{ marginBottom: 12 }} onClick={() => openPage(next, { kind: 'home' })}>
+          <span className="btn-continue__icon"><Play size={16} fill="currentColor" /></span>
+          <span className="btn-continue__text">
+            <span className="btn-continue__label">
+              {pagesDoneCount() ? L(lang, 'Продолжить', 'Continue', 'Davom etish', 'Идома') : L(lang, 'Начать', 'Start', 'Boshlash', 'Оғоз')}
             </span>
-          </button>
-        </div>
+            <span className="btn-continue__title">{pageTitle(next)}</span>
+          </span>
+        </button>
 
         <QuranSearch lang={lang} index={index} names={names} onActiveChange={setSearching}
           onOpenPage={p => openPage(p, { kind: 'home' })} />

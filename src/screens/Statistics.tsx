@@ -1,20 +1,28 @@
 import { useEffect, useState } from 'react';
-import { BookOpen, Clock, Flame, MessageCircleQuestion } from 'lucide-react';
+import { BookOpen, Clock, Flame, MessageCircleQuestion, BookOpenText } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
 import type { Stats } from '../api/client';
 import ProgressBar from '../components/ProgressBar';
 import { formatAppTime } from '../utils/formatTime';
+import { learnedCount, pagesDoneCount, syncFromCloud, useQuranProgress } from '../utils/quranProgress';
+import { TOTAL_PAGES } from '../utils/quranData';
 
 interface Props { lang: Lang; }
 
 const BOOK_ICONS = ['', '📗', '📘', '📕'];
+const QURAN_WORDS_TOTAL = 4800;
+
+function L(lang: Lang, ru: string, en: string, uz: string, tj: string): string {
+  return lang === 'en' ? en : lang === 'uz' ? uz : lang === 'tj' ? tj : ru;
+}
 
 export default function Statistics({ lang }: Props) {
   const [stats, setStats] = useState<Stats | null>(null);
+  useQuranProgress();
 
-  useEffect(() => { api.getStats().then(setStats).catch(() => {}); }, []);
+  useEffect(() => { api.getStats().then(setStats).catch(() => {}); void syncFromCloud(); }, []);
 
   if (!stats) return (
     <div className="page-content" style={{ paddingTop: 40, textAlign: 'center' }}>
@@ -52,6 +60,28 @@ export default function Statistics({ lang }: Props) {
       {/* Progress by book */}
       <h2 className="title-card" style={{ marginBottom: 14, fontSize: 14 }}>{t(lang, 'activity_title')}</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {(() => {
+          const learned = learnedCount();
+          const pct = Math.round((learned / QURAN_WORDS_TOTAL) * 100);
+          return (
+            <div className="glass-card glass-card--gold" style={{ padding: '12px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <BookOpenText size={18} color="var(--accent)" />
+                </div>
+                <span className="title-card" style={{ flex: 1, fontSize: 13 }}>
+                  {L(lang, 'Коран', 'Quran', 'Qurʼon', 'Қуръон')}
+                </span>
+                <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 13 }}>{pct}%</span>
+              </div>
+              <ProgressBar pct={pct} />
+              <div className="text-muted" style={{ fontSize: 11, marginTop: 5 }}>
+                {learned} / {QURAN_WORDS_TOTAL} {t(lang, 'words_count')} ·{' '}
+                {L(lang, 'страниц', 'pages', 'sahifa', 'саҳифа')}: {pagesDoneCount()} / {TOTAL_PAGES}
+              </div>
+            </div>
+          );
+        })()}
         {stats.books.map((b) => (
           <div key={b.book_id} className="glass-card" style={{ padding: '12px 14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>

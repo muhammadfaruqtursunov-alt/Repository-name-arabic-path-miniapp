@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronDown, BookOpen, Compass, Eye, PenLine, BookOpenText, Repeat, GitBranch, NotebookPen } from 'lucide-react';
+import { ChevronLeft, ChevronDown, BookOpen, Compass, Eye, PenLine, Repeat, GitBranch, NotebookPen } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import type { VolumeInfo } from '../api/client';
 import ProgressBar from '../components/ProgressBar';
 import SectionTile from '../components/SectionTile';
 
-export type SectionKey = 'arabic' | 'quran';
+export type SectionKey = 'arabic';
 
 interface Props {
   lang: Lang;
@@ -18,7 +18,6 @@ interface Props {
   onOpenGuide: () => void;
   onOpenSarf: () => void;
   onOpenTrainer: () => void;
-  onOpenQuran: () => void;
 }
 
 // ru, en, uz, tj — пустые uz/tj падают на ru (как в Sarf.tsx)
@@ -29,10 +28,8 @@ function L(lang: Lang, ru: string, en?: string, uz?: string, tj?: string): strin
   return ru;
 }
 
-export function sectionTitle(lang: Lang, key: SectionKey): string {
-  return key === 'arabic'
-    ? L(lang, 'Арабский язык', 'Arabic language', 'Arab tili', 'Забони арабӣ')
-    : L(lang, 'Коран', 'Quran', 'Qurʼon', 'Қуръон');
+export function sectionTitle(lang: Lang, _key: SectionKey): string {
+  return L(lang, 'Арабский язык', 'Arabic language', 'Arab tili', 'Забони арабӣ');
 }
 
 export function soonLabel(lang: Lang): string {
@@ -56,7 +53,7 @@ export default function Section(props: Props) {
         <h1 className="title-card" style={{ flex: 1 }}>{sectionTitle(lang, section)}</h1>
       </div>
       <div className="page-content">
-        {section === 'arabic' ? <ArabicSection {...props} /> : <QuranSection lang={lang} onOpenQuran={props.onOpenQuran} />}
+        <ArabicSection {...props} />
       </div>
     </div>
   );
@@ -146,27 +143,6 @@ function ArabicSection({ lang, volumes, onOpenVolume, onOpenTests, onOpenGuide, 
         title={L(lang, 'Тренажёр слов', 'Word trainer', 'Soʻz mashqi', 'Машқи калимаҳо')}
         subtitle={L(lang, 'Свой словарь', 'Your own words', 'Oʻz soʻzlaringiz', 'Луғати худ')}
         onClick={onOpenTrainer}
-        wide
-      />
-    </div>
-  );
-}
-
-function QuranSection({ lang, onOpenQuran }: { lang: Lang; onOpenQuran: () => void }) {
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-      <SectionTile
-        icon={<BookOpenText {...ICON} />}
-        title={L(lang, 'Слова Корана', 'Quran words', 'Qurʼon soʻzlari', 'Калимаҳои Қуръон')}
-        subtitle={L(
-          lang,
-          'Урок = страница мусхафа · 114 сур · 30 джузов',
-          'One lesson = one mushaf page · 114 surahs · 30 juz',
-          'Bir dars = mushafning bir sahifasi · 114 sura · 30 pora',
-          'Як дарс = як саҳифаи мусҳаф · 114 сура · 30 пора',
-        )}
-        onClick={onOpenQuran}
-        gold
         wide
       />
     </div>
