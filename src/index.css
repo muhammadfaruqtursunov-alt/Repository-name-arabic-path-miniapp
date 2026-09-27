@@ -5,6 +5,7 @@
   --bg-card:     #141319;
   --bg-glass:    rgba(20, 19, 25, 0.72);
   --nav-bg:      rgba(7, 8, 14, 0.92);
+  --header-gradient: linear-gradient(180deg, rgba(13,31,26,0.9) 0%, transparent 100%);
   /* Полутона поверх фона (бордеры, лёгкие заливки) — светлые на тёмном фоне */
   --overlay-rgb: 255, 255, 255;
   color-scheme: dark;
@@ -85,6 +86,7 @@
   --bg-card:     #FFFFFF;
   --bg-glass:    rgba(255, 253, 247, 0.82);
   --nav-bg:      rgba(255, 253, 247, 0.92);
+  --header-gradient: linear-gradient(180deg, rgba(235,225,200,0.9) 0%, transparent 100%);
   --overlay-rgb: 20, 17, 10;
   --text-main:   #211E17;
   --text-muted:  #6B6357;

@@ -50,7 +50,7 @@ export default function Dashboard({
       {/* ── Шапка ────────────────────────────────────────────── */}
       <div
         className="islamic-header"
-        style={{ padding: '16px 16px 0', background: 'linear-gradient(180deg, rgba(13,31,26,0.9) 0%, transparent 100%)' }}
+        style={{ padding: '16px 16px 0', background: 'var(--header-gradient)' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
