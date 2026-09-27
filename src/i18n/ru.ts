@@ -192,6 +192,11 @@ export const ru = {
   home_screen_title: 'На главный экран',
   home_screen_note: 'Иконка приложения — рядом с другими на телефоне',
   home_screen_add: 'Добавить на главный экран',
+
+  // Appearance
+  appearance_title: 'Оформление',
+  mode_dark: 'Тёмная',
+  mode_light: 'Светлая',
 };
 
 export type TranslationKeys = keyof typeof ru;

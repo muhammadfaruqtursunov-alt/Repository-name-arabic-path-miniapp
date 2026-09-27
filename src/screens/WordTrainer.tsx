@@ -95,7 +95,7 @@ export default function WordTrainer({ lang, onBack }: Props) {
             'Paste words — one per line, separated by a dash:',
             'Soʻzlarni joylashtiring — har qatorda bitta, tire bilan:',
             'Калимаҳоро гузоред — дар ҳар сатр яктоӣ, бо тире:')}
-          <div style={{ marginTop: 6, padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', fontFamily: 'monospace', fontSize: 12, direction: 'ltr' }}>
+          <div style={{ marginTop: 6, padding: '8px 10px', borderRadius: 8, background: 'rgba(var(--overlay-rgb),0.04)', fontFamily: 'monospace', fontSize: 12, direction: 'ltr' }}>
             كِتَابٌ — книга<br />
             بَيْتٌ — дом<br />
             مَسْجِدٌ — мечеть
@@ -425,7 +425,7 @@ function TestView({ lang, set, mode, onBack, onRestudy, onPassed }: {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginRight: 84 }}>
           <div style={{ display: 'flex', gap: 5 }}>
             {Array.from({ length: MAX_ERRORS }).map((_, k) => (
-              <div key={k} style={{ width: 8, height: 8, borderRadius: '50%', background: k < errors ? 'var(--danger)' : 'rgba(255,255,255,0.15)' }} />
+              <div key={k} style={{ width: 8, height: 8, borderRadius: '50%', background: k < errors ? 'var(--danger)' : 'rgba(var(--overlay-rgb),0.15)' }} />
             ))}
           </div>
           <span style={{ color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700 }}>
@@ -448,7 +448,7 @@ function TestView({ lang, set, mode, onBack, onRestudy, onPassed }: {
           </button>
           <div className="text-arabic-lg">{q.ar}</div>
           {q.tr && <div className="text-trans" style={{ marginTop: 8 }}>{q.tr}</div>}
-          <p style={{ color: '#fff', fontSize: 13, marginTop: 12, opacity: .85 }}>
+          <p style={{ color: 'var(--text-main)', fontSize: 13, marginTop: 12, opacity: .85 }}>
             {mode === 'visual'
               ? L(lang, 'Выберите перевод', 'Choose the translation', 'Tarjimani tanlang', 'Тарҷумаро интихоб кунед')
               : L(lang, 'Напишите перевод', 'Type the translation', 'Tarjimani yozing', 'Тарҷумаро нависед')}

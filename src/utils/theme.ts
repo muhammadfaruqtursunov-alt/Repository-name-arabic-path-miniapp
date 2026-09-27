@@ -1,10 +1,11 @@
 export type Accent  = 'gold' | 'emerald' | 'ruby' | 'rose' | 'pearl' | 'graphite';
 export type Surface = 'matte' | 'glass' | '3d';
 export type Mood    = 'calm' | 'focused' | 'bold';
+export type Mode    = 'dark' | 'light';
 
-export interface Theme { accent: Accent; surface: Surface; mood: Mood; }
+export interface Theme { accent: Accent; surface: Surface; mood: Mood; mode: Mode; }
 
-const DEFAULT: Theme = { accent: 'gold', surface: 'glass', mood: 'focused' };
+const DEFAULT: Theme = { accent: 'gold', surface: 'glass', mood: 'focused', mode: 'dark' };
 const KEY = 'ap_theme';
 
 export function loadTheme(): Theme {
@@ -16,6 +17,7 @@ export function loadTheme(): Theme {
       accent:  p.accent  ?? DEFAULT.accent,
       surface: p.surface ?? DEFAULT.surface,
       mood:    p.mood    ?? DEFAULT.mood,
+      mode:    p.mode    ?? DEFAULT.mode,
     };
   } catch {
     return DEFAULT;
@@ -26,6 +28,7 @@ export function applyTheme(theme: Theme): void {
   const el = document.documentElement;
   el.dataset.accent  = theme.accent;
   el.dataset.surface = theme.surface;
+  el.dataset.mode    = theme.mode;
   el.classList.remove('mood-calm', 'mood-focused', 'mood-bold');
   el.classList.add(`mood-${theme.mood}`);
 }

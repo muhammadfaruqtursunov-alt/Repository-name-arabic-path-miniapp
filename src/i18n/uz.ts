@@ -189,4 +189,8 @@ export const uz = {
   home_screen_title: 'Bosh ekranga',
   home_screen_note: 'Ilova belgisi — telefoningizdagi boshqalar qatorida',
   home_screen_add: 'Bosh ekranga qoʻshish',
+
+  appearance_title: 'Koʻrinish',
+  mode_dark: 'Tungi',
+  mode_light: 'Kunduzgi',
 };

@@ -286,7 +286,7 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson, o
             key={i}
             style={{
               width: 8, height: 8, borderRadius: '50%',
-              background: i < errorCount ? 'var(--danger)' : 'rgba(255,255,255,0.15)',
+              background: i < errorCount ? 'var(--danger)' : 'rgba(var(--overlay-rgb),0.15)',
               transition: 'background 250ms',
             }}
           />
@@ -338,7 +338,7 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson, o
             flex: 1, height: 36, borderRadius: 10,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: 6, fontSize: 13, fontWeight: 700,
-            background: mode === 'visual' ? 'var(--accent)' : 'rgba(255,255,255,0.07)',
+            background: mode === 'visual' ? 'var(--accent)' : 'rgba(var(--overlay-rgb),0.07)',
             color: mode === 'visual' ? 'var(--on-accent)' : 'var(--text-muted)',
             border: mode === 'visual' ? 'none' : '1px solid var(--border)',
           }}>
@@ -349,7 +349,7 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson, o
             flex: 1, height: 36, borderRadius: 10,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: 6, fontSize: 13, fontWeight: 700,
-            background: mode === 'written' ? 'var(--accent)' : 'rgba(255,255,255,0.07)',
+            background: mode === 'written' ? 'var(--accent)' : 'rgba(var(--overlay-rgb),0.07)',
             color: mode === 'written' ? 'var(--on-accent)' : 'var(--text-muted)',
             border: mode === 'written' ? 'none' : '1px solid var(--border)',
           }}>
@@ -592,8 +592,8 @@ export default function Tests({ lang, bookId, lesson, onBack, onRestartLesson, o
                 }}
                 style={{
                   position: 'absolute', top: 12, left: 12,
-                  background: savedWordIds.has(question.word_id) ? 'rgba(192,150,60,0.18)' : 'rgba(255,255,255,0.07)',
-                  border: savedWordIds.has(question.word_id) ? '1px solid rgba(192,150,60,0.45)' : '1px solid rgba(255,255,255,0.15)',
+                  background: savedWordIds.has(question.word_id) ? 'rgba(192,150,60,0.18)' : 'rgba(var(--overlay-rgb),0.07)',
+                  border: savedWordIds.has(question.word_id) ? '1px solid rgba(192,150,60,0.45)' : '1px solid rgba(var(--overlay-rgb),0.15)',
                   borderRadius: 10, padding: '5px 8px',
                   cursor: savedWordIds.has(question.word_id) ? 'default' : 'pointer',
                   color: savedWordIds.has(question.word_id) ? 'var(--accent-gold)' : 'var(--text-muted)',

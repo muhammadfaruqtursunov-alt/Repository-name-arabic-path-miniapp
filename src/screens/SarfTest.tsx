@@ -382,7 +382,7 @@ function Header({
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginRight: 84 }}>
         <div style={{ display: 'flex', gap: 5 }}>
           {Array.from({ length: MAX_ERRORS }).map((_, i) => (
-            <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i < errors ? 'var(--danger)' : 'rgba(255,255,255,0.15)' }} />
+            <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i < errors ? 'var(--danger)' : 'rgba(var(--overlay-rgb),0.15)' }} />
           ))}
         </div>
         <span style={{ color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700 }}>

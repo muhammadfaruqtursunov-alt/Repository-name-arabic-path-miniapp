@@ -35,7 +35,7 @@ export default function AchievementPopup({ achievement, onDone }: Props) {
         borderRadius: 18,
         padding: '14px 20px',
         display: 'flex', alignItems: 'center', gap: 14,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.07) inset',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.6), 0 1px 0 rgba(var(--overlay-rgb),0.07) inset',
         backdropFilter: 'blur(20px)',
       }}>
         <span style={{ fontSize: 36, lineHeight: 1 }}>{achievement.emoji}</span>

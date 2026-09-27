@@ -4,6 +4,10 @@
   --bg-deep:     #141319;
   --bg-card:     #141319;
   --bg-glass:    rgba(20, 19, 25, 0.72);
+  --nav-bg:      rgba(7, 8, 14, 0.92);
+  /* Полутона поверх фона (бордеры, лёгкие заливки) — светлые на тёмном фоне */
+  --overlay-rgb: 255, 255, 255;
+  color-scheme: dark;
 
   /* ── Theme token system ──────────────────────────────── */
   /* Default: gold accent, glass surface, focused mood     */
@@ -37,16 +41,16 @@
   --btn-primary-shadow:
     0 4px 16px rgba(var(--a-rgb), calc(0.30 * var(--m-glow))),
     0 8px 28px rgba(0,0,0,0.50),
-    inset 0 1px 0 rgba(255,255,255,0.20);
-  --card-bg:     linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-  --card-shadow: 0 8px 40px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.06) inset;
+    inset 0 1px 0 rgba(var(--overlay-rgb),0.20);
+  --card-bg:     linear-gradient(180deg, rgba(var(--overlay-rgb),0.04), rgba(var(--overlay-rgb),0.015));
+  --card-shadow: 0 8px 40px rgba(0,0,0,0.55), 0 1px 0 rgba(var(--overlay-rgb),0.06) inset;
 
   /* Text */
   --text-main:   #E4E5EC;
   --text-muted:  #C4C6D0;
 
   /* Borders */
-  --border: rgba(255, 255, 255, 0.07);
+  --border: rgba(var(--overlay-rgb), 0.07);
 
   /* Semantic */
   --danger:      #C0392B;
@@ -74,6 +78,27 @@
   background: var(--bg-deep);
 }
 
+/* ── Светлая тема ─────────────────────────────────────────────────
+   Переключается кнопкой в Настройках (utils/theme.ts, data-mode). */
+:root[data-mode="light"] {
+  --bg-deep:     #F5F1E6;
+  --bg-card:     #FFFFFF;
+  --bg-glass:    rgba(255, 253, 247, 0.82);
+  --nav-bg:      rgba(255, 253, 247, 0.92);
+  --overlay-rgb: 20, 17, 10;
+  --text-main:   #211E17;
+  --text-muted:  #6B6357;
+  --border:      rgba(20, 17, 10, 0.10);
+  --card-shadow: 0 8px 30px rgba(60, 45, 10, 0.10), 0 1px 0 rgba(0,0,0,0.03) inset;
+  color-scheme: light;
+  /* Дефолты текста Корана — если ученик их не настраивал вручную
+     (ручная настройка через Settings задаётся инлайн-стилем и всё равно
+     перекрывает эти значения). */
+  --arabic-color:      #211E17;
+  --trans-color:       #6B6357;
+  --translation-color: #211E17;
+}
+
 /* ── Accent overrides ────────────────────────────────────────────── */
 html[data-accent="gold"]     { --a-rgb: 192,150,60;  --a-hi: 224,184,106; --a-lo: 154,112,40;  --on-accent: #07080E; }
 html[data-accent="emerald"]  { --a-rgb: 63,191,138;  --a-hi: 111,224,174; --a-lo:  30,122,85;  --on-accent: #03110B; }
@@ -88,7 +113,7 @@ html[data-surface="matte"] {
   --btn-primary-shadow:
     0 2px 10px rgba(var(--a-rgb), calc(0.20 * var(--m-glow))),
     0 6px 18px rgba(0,0,0,0.40);
-  --card-bg:     linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.010));
+  --card-bg:     linear-gradient(180deg, rgba(var(--overlay-rgb),0.025), rgba(var(--overlay-rgb),0.010));
   --card-shadow: 0 4px 18px rgba(0,0,0,0.35);
 }
 html[data-surface="glass"] {
@@ -97,9 +122,9 @@ html[data-surface="glass"] {
   --btn-primary-shadow:
     0 4px 16px rgba(var(--a-rgb), calc(0.30 * var(--m-glow))),
     0 8px 28px rgba(0,0,0,0.50),
-    inset 0 1px 0 rgba(255,255,255,0.20);
-  --card-bg:     linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-  --card-shadow: 0 8px 40px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.06) inset;
+    inset 0 1px 0 rgba(var(--overlay-rgb),0.20);
+  --card-bg:     linear-gradient(180deg, rgba(var(--overlay-rgb),0.04), rgba(var(--overlay-rgb),0.015));
+  --card-shadow: 0 8px 40px rgba(0,0,0,0.55), 0 1px 0 rgba(var(--overlay-rgb),0.06) inset;
 }
 html[data-surface="3d"] {
   --btn-primary-bg:
@@ -110,10 +135,10 @@ html[data-surface="3d"] {
   --btn-primary-shadow:
     0 8px 28px rgba(var(--a-rgb), calc(0.36 * var(--m-glow))),
     0 16px 40px rgba(0,0,0,0.55),
-    inset 0 2px 1px rgba(255,255,255,0.55),
+    inset 0 2px 1px rgba(var(--overlay-rgb),0.55),
     inset 0 -3px 8px rgba(0,0,0,0.40),
     inset 0 0 0 1px rgba(var(--a-hi), 0.40);
-  --card-bg:     linear-gradient(180deg, rgba(var(--a-rgb),0.05), #141319);
+  --card-bg:     linear-gradient(180deg, rgba(var(--a-rgb),0.05), var(--bg-card));
   --card-shadow:
     0 10px 36px rgba(0,0,0,0.55),
     inset 0 1px 0 rgba(var(--a-hi),0.18),
@@ -136,9 +161,8 @@ html.mood-bold    { --m-glow: 1.6; --m-arabic: 1.15; --m-border: 1.25; }
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Приложение всегда тёмное: без этого <button>/<input> берут системный
-   чёрный ButtonText вместо --text-main и текст пропадает на тёмном фоне. */
-:root { color-scheme: dark; }
+/* Без этого <button>/<input> берут системный ButtonText вместо --text-main,
+   и текст пропадает (чёрный на тёмном / белый на светлом). */
 button, input, select, textarea { color: inherit; font: inherit; }
 
 body {
@@ -169,6 +193,17 @@ body {
       rgba(7,8,14,0.70) 0%,
       rgba(7,8,14,0.52) 50%,
       rgba(7,8,14,0.82) 100%);
+}
+/* Светлая тема: тот же приём (затемнение фонового фото под текст), но
+   тёплым светлым скримом вместо чёрного — иначе тёмный виньет "стирает"
+   светлые тона там, где под ним нет непрозрачной карточки. */
+:root[data-mode="light"] #app-bg::after {
+  background:
+    radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(245,241,230,0.55) 65%, rgba(245,241,230,0.88) 100%),
+    linear-gradient(180deg,
+      rgba(245,241,230,0.75) 0%,
+      rgba(245,241,230,0.60) 50%,
+      rgba(245,241,230,0.90) 100%);
 }
 
 #root {
@@ -226,7 +261,7 @@ body {
   padding: 18px 6px;
   margin-bottom: 12px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(var(--overlay-rgb), 0.03);
   border: 1px solid var(--border);
   /* титры: края плавно растворяются */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
@@ -253,9 +288,9 @@ body {
 
 /* ─── Glass card ─────────────────────────────────────────────── */
 .glass-card {
-  background: #141319;
-  border: 1px solid rgba(255, 255, 255, calc(0.07 * var(--m-border)));
-  border-top: 1px solid rgba(255, 255, 255, calc(0.11 * var(--m-border)));
+  background: var(--bg-card);
+  border: 1px solid rgba(var(--overlay-rgb), calc(0.07 * var(--m-border)));
+  border-top: 1px solid rgba(var(--overlay-rgb), calc(0.11 * var(--m-border)));
   border-radius: var(--radius-card);
   padding: 16px;
   box-shadow: var(--card-shadow);
@@ -264,7 +299,7 @@ body {
 .glass-card--gold {
   border-color: var(--accent-border);
   border-top-color: rgba(var(--a-hi), 0.18);
-  background: #141319;
+  background: var(--bg-card);
 }
 
 /* ─── Divider ────────────────────────────────────────────────── */
@@ -293,7 +328,7 @@ body {
   position: relative;
   overflow: hidden;
   letter-spacing: 0.1px;
-  background: #141319;
+  background: var(--bg-card);
 }
 
 .btn:active {
@@ -315,32 +350,32 @@ body {
 
 /* Accent outline */
 .btn-gold {
-  background: #141319;
+  background: var(--bg-card);
   color: var(--accent);
   border: 1px solid var(--accent-border);
   box-shadow:
     0 4px 14px rgba(0, 0, 0, 0.45),
-    0 1px 0 rgba(255, 255, 255, 0.07) inset;
+    0 1px 0 rgba(var(--overlay-rgb), 0.07) inset;
 }
 
 /* Ghost */
 .btn-ghost {
-  background: #141319;
-  color: rgba(228, 229, 236, 0.80);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid rgba(var(--overlay-rgb), 0.10);
   box-shadow:
     0 4px 14px rgba(0, 0, 0, 0.50),
-    0 1px 0 rgba(255, 255, 255, 0.07) inset;
+    0 1px 0 rgba(var(--overlay-rgb), 0.07) inset;
 }
 
 /* Danger */
 .btn-danger {
-  background: #141319;
+  background: var(--bg-card);
   color: var(--danger);
   border: 1px solid rgba(192, 57, 43, 0.28);
   box-shadow:
     0 4px 14px rgba(0, 0, 0, 0.45),
-    0 1px 0 rgba(255, 255, 255, 0.05) inset;
+    0 1px 0 rgba(var(--overlay-rgb), 0.05) inset;
 }
 
 .btn-sm {
@@ -358,9 +393,9 @@ body {
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255,255,255,0.04) 25%,
-    rgba(255,255,255,0.09) 50%,
-    rgba(255,255,255,0.04) 75%
+    rgba(var(--overlay-rgb),0.04) 25%,
+    rgba(var(--overlay-rgb),0.09) 50%,
+    rgba(var(--overlay-rgb),0.04) 75%
   );
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
@@ -371,7 +406,7 @@ body {
 .progress-bar {
   height: 5px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(var(--overlay-rgb), 0.07);
   overflow: hidden;
 }
 
@@ -422,10 +457,10 @@ body {
   height: 60px;
   display: flex;
   align-items: center;
-  background: rgba(7, 8, 14, 0.92);
+  background: var(--nav-bg);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(var(--overlay-rgb), 0.07);
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.6);
   z-index: 100;
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -451,7 +486,7 @@ body {
 /* ─── Language switcher ──────────────────────────────────────── */
 .lang-bar {
   display: flex;
-  background: rgba(255,255,255,0.04);
+  background: rgba(var(--overlay-rgb),0.04);
   border-radius: 10px;
   padding: 3px;
   gap: 2px;
@@ -482,8 +517,8 @@ body {
   gap: 5px;
   padding: 6px 10px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(var(--overlay-rgb), 0.05);
+  border: 1px solid rgba(var(--overlay-rgb), 0.10);
   color: var(--text-main);
   font-size: 13px;
   font-weight: 600;
@@ -496,8 +531,8 @@ body {
 /* ─── Input ──────────────────────────────────────────────────── */
 .input-field {
   width: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(var(--overlay-rgb), 0.04);
+  border: 1px solid rgba(var(--overlay-rgb), 0.09);
   border-radius: 12px;
   color: var(--text-main);
   font-size: 15px;
@@ -545,7 +580,7 @@ textarea.input-field { resize: none; min-height: 100px; }
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, rgba(var(--a-rgb), 0.22), rgba(var(--a-rgb), 0.09));
   border: 1px solid var(--accent-border);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 0 10px rgba(var(--a-rgb), calc(0.20 * var(--m-glow)));
+  box-shadow: inset 0 1px 0 rgba(var(--overlay-rgb),0.10), 0 0 10px rgba(var(--a-rgb), calc(0.20 * var(--m-glow)));
   color: var(--accent);
   font-size: 12px;
   font-weight: 800;
@@ -560,7 +595,7 @@ input[type=range] {
   width: 100%;
   height: 4px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(var(--overlay-rgb), 0.10);
   outline: none;
 }
 input[type=range]::-webkit-slider-thumb {
@@ -576,8 +611,8 @@ input[type=range]::-webkit-slider-thumb {
 .toggle-glass {
   width: 52px; height: 28px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(var(--overlay-rgb), 0.06);
+  border: 1px solid rgba(var(--overlay-rgb), 0.10);
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   position: relative; cursor: pointer; padding: 0;
   flex-shrink: 0; transition: background 200ms, border-color 200ms;
@@ -589,7 +624,7 @@ input[type=range]::-webkit-slider-thumb {
 .toggle-glass__dot {
   position: absolute; top: 3px; left: 3px;
   width: 20px; height: 20px; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(var(--overlay-rgb), 0.35);
   box-shadow: 0 2px 6px rgba(0,0,0,0.55);
   transition: left 200ms ease, background 200ms;
 }
@@ -606,8 +641,8 @@ input[type=range]::-webkit-slider-thumb {
   gap: 8px;
 }
 .clock-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(var(--overlay-rgb), 0.03);
+  border: 1px solid rgba(var(--overlay-rgb), 0.07);
   border-radius: 14px;
   padding: 10px 6px;
   text-align: center;
@@ -686,7 +721,7 @@ input[type=range]::-webkit-slider-thumb {
   flex-shrink: 0;
 }
 .sarf-letter--mizan {
-  background: rgba(255,255,255,0.04);
+  background: rgba(var(--overlay-rgb),0.04);
   color: var(--text-main);
   font-size: 26px;
 }
@@ -695,7 +730,7 @@ input[type=range]::-webkit-slider-thumb {
 .sarf-form-row {
   display: flex; align-items: center; justify-content: space-between;
   gap: 10px; padding: 9px 12px; border-radius: 12px;
-  background: rgba(255,255,255,0.025);
+  background: rgba(var(--overlay-rgb),0.025);
   border: 1px solid var(--border);
 }
 .sarf-form-row .label { font-size: 11px; color: var(--text-muted); text-align: left; }
@@ -705,8 +740,8 @@ input[type=range]::-webkit-slider-thumb {
 .harakah-pill {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 14px 8px; border-radius: 16px;
-  background: rgba(255,255,255,0.04);
-  border: 1.5px solid rgba(255,255,255,0.12);
+  background: rgba(var(--overlay-rgb),0.04);
+  border: 1.5px solid rgba(var(--overlay-rgb),0.12);
   cursor: pointer; transition: all 140ms ease;
 }
 .harakah-pill:active { transform: scale(0.95); }
@@ -728,13 +763,13 @@ input[type=range]::-webkit-slider-thumb {
   display: flex;
   gap: 2px;
   padding: 5px;
-  background: rgba(20, 19, 25, 0.72);
+  background: var(--bg-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-top-color: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(var(--overlay-rgb), 0.12);
+  border-top-color: rgba(var(--overlay-rgb), 0.18);
   border-radius: 22px;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(var(--overlay-rgb), 0.09);
 }
 .navfloat__btn {
   width: 34px; height: 34px;
@@ -745,7 +780,7 @@ input[type=range]::-webkit-slider-thumb {
   display: flex; align-items: center; justify-content: center;
   transition: background 140ms ease, transform 110ms ease;
 }
-.navfloat__btn:hover  { background: rgba(255, 255, 255, 0.08); }
+.navfloat__btn:hover  { background: rgba(var(--overlay-rgb), 0.08); }
 .navfloat__btn:active { transform: scale(0.88); }
 .navfloat__btn.home   { color: var(--accent-gold); }
 
@@ -758,7 +793,7 @@ input[type=range]::-webkit-slider-thumb {
 }
 .edge-hint__card {
   max-width: 300px; margin: 0 24px; padding: 22px 20px; text-align: center;
-  border-radius: 20px; background: #141319; border: 1px solid var(--accent-border, rgba(192,150,60,.4));
+  border-radius: 20px; background: var(--bg-card); border: 1px solid var(--accent-border, rgba(192,150,60,.4));
   box-shadow: 0 12px 40px rgba(0,0,0,.5);
 }
 .edge-hint__title { font-size: 17px; font-weight: 800; color: var(--text-main); margin-top: 10px; }
@@ -781,6 +816,6 @@ input[type=range]::-webkit-slider-thumb {
 
 /* ─── Тафсир: нижняя панель ─── */
 .sheet-overlay { position: fixed; inset: 0; z-index: 350; background: rgba(8,8,12,.6); display: flex; align-items: flex-end; animation: edge-hint-in .2s ease both; }
-.sheet-panel { width: 100%; max-height: 78dvh; display: flex; flex-direction: column; padding: 16px 16px 20px; border-radius: 22px 22px 0 0; background: #141319; border-top: 1px solid var(--accent-border, rgba(192,150,60,.4)); box-shadow: 0 -10px 40px rgba(0,0,0,.5); animation: sheet-up .25s ease both; }
+.sheet-panel { width: 100%; max-height: 78dvh; display: flex; flex-direction: column; padding: 16px 16px 20px; border-radius: 22px 22px 0 0; background: var(--bg-card); border-top: 1px solid var(--accent-border, rgba(192,150,60,.4)); box-shadow: 0 -10px 40px rgba(0,0,0,.5); animation: sheet-up .25s ease both; }
 .tafsir-body { overflow-y: auto; font-size: 14px; line-height: 1.65; color: var(--text-main); padding-right: 4px; }
 @keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }

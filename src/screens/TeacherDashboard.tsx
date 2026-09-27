@@ -481,8 +481,8 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
                 onClick={toggleQHistory}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 5,
-                  background: showQHistory ? 'rgba(192,150,60,0.12)' : 'rgba(255,255,255,0.06)',
-                  border: `1px solid ${showQHistory ? 'rgba(192,150,60,0.35)' : 'rgba(255,255,255,0.12)'}`,
+                  background: showQHistory ? 'rgba(192,150,60,0.12)' : 'rgba(var(--overlay-rgb),0.06)',
+                  border: `1px solid ${showQHistory ? 'rgba(192,150,60,0.35)' : 'rgba(var(--overlay-rgb),0.12)'}`,
                   borderRadius: 10, padding: '5px 10px', cursor: 'pointer',
                   color: showQHistory ? 'var(--accent-teal)' : 'var(--text-muted)', fontSize: 12,
                 }}
@@ -653,7 +653,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
               </div>
             ) : (
               <div style={{
-                width: '100%', height: 90, borderRadius: 14, background: 'rgba(255,255,255,0.03)',
+                width: '100%', height: 90, borderRadius: 14, background: 'rgba(var(--overlay-rgb),0.03)',
                 border: '1.5px dashed rgba(192,150,60,0.25)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 marginBottom: 12, color: 'var(--text-muted)', fontSize: 13,
@@ -819,7 +819,7 @@ export default function TeacherDashboard({ lang, onLangChange, onBgChange, onOpe
                   {/* Expanded management row */}
                   {isExpanded && (
                     <div style={{
-                      marginTop: 8, padding: '12px', background: 'rgba(255,255,255,0.04)',
+                      marginTop: 8, padding: '12px', background: 'rgba(var(--overlay-rgb),0.04)',
                       borderRadius: 12, border: '1px solid rgba(192,150,60,0.12)',
                     }}>
                       {/* Stats */}
@@ -1209,7 +1209,7 @@ function ActivitySection({ students }: { students: AllStudent[] }) {
   return (
     <div className="glass-card" style={{ marginBottom: 16 }}>
       {/* ── фильтр периода (как в статистике ZAAD) ── */}
-      <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 14, background: 'rgba(255,255,255,0.05)', marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 14, background: 'rgba(var(--overlay-rgb),0.05)', marginBottom: 16 }}>
         {(([['day', 'День'], ['week', 'Неделя'], ['month', 'Месяц']]) as [Period, string][]).map(([p, label]) => {
           const sel = period === p;
           return (
@@ -1249,7 +1249,7 @@ function ActivitySection({ students }: { students: AllStudent[] }) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
           {newOnes.map(({ s, d }) => (
-            <div key={s.user_id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.025)', border: '1px solid var(--border)' }}>
+            <div key={s.user_id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '8px 10px', borderRadius: 10, background: 'rgba(var(--overlay-rgb),0.025)', border: '1px solid var(--border)' }}>
               <span style={{ color: 'var(--text-main)' }}>{s.name}</span>
               <span style={{ color: 'var(--accent-teal)' }}>{d ? fmtDay(d) : ''}</span>
             </div>
@@ -1290,7 +1290,7 @@ function ActivitySection({ students }: { students: AllStudent[] }) {
               (parseDate(b.created_at)?.getTime() ?? 0) - (parseDate(a.created_at)?.getTime() ?? 0));
             const isOpen = openMonth === k;
             return (
-              <div key={k} style={{ borderRadius: 10, background: 'rgba(255,255,255,0.025)', border: '1px solid var(--border)' }}>
+              <div key={k} style={{ borderRadius: 10, background: 'rgba(var(--overlay-rgb),0.025)', border: '1px solid var(--border)' }}>
                 <button
                   onClick={() => setOpenMonth(isOpen ? null : k)}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}

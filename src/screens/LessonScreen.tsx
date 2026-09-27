@@ -186,8 +186,8 @@ export default function LessonScreen({ lang, bookId, lesson, lastBook, learnedCo
               }}
               style={{
                 position: 'absolute', top: 0, left: 0,
-                background: savedIds.has(card.id) ? 'rgba(192,150,60,0.18)' : 'rgba(255,255,255,0.07)',
-                border: savedIds.has(card.id) ? '1px solid rgba(192,150,60,0.45)' : '1px solid rgba(255,255,255,0.15)',
+                background: savedIds.has(card.id) ? 'rgba(192,150,60,0.18)' : 'rgba(var(--overlay-rgb),0.07)',
+                border: savedIds.has(card.id) ? '1px solid rgba(192,150,60,0.45)' : '1px solid rgba(var(--overlay-rgb),0.15)',
                 borderRadius: 10, padding: '5px 8px',
                 cursor: savedIds.has(card.id) ? 'default' : 'pointer',
                 color: savedIds.has(card.id) ? 'var(--accent-gold)' : 'var(--text-muted)',

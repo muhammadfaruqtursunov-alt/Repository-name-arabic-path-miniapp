@@ -170,4 +170,8 @@ export const en = {
   home_screen_title: 'Home screen',
   home_screen_note: 'App icon — right alongside the others on your phone',
   home_screen_add: 'Add to home screen',
+
+  appearance_title: 'Appearance',
+  mode_dark: 'Dark',
+  mode_light: 'Light',
 };

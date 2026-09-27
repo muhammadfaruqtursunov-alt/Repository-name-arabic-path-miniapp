@@ -170,4 +170,8 @@ export const tj = {
   home_screen_title: 'Ба экрани асосӣ',
   home_screen_note: 'Нишони барнома — дар паҳлӯи дигарҳо дар телефон',
   home_screen_add: 'Илова ба экрани асосӣ',
+
+  appearance_title: 'Намуди зоҳирӣ',
+  mode_dark: 'Торик',
+  mode_light: 'Равшан',
 };

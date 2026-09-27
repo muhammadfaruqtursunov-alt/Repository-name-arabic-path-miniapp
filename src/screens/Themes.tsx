@@ -70,11 +70,11 @@ export default function Themes({ onBack }: Props) {
                     width: 46, height: 46, borderRadius: '50%',
                     background: a.swatch,
                     border: theme.accent === a.id
-                      ? '3px solid rgba(255,255,255,0.85)'
-                      : '2px solid rgba(255,255,255,0.12)',
+                      ? '3px solid rgba(var(--overlay-rgb),0.85)'
+                      : '2px solid rgba(var(--overlay-rgb),0.12)',
                     cursor: 'pointer',
                     boxShadow: theme.accent === a.id
-                      ? '0 0 0 2px rgba(255,255,255,0.20), 0 6px 18px rgba(0,0,0,0.50)'
+                      ? '0 0 0 2px rgba(var(--overlay-rgb),0.20), 0 6px 18px rgba(0,0,0,0.50)'
                       : '0 4px 14px rgba(0,0,0,0.40)',
                     transform: theme.accent === a.id ? 'scale(1.15)' : 'scale(1)',
                     transition: 'all 150ms',
@@ -107,10 +107,10 @@ export default function Themes({ onBack }: Props) {
                   flex: 1, height: 68, borderRadius: 14, cursor: 'pointer',
                   border: theme.surface === s.id
                     ? '1.5px solid var(--accent)'
-                    : '1px solid rgba(255,255,255,0.10)',
+                    : '1px solid rgba(var(--overlay-rgb),0.10)',
                   background: theme.surface === s.id
                     ? 'var(--accent-tint)'
-                    : 'rgba(255,255,255,0.04)',
+                    : 'rgba(var(--overlay-rgb),0.04)',
                   color: theme.surface === s.id ? 'var(--accent)' : 'var(--text-muted)',
                   transition: 'all 150ms',
                   display: 'flex', flexDirection: 'column',
@@ -139,10 +139,10 @@ export default function Themes({ onBack }: Props) {
                   flex: 1, height: 68, borderRadius: 14, cursor: 'pointer',
                   border: theme.mood === m.id
                     ? '1.5px solid var(--accent)'
-                    : '1px solid rgba(255,255,255,0.10)',
+                    : '1px solid rgba(var(--overlay-rgb),0.10)',
                   background: theme.mood === m.id
                     ? 'var(--accent-tint)'
-                    : 'rgba(255,255,255,0.04)',
+                    : 'rgba(var(--overlay-rgb),0.04)',
                   color: theme.mood === m.id ? 'var(--accent)' : 'var(--text-muted)',
                   transition: 'all 150ms',
                   display: 'flex', flexDirection: 'column',

@@ -170,4 +170,8 @@ export const ar = {
   home_screen_title: 'الشاشة الرئيسية',
   home_screen_note: 'أيقونة التطبيق — بجانب التطبيقات الأخرى على هاتفك',
   home_screen_add: 'إضافة إلى الشاشة الرئيسية',
+
+  appearance_title: 'المظهر',
+  mode_dark: 'داكن',
+  mode_light: 'فاتح',
 };

@@ -83,7 +83,7 @@ export default function WordCard(p: Props) {
       )}
 
       {p.ayahMeaning && (
-        <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }}>
+        <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, border: '1px solid var(--border)', background: 'rgba(var(--overlay-rgb),0.03)' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 3 }}>
             {L(lang, 'Смысл аята', 'Meaning of the ayah', 'Oyat maʼnosi', 'Маънои оят')}
           </div>
@@ -97,7 +97,7 @@ export default function WordCard(p: Props) {
       )}
 
       {p.siraj && p.siraj.length > 0 && (
-        <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }}>
+        <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, border: '1px solid var(--border)', background: 'rgba(var(--overlay-rgb),0.03)' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>
             📖 {L(lang, '«ас-Сирадж» — объяснение', 'Al-Siraj — explanation', '«as-Siroj» — izoh', '«ас-Сироҷ» — шарҳ')}
           </div>

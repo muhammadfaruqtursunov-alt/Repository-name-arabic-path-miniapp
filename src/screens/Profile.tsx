@@ -99,8 +99,8 @@ export default function Profile({ lang, user, onLangChange: _onLangChange, onRes
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
                   padding: '12px 4px 10px',
-                  background: unlocked ? 'var(--accent-tint)' : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${unlocked ? 'var(--accent-border)' : 'rgba(255,255,255,0.07)'}`,
+                  background: unlocked ? 'var(--accent-tint)' : 'rgba(var(--overlay-rgb),0.03)',
+                  border: `1px solid ${unlocked ? 'var(--accent-border)' : 'rgba(var(--overlay-rgb),0.07)'}`,
                   borderRadius: 14,
                   opacity: unlocked ? 1 : 0.3,
                   transition: 'all 200ms',

@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2, Palette, ChevronRight, Smartphone } from 'lucide-react';
+import { Bell, BellOff, Type, ImageIcon, Trash2, CheckCircle2, Volume2, Palette, ChevronRight, Smartphone, Moon, Sun } from 'lucide-react';
 import { speakArabic } from '../utils/speak';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import { api } from '../api/client';
 import { resizeImageToDataUrl } from '../utils/imageResize';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { loadTheme, saveTheme } from '../utils/theme';
+import type { Mode } from '../utils/theme';
 
 interface Props {
   lang: Lang;
@@ -57,14 +59,14 @@ function ColorSwatches({ current, onChange }: { current: string; onChange: (hex:
             background: c.hex,
             border: current.toUpperCase() === c.hex.toUpperCase()
               ? '2.5px solid var(--accent-teal)'
-              : '2px solid rgba(255,255,255,0.18)',
+              : '2px solid rgba(var(--overlay-rgb),0.18)',
             cursor: 'pointer',
             boxShadow: current.toUpperCase() === c.hex.toUpperCase()
               ? '0 0 8px rgba(192,150,60,0.6)'
               : '0 1px 4px rgba(0,0,0,0.5)',
             transform: current.toUpperCase() === c.hex.toUpperCase() ? 'scale(1.18)' : 'scale(1)',
             transition: 'all 150ms',
-            outline: c.hex === '#111118' ? '1px solid rgba(255,255,255,0.15)' : 'none',
+            outline: c.hex === '#111118' ? '1px solid rgba(var(--overlay-rgb),0.15)' : 'none',
           }}
         />
       ))}
@@ -88,11 +90,11 @@ function StyleToggle({ label, active, onClick, weight, italic }: {
         fontStyle: italic ? 'italic' : 'normal',
         background: active
           ? 'rgba(192,150,60,0.15)'
-          : 'rgba(255,255,255,0.06)',
+          : 'rgba(var(--overlay-rgb),0.06)',
         color: active ? 'var(--accent-teal)' : 'var(--text-muted)',
         border: active
           ? '1px solid rgba(192,150,60,0.35)'
-          : '1px solid rgba(255,255,255,0.1)',
+          : '1px solid rgba(var(--overlay-rgb),0.1)',
         transition: 'all 150ms',
         letterSpacing: 0.2,
         flexShrink: 0,
@@ -105,6 +107,13 @@ function StyleToggle({ label, active, onClick, weight, italic }: {
 
 // ── Main Settings component ───────────────────────────────────────
 export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes }: Props) {
+
+  // Тёмная/светлая тема
+  const [mode, setMode] = useState<Mode>(() => loadTheme().mode);
+  const changeMode = (m: Mode) => {
+    setMode(m);
+    saveTheme({ ...loadTheme(), mode: m });
+  };
 
   // «Добавить на главный экран» (Bot API 8.0+)
   const [hsStatus, setHsStatus] = useState<'unsupported' | 'unknown' | 'added' | 'missed' | null>(null);
@@ -365,7 +374,7 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
         style={{
           marginBottom: 16, width: '100%', textAlign: 'left',
           display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-          border: '1px solid rgba(255,255,255,0.08)',
+          border: '1px solid rgba(var(--overlay-rgb),0.08)',
         }}
         onClick={onOpenThemes}
       >
@@ -376,13 +385,32 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
           <Palette size={18} color="var(--on-accent)" />
         </div>
         <div style={{ flex: 1 }}>
-          <div className="title-card" style={{ color: '#fff', fontWeight: 700 }}>Тема</div>
+          <div className="title-card" style={{ color: 'var(--text-main)', fontWeight: 700 }}>Тема</div>
           <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
             Акцент · Материал · Настроение
           </div>
         </div>
         <ChevronRight size={18} color="var(--text-muted)" />
       </button>
+
+      {/* ── Тёмная / светлая тема ────────────────────────────────── */}
+      <div className="glass-card" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 10, flexShrink: 0, background: 'var(--accent-tint)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          {mode === 'dark' ? <Moon size={18} color="var(--accent)" /> : <Sun size={18} color="var(--accent)" />}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div className="title-card" style={{ fontWeight: 700, marginBottom: 8 }}>
+            {t(lang, 'appearance_title')}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <StyleToggle label={`🌙 ${t(lang, 'mode_dark')}`} active={mode === 'dark'} onClick={() => changeMode('dark')} />
+            <StyleToggle label={`☀️ ${t(lang, 'mode_light')}`} active={mode === 'light'} onClick={() => changeMode('light')} />
+          </div>
+        </div>
+      </div>
 
       {/* ── Language ─────────────────────────────────────────────── */}
       <div className="glass-card" style={{ marginBottom: 16 }}>
@@ -418,7 +446,7 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '8px 12px', borderRadius: 10,
-          background: 'rgba(255,255,255,0.05)',
+          background: 'rgba(var(--overlay-rgb),0.05)',
           border: '1px solid rgba(192,150,60,0.15)',
           marginBottom: 14,
         }}>
@@ -602,7 +630,7 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
         ) : (
           <div style={{
             width: '100%', height: 80, borderRadius: 14,
-            background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(192,150,60,0.25)',
+            background: 'rgba(var(--overlay-rgb),0.04)', border: '1.5px dashed rgba(192,150,60,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             marginBottom: 12, color: 'var(--text-muted)', fontSize: 13,
           }}>
