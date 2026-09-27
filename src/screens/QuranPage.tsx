@@ -3,9 +3,9 @@ import { ChevronLeft, ChevronRight, Play, Square, GraduationCap, RotateCcw, Chec
 import type { Lang } from '../i18n';
 import { useSwipe } from '../hooks/useSwipe';
 import {
-  loadPage, loadLexicon, loadMeanings, loadSiraj, prefetchPage, parseKey, wordPosition, meaningLang, TOTAL_PAGES,
+  loadPage, loadLexicon, loadMeanings, loadSiraj, loadAyahTrans, loadTafsir, prefetchPage, parseKey, wordPosition, meaningLang, TOTAL_PAGES,
 } from '../utils/quranData';
-import type { QuranPageData, Lexicon, Meanings, PageWord, SirajEntry } from '../utils/quranData';
+import type { QuranPageData, Lexicon, Meanings, PageWord, SirajEntry, AyahTexts } from '../utils/quranData';
 import {
   isLemmaLearned, isAffixSeen, setLemmasLearned, markAffixesSeen, markPageDone, setLastPage, reciter,
   reportQuranStats, useQuranProgress,
@@ -14,6 +14,7 @@ import { playWord, playAyahs, stopQuranAudio } from '../utils/quranAudio';
 import AyahPane from '../components/quran/AyahPane';
 import type { WordRef } from '../components/quran/AyahPane';
 import WordCard from '../components/quran/WordCard';
+import TafsirSheet from '../components/quran/TafsirSheet';
 import QuranQuiz from '../components/quran/QuranQuiz';
 import type { QuizItem } from '../components/quran/QuranQuiz';
 import { L } from '../components/quran/qi18n';
@@ -31,7 +32,8 @@ type Step = 'study' | 'test' | 'result';
 
 export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: Props) {
   useQuranProgress();
-  const [data, setData] = useState<{ page: QuranPageData; lex: Lexicon; mean: Meanings; siraj: SirajEntry[] } | null>(null);
+  const [data, setData] = useState<{ page: QuranPageData; lex: Lexicon; mean: Meanings; siraj: SirajEntry[]; ayah: AyahTexts } | null>(null);
+  const [tafsir, setTafsir] = useState<{ key: string; text: string | null } | null>(null);
   const [error, setError] = useState(false);
   const [cards, setCards] = useState<Card[]>([]);
   const [idx, setIdx] = useState(0);
@@ -43,11 +45,11 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
 
   useEffect(() => {
     let alive = true;
-    setData(null); setError(false); setStep('study'); setIdx(0); setKnown(new Set()); setPeek(null);
-    Promise.all([loadPage(pageNo), loadLexicon(), loadMeanings(lang), loadSiraj(pageNo)])
-      .then(([page, lex, mean, siraj]) => {
+    setData(null); setTafsir(null); setError(false); setStep('study'); setIdx(0); setKnown(new Set()); setPeek(null);
+    Promise.all([loadPage(pageNo), loadLexicon(), loadMeanings(lang), loadSiraj(pageNo), loadAyahTrans(pageNo, lang)])
+      .then(([page, lex, mean, siraj, ayah]) => {
         if (!alive) return;
-        setData({ page, lex, mean, siraj });
+        setData({ page, lex, mean, siraj, ayah });
         setCards(buildCards(page));
         setLastPage(pageNo);
         prefetchPage(pageNo + 1);
@@ -184,6 +186,11 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
       .map(([, , , phrase, expl, tr]) => ({ phrase, expl, tr: tr?.[meaningLang(lang)] }));
   };
 
+  function openTafsir(key: string) {
+    setTafsir({ key, text: null });
+    loadTafsir(pageNo, lang).then(t => setTafsir(cur => (cur && cur.key === key ? { key, text: t[key] ?? '' } : cur)));
+  }
+
   const cardFor = (r: WordRef, isPeek: boolean) => {
     const w = word(r)!;
     const lid = w[1];
@@ -201,6 +208,8 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
         newAffixes={(isPeek ? [...w[2], ...w[3]].filter(a => !isAffixSeen(a)) : c?.affixes ?? [])
           .map(a => data.mean.affixes[a]).filter(Boolean)}
         siraj={sirajFor(r, isPeek)}
+        ayahMeaning={data.ayah[data.page.a[r.fi].k]}
+        onTafsir={() => openTafsir(data.page.a[r.fi].k)}
         onPlay={() => playRef(r)}
         onKnow={isPeek ? undefined : () => answer(true)}
         onRepeat={isPeek ? undefined : () => answer(false)}
@@ -212,6 +221,7 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
   return (
     <div className="screen-enter" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       {header}
+      {tafsir && <TafsirSheet lang={lang} ayahKey={tafsir.key} text={tafsir.text} arabic={lang === 'en'} onClose={() => setTafsir(null)} />}
       <div className="page-content" style={{ paddingTop: 10 }}>
         <AyahPane
           page={data.page}

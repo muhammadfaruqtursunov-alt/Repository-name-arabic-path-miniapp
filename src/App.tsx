@@ -139,7 +139,7 @@ export default function App() {
     goHome();
   }
 
-  const navFloat = <NavFloat onHome={onFloatHome} onBack={onFloatBack} />;
+  const navFloat = <NavFloat onHome={onFloatHome} />;
 
   // Шаг назад жестом: свайп от края экрана + нативная кнопка «Назад» Telegram
   // (на Android её же вызывает системный жест «назад»). Ведут себя как стрелка NavFloat.

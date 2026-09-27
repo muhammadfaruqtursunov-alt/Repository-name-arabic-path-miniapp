@@ -61,6 +61,15 @@ export type SirajEntry = [number, number, number, string, string, Partial<Record
 export const loadSiraj = (p: number) =>
   load<SirajEntry[]>(`siraj/${String(p).padStart(3, '0')}.json`).catch(() => [] as SirajEntry[]);
 
+export type AyahTexts = Record<string, string>;
+const pad3 = (p: number) => String(p).padStart(3, '0');
+/** Короткий перевод смыслов аятов страницы: {"2:255": "..."} (ru/tj — «Раввад», uz — Мансур, en — Saheeh). */
+export const loadAyahTrans = (p: number, lang: Lang) =>
+  load<AyahTexts>(`trans/${meaningLang(lang)}/${pad3(p)}.json`).catch(() => ({} as AyahTexts));
+/** Тафсир ас-Саади к аятам страницы: русский для ru/tj/uz, арабский для en. */
+export const loadTafsir = (p: number, lang: Lang) =>
+  load<AyahTexts>(`tafsir/${lang === 'en' ? 'ar' : 'ru'}/${pad3(p)}.json`).catch(() => ({} as AyahTexts));
+
 /** Предзагрузка соседней страницы, чтобы следующий урок открывался мгновенно. */
 export function prefetchPage(p: number) {
   if (p >= 1 && p <= TOTAL_PAGES) loadPage(p).catch(() => {});

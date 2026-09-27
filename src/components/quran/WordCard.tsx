@@ -1,4 +1,5 @@
-import { Volume2, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { Volume2, CheckCircle2, BookText, Copy, Check } from 'lucide-react';
 import type { Lang } from '../../i18n';
 import { L } from './qi18n';
 
@@ -13,14 +14,29 @@ interface Props {
   learned: boolean;
   newAffixes: string[];       // объяснения приставок/окончаний, встреченных впервые
   siraj?: { phrase: string; expl: string; tr?: string }[];   // «ас-Сирадж»: объяснение + перевод
+  ayahMeaning?: string;       // короткий перевод смыслов всего аята
+  onTafsir?: () => void;      // открыть тафсир ас-Саади
   onPlay: () => void;
   onKnow?: () => void;
   onRepeat?: () => void;
   onClose?: () => void;       // для просмотра слова по нажатию в аяте
 }
 
+/** Пояснения переводчика в [ ] и ( ) показываем бледнее, чтобы основной текст читался сразу. */
+function withInsertions(text: string) {
+  return text.split(/(\[[^\]]*\]|\([^)]*\))/g).map((part, i) =>
+    /^[[(]/.test(part) ? <span key={i} style={{ opacity: 0.6 }}>{part}</span> : part);
+}
+
 export default function WordCard(p: Props) {
   const { lang } = p;
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const copySiraj = (i: number, text: string) => {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopiedIdx(i);
+      setTimeout(() => setCopiedIdx(c => (c === i ? null : c)), 1500);
+    }).catch(() => {});
+  };
   return (
     <div className="glass-card" style={{ padding: '14px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -66,18 +82,41 @@ export default function WordCard(p: Props) {
         </div>
       )}
 
+      {p.ayahMeaning && (
+        <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 3 }}>
+            {L(lang, 'Смысл аята', 'Meaning of the ayah', 'Oyat maʼnosi', 'Маънои оят')}
+          </div>
+          <div style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--text-main)' }}>{withInsertions(p.ayahMeaning)}</div>
+          {p.onTafsir && (
+            <button className="btn btn-ghost btn-sm" style={{ marginTop: 8, width: 'auto', gap: 6 }} onClick={p.onTafsir}>
+              <BookText size={14} /> {L(lang, 'Тафсир', 'Tafsir', 'Tafsir', 'Тафсир')}
+            </button>
+          )}
+        </div>
+      )}
+
       {p.siraj && p.siraj.length > 0 && (
         <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>
             📖 {L(lang, '«ас-Сирадж» — объяснение', 'Al-Siraj — explanation', '«as-Siroj» — izoh', '«ас-Сироҷ» — шарҳ')}
           </div>
           {p.siraj.map((s, i) => (
-            <div key={i} style={{ marginTop: i ? 6 : 0 }}>
+            <div key={i} style={{ marginTop: i ? 10 : 0 }}>
               <div dir="rtl" style={{ textAlign: 'right', fontSize: 16, lineHeight: 1.8 }}>
                 <span className="quran-ar" style={{ color: 'var(--accent)' }}>{s.phrase}</span>
                 <span style={{ fontFamily: "'Noto Naskh Arabic', serif", color: 'var(--text-main)' }}> — {s.expl}</span>
               </div>
               {s.tr && <div style={{ fontSize: 13, color: 'var(--text-main)', marginTop: 2 }}>{s.tr}</div>}
+              <button
+                onClick={() => copySiraj(i, `${s.phrase} — ${s.expl}`)}
+                className="btn btn-ghost btn-sm"
+                style={{ marginTop: 6, width: 'auto', gap: 6, fontSize: 11, padding: '4px 10px' }}
+              >
+                {copiedIdx === i
+                  ? <><Check size={13} /> {L(lang, 'Скопировано', 'Copied', 'Nusxalandi', 'Нусхабардорӣ шуд')}</>
+                  : <><Copy size={13} /> {L(lang, 'Копировать текст', 'Copy text', 'Matnni nusxalash', 'Нусхабардории матн')}</>}
+              </button>
             </div>
           ))}
         </div>
