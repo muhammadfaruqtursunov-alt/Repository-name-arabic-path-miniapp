@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, CheckCircle2, MoonStar } from 'lucide-react';
 import type { Lang } from '../i18n';
-import { loadAqidahBook } from '../utils/aqidahData';
-import type { AqidahBookData, AqidahBookId } from '../utils/aqidahData';
+import { loadAqidahBook, loadAqidahLexicon } from '../utils/aqidahData';
+import type { AqidahBookData, AqidahBookId, AqidahLexEntry } from '../utils/aqidahData';
 import {
-  isLessonDone, lessonsDoneCount, markLessonDone, syncAqidahFromCloud, useAqidahProgress,
+  isLessonDone, lessonsDoneCount, learnedWordCount, syncAqidahFromCloud, useAqidahProgress,
 } from '../utils/aqidahProgress';
 import { L } from '../components/quran/qi18n';
+import AqidahLesson from './AqidahLesson';
 
 interface Props {
   lang: Lang;
@@ -37,6 +38,7 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
   const [view, setView] = useState<View>({ kind: 'home' });
   const [data, setData] = useState<Partial<Record<AqidahBookId, AqidahBookData>>>({});
   const [error, setError] = useState<AqidahBookId | null>(null);
+  const [lexicon, setLexicon] = useState<AqidahLexEntry[] | null>(null);
 
   useEffect(() => { void syncAqidahFromCloud(); }, []);
 
@@ -46,7 +48,10 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
         .then(d => setData(prev => (prev[b.id] ? prev : { ...prev, [b.id]: d })))
         .catch(() => setError(b.id));
     }
+    loadAqidahLexicon().then(setLexicon).catch(() => {});
   }, []);
+
+  const lexIndex = useMemo(() => new Map((lexicon ?? []).map((e, i) => [e[0], i] as const)), [lexicon]);
 
   useEffect(() => {
     const parent: View | null =
@@ -71,8 +76,11 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
       <div className="screen-enter" style={{ minHeight: '100dvh' }}>
         {header(L(lang, 'Акида', 'Aqidah', 'Aqida', 'Ақида'), onBack)}
         <div className="page-content">
-          <p className="text-muted" style={{ fontSize: 12, marginBottom: 12 }}>
+          <p className="text-muted" style={{ fontSize: 12, marginBottom: 4 }}>
             {L(lang, 'Основы вероучения Ахлю-Сунна, урок за уроком', 'Fundamentals of Ahl as-Sunnah creed, lesson by lesson', 'Ahli Sunna aqidasining asoslari, dars-baʼdars', 'Асосҳои ақидаи Аҳли Суннат, дарс ба дарс')}
+          </p>
+          <p className="text-muted" style={{ fontSize: 12, marginBottom: 12 }}>
+            {L(lang, 'Выучено слов', 'Words learned', 'Oʻrganilgan soʻzlar', 'Калимаҳои омӯхта')}: <b style={{ color: 'var(--accent-teal)' }}>{learnedWordCount()}</b>
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {BOOKS.map(b => {
@@ -160,46 +168,30 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
   }
 
   // view.kind === 'lesson'
-  const lesson = bookData.lessons[view.idx];
-  const isLast = view.idx === bookData.lessons.length - 1;
-
-  const finishLesson = () => {
-    markLessonDone(book, view.idx);
-    if (!isLast) setView({ kind: 'lesson', book, idx: view.idx + 1 });
-    else setView({ kind: 'book', book });
-  };
-
-  return (
-    <div className="screen-enter" style={{ minHeight: '100dvh' }}>
-      {header(lesson.title_ru, () => setView({ kind: 'book', book }))}
-      <div className="page-content">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-          {lesson.points.map((pt, i) => (
-            <div key={i} className="glass-card" style={{ padding: '14px 16px' }}>
-              <p dir="rtl" lang="ar" className="quran-ar" style={{ fontSize: 19, lineHeight: 1.9, marginBottom: 10, color: 'var(--arabic-color, var(--text-main))' }}>
-                {pt.ar}
-              </p>
-              <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--text-main)' }}>{pt.ru}</p>
-            </div>
-          ))}
+  if (!lexicon) {
+    return (
+      <div className="screen-enter" style={{ minHeight: '100dvh' }}>
+        {header(bookData.lessons[view.idx].title_ru, () => setView({ kind: 'book', book }))}
+        <div className="page-content">
+          <div className="skeleton" style={{ height: 120, borderRadius: 16 }} />
         </div>
-
-        <button className="btn btn-continue" style={{ width: '100%', justifyContent: 'center' }} onClick={finishLesson}>
-          <span className="btn-continue__icon"><CheckCircle2 size={16} /></span>
-          <span className="btn-continue__text">
-            <span className="btn-continue__label">
-              {isLessonDone(book, view.idx)
-                ? L(lang, 'Пройдено', 'Done', 'Oʻtildi', 'Гузашт')
-                : L(lang, 'Отметить пройденным', 'Mark as done', 'Oʻtilgan deb belgilash', 'Гузашта қайд кунед')}
-            </span>
-            {!isLast && (
-              <span className="btn-continue__title">
-                {L(lang, 'Следующий урок', 'Next lesson', 'Keyingi dars', 'Дарси оянда')}
-              </span>
-            )}
-          </span>
-        </button>
       </div>
-    </div>
+    );
+  }
+
+  const isLast = view.idx === bookData.lessons.length - 1;
+  return (
+    <AqidahLesson
+      key={`${book}-${view.idx}`}
+      lang={lang}
+      book={book}
+      lessonIdx={view.idx}
+      lesson={bookData.lessons[view.idx]}
+      lexicon={lexicon}
+      lexIndex={lexIndex}
+      isLast={isLast}
+      onExit={() => setView({ kind: 'book', book })}
+      onNext={() => setView({ kind: 'lesson', book, idx: view.idx + 1 })}
+    />
   );
 }
