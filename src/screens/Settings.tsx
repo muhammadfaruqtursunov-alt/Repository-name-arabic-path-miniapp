@@ -146,14 +146,26 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
     return s ? parseInt(s) : getCssVar('--translation-size', 13);
   });
 
-  // Text colors — пустая строка = ученик не выбирал, используем цвет темы
+  // Text colors — пустая строка = ученик не выбирал, используем цвет темы.
+  // #FFFFFF/#C8D8D2 раньше писались в хранилище автоматически при первом
+  // заходе в Настройки, даже без касания палитры — это дефолты для тёмной
+  // темы, а не выбор ученика. В светлой теме белый текст = невидимый текст
+  // на белой карточке, так что при её выборе такие «призрачные» значения
+  // сбрасываем — а настоящий пользовательский выбор всегда переживёт это,
+  // потому что он перезаписывается заново при каждом клике по палитре.
+  const staleInLight = (v: string | null, staleValue: string, key: string) => {
+    if (v === staleValue && loadTheme().mode === 'light') {
+      localStorage.removeItem(key);
+      document.documentElement.style.removeProperty(key === 'ap_arabic_color' ? '--arabic-color' : '--translation-color');
+      return '';
+    }
+    return v ?? '';
+  };
   const [arabicColor, setArabicColor] = useState<string>(
-    () => localStorage.getItem('ap_arabic_color') ?? ''
+    () => staleInLight(localStorage.getItem('ap_arabic_color'), '#FFFFFF', 'ap_arabic_color')
   );
   const [transColor, setTransColor] = useState<string>(() => {
     const v = localStorage.getItem('ap_trans_color');
-    // #C8D8D2 раньше писался в хранилище автоматически при первом заходе
-    // в Настройки, даже без касания палитры — это не выбор ученика.
     if (v === '#C8D8D2') {
       localStorage.removeItem('ap_trans_color');
       document.documentElement.style.removeProperty('--trans-color');
@@ -162,7 +174,7 @@ export default function Settings({ lang, onLangChange, onBgChange, onOpenThemes 
     return v ?? '';
   });
   const [translationColor, setTranslationColor] = useState<string>(
-    () => localStorage.getItem('ap_translation_color') ?? ''
+    () => staleInLight(localStorage.getItem('ap_translation_color'), '#FFFFFF', 'ap_translation_color')
   );
 
   // Text style toggles

@@ -74,6 +74,9 @@ export const loadTafsir = (p: number, lang: Lang) =>
 export type SearchIndex = Record<string, [number, string]>;
 export const loadSearchIndex = (lang: Lang) =>
   load<SearchIndex>(`search/${meaningLang(lang)}.json`).catch(() => ({} as SearchIndex));
+/** Тот же индекс, но с арабским текстом мусхафа вместо перевода. */
+export const loadArabicSearchIndex = () =>
+  load<SearchIndex>('search/ar.json').catch(() => ({} as SearchIndex));
 
 /** Предзагрузка соседней страницы, чтобы следующий урок открывался мгновенно. */
 export function prefetchPage(p: number) {

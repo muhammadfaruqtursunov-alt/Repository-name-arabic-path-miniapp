@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import type { Lang } from '../../i18n';
 import { L } from './qi18n';
-import { loadSearchIndex, surahName } from '../../utils/quranData';
+import { loadArabicSearchIndex, loadSearchIndex, surahName } from '../../utils/quranData';
 import type { QuranIndex, SurahNames, SearchIndex } from '../../utils/quranData';
 
 interface Props {
@@ -15,8 +15,23 @@ interface Props {
 
 const MAX_AYAH_RESULTS = 25;
 const AYAH_REF = /^(\d{1,3})\s*[:.]\s*(\d{1,3})$/;
+const HAS_ARABIC = /[؀-ۿ]/;
 
-/** Подсвечивает первое вхождение запроса в тексте. */
+/** Снимает огласовки и приводит частые варианты букв к одной форме — чтобы
+ * поиск находил слово, даже если набрано без ташкиля или с «упрощённым» алифом. */
+function normalizeArabic(s: string): string {
+  return s
+    .normalize('NFC')
+    .replace(/[ؐ-ًؚ-ٰٟۖ-ۭ࣓-ࣿ]/g, '')
+    .replace(/ـ/g, '') // ـ ташдид/кашида (тавиль) — символ растяжения, не буква
+    .replace(/[إأآٱ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه');
+}
+
+const SOURCE_LABEL: Record<'ar' | 'ru' | 'tj' | 'uz', string> = { ar: 'AR', ru: 'RU', tj: 'TJ', uz: 'UZ' };
+
+/** Подсвечивает первое вхождение запроса в тексте (не для арабского — там огласовки сдвигают позиции). */
 function highlight(text: string, q: string) {
   if (!q) return text;
   const i = text.toLowerCase().indexOf(q.toLowerCase());
@@ -32,15 +47,15 @@ function highlight(text: string, q: string) {
   );
 }
 
-/** Живой поиск по сурам и аятам Корана — без кнопки, результаты по мере ввода. */
+type Sources = Partial<Record<'ar' | 'ru' | 'tj' | 'uz', SearchIndex>>;
+
+/** Живой поиск по сурам и аятам Корана (арабский текст + ru/tj/uz переводы) — без кнопки, по мере ввода. */
 export default function QuranSearch({ lang, index, names, onOpenPage, onActiveChange }: Props) {
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
-  const [searchIndex, setSearchIndex] = useState<SearchIndex | null>(null);
+  const [sources, setSources] = useState<Sources>({});
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  useEffect(() => { setSearchIndex(null); }, [lang]);
 
   useEffect(() => {
     clearTimeout(debounceRef.current);
@@ -49,9 +64,11 @@ export default function QuranSearch({ lang, index, names, onOpenPage, onActiveCh
   }, [query]);
 
   const ensureIndex = () => {
-    if (searchIndex || loading) return;
+    if (Object.keys(sources).length > 0 || loading) return;
     setLoading(true);
-    loadSearchIndex(lang).then(setSearchIndex).finally(() => setLoading(false));
+    Promise.all([loadArabicSearchIndex(), loadSearchIndex('ru'), loadSearchIndex('tj'), loadSearchIndex('uz')])
+      .then(([ar, ru, tj, uz]) => setSources({ ar, ru, tj, uz }))
+      .finally(() => setLoading(false));
   };
 
   const active = debounced.length > 0;
@@ -70,26 +87,40 @@ export default function QuranSearch({ lang, index, names, onOpenPage, onActiveCh
 
   const directRef = useMemo(() => {
     const m = debounced.match(AYAH_REF);
-    if (!m || !searchIndex) return null;
+    if (!m) return null;
     const key = `${m[1]}:${m[2]}`;
-    const hit = searchIndex[key];
-    return hit ? { key, page: hit[0], text: hit[1] } : null;
-  }, [debounced, searchIndex]);
+    const hit = sources.ru?.[key] ?? sources.ar?.[key];
+    return hit ? { key, page: hit[0] } : null;
+  }, [debounced, sources]);
 
   const ayahMatches = useMemo(() => {
-    if (debounced.length < 2 || !searchIndex) return [];
-    const q = debounced.toLowerCase();
-    const out: { key: string; page: number; text: string }[] = [];
-    for (const key in searchIndex) {
-      if (key === directRef?.key) continue;
-      const [page, text] = searchIndex[key];
-      if (text.toLowerCase().includes(q)) {
-        out.push({ key, page, text });
-        if (out.length >= MAX_AYAH_RESULTS) break;
+    if (debounced.length < 2 || Object.keys(sources).length === 0) return [];
+    const isArabic = HAS_ARABIC.test(debounced);
+    const qArabic = isArabic ? normalizeArabic(debounced) : '';
+    const qText = debounced.toLowerCase();
+
+    const merged = new Map<string, { page: number; hits: { src: 'ar' | 'ru' | 'tj' | 'uz'; text: string }[] }>();
+    const addHit = (src: 'ar' | 'ru' | 'tj' | 'uz', si: SearchIndex | undefined, matches: (text: string) => boolean) => {
+      if (!si) return;
+      for (const key in si) {
+        if (key === directRef?.key) continue;
+        const [page, text] = si[key];
+        if (!matches(text)) continue;
+        const entry = merged.get(key) ?? { page, hits: [] };
+        entry.hits.push({ src, text });
+        merged.set(key, entry);
       }
+    };
+
+    if (isArabic) {
+      addHit('ar', sources.ar, t => normalizeArabic(t).includes(qArabic));
+    } else {
+      addHit('ru', sources.ru, t => t.toLowerCase().includes(qText));
+      addHit('tj', sources.tj, t => t.toLowerCase().includes(qText));
+      addHit('uz', sources.uz, t => t.toLowerCase().includes(qText));
     }
-    return out;
-  }, [debounced, searchIndex, directRef]);
+    return Array.from(merged.entries()).slice(0, MAX_AYAH_RESULTS).map(([key, v]) => ({ key, ...v }));
+  }, [debounced, sources, directRef]);
 
   const nothingFound = active && !loading && surahMatches.length === 0 && !directRef && ayahMatches.length === 0 && debounced.length >= 2;
 
@@ -101,7 +132,8 @@ export default function QuranSearch({ lang, index, names, onOpenPage, onActiveCh
           value={query}
           onFocus={ensureIndex}
           onChange={e => { setQuery(e.target.value); ensureIndex(); }}
-          placeholder={L(lang, 'Поиск по Корану — сура или слово из аята…', 'Search the Quran — a surah or a word from an ayah…', 'Qurʼon boʻyicha qidiruv — sura yoki oyatdan soʻz…', 'Ҷустуҷӯ дар Қуръон — сура ё калима аз оят…')}
+          dir="auto"
+          placeholder={L(lang, 'Поиск по Корану — сура, аят или слово…', 'Search the Quran — a surah, ayah or word…', 'Qurʼon boʻyicha qidiruv — sura, oyat yoki soʻz…', 'Ҷустуҷӯ дар Қуръон — сура, оят ё калима…')}
           style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--text-main)', fontSize: 14 }}
         />
         {query && (
@@ -140,7 +172,7 @@ export default function QuranSearch({ lang, index, names, onOpenPage, onActiveCh
               <button className="glass-card" onClick={() => onOpenPage(directRef.page)}
                 style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '10px 14px' }}>
                 <span style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 700 }}>{directRef.key}</span>
-                <span style={{ fontSize: 13, color: 'var(--text-main)' }}>{directRef.text}</span>
+                {sources.ru?.[directRef.key] && <span style={{ fontSize: 13, color: 'var(--text-main)' }}>{sources.ru[directRef.key][1]}</span>}
               </button>
             </>
           )}
@@ -152,9 +184,20 @@ export default function QuranSearch({ lang, index, names, onOpenPage, onActiveCh
               </div>
               {ayahMatches.map(m => (
                 <button key={m.key} className="glass-card" onClick={() => onOpenPage(m.page)}
-                  style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '10px 14px' }}>
+                  style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '10px 14px' }}>
                   <span style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 700 }}>{m.key}</span>
-                  <span style={{ fontSize: 13, color: 'var(--text-main)', lineHeight: 1.5 }}>{highlight(m.text, debounced)}</span>
+                  {m.hits.map((h, i) => (
+                    <span key={i} style={{ display: 'flex', gap: 6, alignItems: h.src === 'ar' ? 'flex-start' : 'baseline' }}>
+                      <span className="badge badge--gold text-badge" style={{ fontSize: 9, padding: '1px 6px', flexShrink: 0 }}>
+                        {SOURCE_LABEL[h.src]}
+                      </span>
+                      {h.src === 'ar' ? (
+                        <span className="quran-ar" dir="rtl" style={{ fontSize: 16, lineHeight: 1.7, textAlign: 'right', flex: 1 }}>{h.text}</span>
+                      ) : (
+                        <span style={{ fontSize: 13, color: 'var(--text-main)', lineHeight: 1.5 }}>{highlight(h.text, debounced)}</span>
+                      )}
+                    </span>
+                  ))}
                 </button>
               ))}
             </>

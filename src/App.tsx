@@ -209,12 +209,26 @@ export default function App() {
       const v = localStorage.getItem(key);
       if (v) document.documentElement.style.setProperty(cssProp, `${v}${suffix}`);
     };
+    // Настройки раньше писала эти три цвета в хранилище автоматически при
+    // первом открытии экрана, даже без касания палитры — реального выбора
+    // ученика там нет, это дефолты для тёмной темы. #C8D8D2 никогда не был
+    // одним из вариантов палитры, так что чистим его всегда; #FFFFFF —
+    // валидный вариант палитры, поэтому его чистим только в светлой теме,
+    // где белый текст на белой карточке невидим (осознанный повторный выбор
+    // белого уже в светлой теме переживёт это — он перезаписывается заново
+    // при каждом клике по палитре).
+    const isLight = loadTheme().mode === 'light';
+    const clearStale = (key: string, cssProp: string, staleValues: string[]) => {
+      const v = localStorage.getItem(key);
+      if (v && staleValues.includes(v)) localStorage.removeItem(key);
+      else if (v) document.documentElement.style.setProperty(cssProp, v);
+    };
     set('ap_arabic_size',       '--font-arabic-size',  'px');
     set('ap_trans_size',        '--font-trans-size',   'px');
     set('ap_translation_size',  '--translation-size',  'px');
-    set('ap_arabic_color',      '--arabic-color');
-    set('ap_trans_color',       '--trans-color');
-    set('ap_translation_color', '--translation-color');
+    clearStale('ap_arabic_color',      '--arabic-color',      isLight ? ['#FFFFFF'] : []);
+    clearStale('ap_trans_color',       '--trans-color',       ['#C8D8D2']);
+    clearStale('ap_translation_color', '--translation-color', isLight ? ['#FFFFFF'] : []);
     set('ap_arabic_weight',     '--arabic-weight');
     set('ap_arabic_style',      '--arabic-style');
     set('ap_trans_style',       '--trans-style');
