@@ -6,7 +6,7 @@ import {
 } from '../utils/quranData';
 import type { QuranIndex, SurahNames, Lexicon, Meanings } from '../utils/quranData';
 import {
-  RECITERS, isPageDone, learnedCount, pagesDoneCount, nextPageToLearn, reciter, setReciter,
+  isPageDone, learnedCount, pagesDoneCount, nextPageToLearn,
   lastReview, setLastReview, learnedLemmaIds, setLemmasLearned, syncFromCloud, useQuranProgress,
   reportQuranStats,
 } from '../utils/quranProgress';
@@ -161,19 +161,6 @@ export default function Quran({ lang, onBack, onLocalBack }: Props) {
             <ChevronRight size={16} color="var(--text-muted)" />
           </button>
         )}
-
-        {/* Чтец */}
-        <div style={{ marginBottom: 12 }}>
-          <div className="text-muted" style={{ fontSize: 12, marginBottom: 6 }}>{L(lang, 'Чтец', 'Reciter', 'Qori', 'Қорӣ')}</div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {RECITERS.map(r => (
-              <button key={r.id} onClick={() => setReciter(r.id)} className="btn btn-ghost btn-sm"
-                style={{ width: 'auto', borderColor: reciter() === r.id ? 'var(--accent)' : undefined, color: reciter() === r.id ? 'var(--accent)' : undefined }}>
-                {lang === 'en' || lang === 'uz' ? r.latin : r.name}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Вкладки */}
         <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', marginBottom: 12 }}>

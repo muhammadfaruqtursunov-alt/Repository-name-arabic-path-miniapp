@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Play, Square, GraduationCap, RotateCcw, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Square, GraduationCap, RotateCcw, CheckCircle2, Mic2 } from 'lucide-react';
 import type { Lang } from '../i18n';
 import { useSwipe } from '../hooks/useSwipe';
 import {
@@ -15,6 +15,7 @@ import AyahPane from '../components/quran/AyahPane';
 import type { WordRef } from '../components/quran/AyahPane';
 import WordCard from '../components/quran/WordCard';
 import TafsirSheet from '../components/quran/TafsirSheet';
+import ReciterSheet from '../components/quran/ReciterSheet';
 import QuranQuiz from '../components/quran/QuranQuiz';
 import type { QuizItem } from '../components/quran/QuranQuiz';
 import { L } from '../components/quran/qi18n';
@@ -42,6 +43,7 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
   const [step, setStep] = useState<Step>('study');
   const [learnedNow, setLearnedNow] = useState<number[]>([]);
   const [playing, setPlaying] = useState<number | null>(null);
+  const [showReciter, setShowReciter] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -139,10 +141,16 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
       </button>
       <h1 className="title-card" style={{ flex: 1, fontSize: 15 }}>{title}</h1>
       {data && (
-        <button onClick={togglePlayPage} className="btn btn-ghost btn-sm" style={{ gap: 6, marginRight: 84 }}
-          aria-label={L(lang, 'Слушать страницу', 'Listen to the page', 'Sahifani tinglash', 'Шунидани саҳифа')}>
-          {playing !== null ? <Square size={14} /> : <Play size={14} />}
-        </button>
+        <>
+          <button onClick={() => setShowReciter(true)} className="btn btn-ghost btn-sm"
+            aria-label={L(lang, 'Выбрать чтеца', 'Choose reciter', 'Qorini tanlash', 'Интихоби қорӣ')}>
+            <Mic2 size={14} />
+          </button>
+          <button onClick={togglePlayPage} className="btn btn-ghost btn-sm" style={{ gap: 6, marginRight: 56 }}
+            aria-label={L(lang, 'Слушать страницу', 'Listen to the page', 'Sahifani tinglash', 'Шунидани саҳифа')}>
+            {playing !== null ? <Square size={14} /> : <Play size={14} />}
+          </button>
+        </>
       )}
     </div>
   );
@@ -222,6 +230,7 @@ export default function QuranPage({ lang, pageNo, title, onOpenPage, onExit }: P
     <div className="screen-enter" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       {header}
       {tafsir && <TafsirSheet lang={lang} ayahKey={tafsir.key} text={tafsir.text} arabic={lang === 'en'} onClose={() => setTafsir(null)} />}
+      {showReciter && <ReciterSheet lang={lang} onClose={() => setShowReciter(false)} />}
       <div className="page-content" style={{ paddingTop: 10 }}>
         <AyahPane
           page={data.page}

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { Lang } from '../../i18n';
 import { L } from './qi18n';
@@ -19,9 +20,9 @@ export default function TafsirSheet({ lang, ayahKey, text, arabic, onClose }: Pr
     return () => { document.body.style.overflow = prev; };
   }, []);
 
-  return (
-    <div className="tafsir-overlay" onClick={onClose}>
-      <div className="tafsir-sheet" onClick={e => e.stopPropagation()} role="dialog">
+  return createPortal(
+    <div className="sheet-overlay" onClick={onClose}>
+      <div className="sheet-panel" onClick={e => e.stopPropagation()} role="dialog">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <div style={{ flex: 1 }}>
             <div className="title-card" style={{ fontSize: 15 }}>
@@ -52,6 +53,7 @@ export default function TafsirSheet({ lang, ayahKey, text, arabic, onClose }: Pr
               : <p className="text-muted">{L(lang, 'Для этого аята тафсира нет.', 'No tafsir for this ayah.', 'Bu oyat uchun tafsir yoʻq.', 'Барои ин оят тафсир нест.')}</p>}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
