@@ -27,7 +27,7 @@ const BOOKS: { id: AqidahBookId; title: (l: Lang) => string; subtitle: (l: Lang)
   },
   {
     id: 'qawaid',
-    title: l => L(l, 'Четыре основы', 'The Four Rules', 'Toʻrt qoida', 'Чор қоида'),
+    title: l => L(l, 'Четыре правила', 'The Four Rules', 'Toʻrt qoida', 'Чор қоида'),
     subtitle: l => L(l, 'Как распознать многобожие', 'How to recognize shirk', 'Shirkni qanday tanish mumkin', 'Чӣ гуна ширкро шинохт'),
   },
 ];
