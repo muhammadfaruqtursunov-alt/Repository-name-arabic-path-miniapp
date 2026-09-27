@@ -190,7 +190,8 @@ export default function Quran({ lang, onBack, onLocalBack }: Props) {
         </div>
 
         <TabList lang={lang} tab={tab} index={index} names={names}
-          onList={(title, from, to) => setView({ kind: 'list', title, from, to })}
+          onList={(title, from, to) =>
+            from === to ? openPage(from, { kind: 'home' }) : setView({ kind: 'list', title, from, to })}
           onPage={p => openPage(p, { kind: 'home' })} />
 
         <p className="text-muted" style={{ fontSize: 10, marginTop: 20, lineHeight: 1.5 }}>

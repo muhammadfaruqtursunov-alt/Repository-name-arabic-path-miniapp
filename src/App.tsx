@@ -31,6 +31,7 @@ import Sarf             from './screens/Sarf';
 import WordTrainer      from './screens/WordTrainer';
 import Section          from './screens/Section';
 import Quran            from './screens/Quran';
+import EdgeSwipeHint, { edgeHintSeen, markEdgeHintSeen } from './components/EdgeSwipeHint';
 import type { SectionKey } from './screens/Section';
 import { loadTheme, applyTheme } from './utils/theme';
 import { markLastSection } from './utils/quranProgress';
@@ -144,6 +145,17 @@ export default function App() {
   // (на Android её же вызывает системный жест «назад»). Ведут себя как стрелка NavFloat.
   const canGoBack = !!user && !ROOT_SCREENS.includes(screen);
   useEdgeSwipeBack(onFloatBack, canGoBack);
+
+  // Разовая подсказка новичку: «назад — свайпом от края» (при первом входе вглубь приложения)
+  const [showEdgeHint, setShowEdgeHint] = useState(false);
+  useEffect(() => {
+    if (canGoBack && !edgeHintSeen()) {
+      const t = setTimeout(() => setShowEdgeHint(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, [canGoBack]);
+  const closeEdgeHint = useCallback(() => { markEdgeHintSeen(); setShowEdgeHint(false); }, []);
+  const navFloatWithHint = <>{navFloat}{showEdgeHint && <EdgeSwipeHint lang={lang} onClose={closeEdgeHint} />}</>;
   useTelegramBackButton(canGoBack, onFloatBack);
 
   // Achievements
@@ -478,7 +490,7 @@ export default function App() {
 
   if (screen === 'volume' && user) {
     return (
-      <>{navFloat}<VolumeScreen
+      <>{navFloatWithHint}<VolumeScreen
         lang={lang}
         bookId={selectedBook}
         currentLesson={user.current_lesson}
@@ -495,7 +507,7 @@ export default function App() {
   // Lesson study screen — shows word cards before the test
   if (screen === 'lesson') {
     return (
-      <>{navFloat}<LessonScreen
+      <>{navFloatWithHint}<LessonScreen
         lang={lang}
         bookId={selectedBook}
         lesson={selectedLesson}
@@ -509,7 +521,7 @@ export default function App() {
 
   if (screen === 'tests') {
     return (
-      <>{navFloat}<Tests
+      <>{navFloatWithHint}<Tests
         lang={lang}
         bookId={selectedBook}
         lesson={selectedLesson}
@@ -525,25 +537,25 @@ export default function App() {
 
   if (screen === 'umrah') {
     return (
-      <>{navFloat}<UmrahGuide lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
+      <>{navFloatWithHint}<UmrahGuide lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
     );
   }
 
   if (screen === 'sarf') {
     return (
-      <>{navFloat}<Sarf lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
+      <>{navFloatWithHint}<Sarf lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
     );
   }
 
   if (screen === 'trainer') {
     return (
-      <>{navFloat}<WordTrainer lang={lang} onBack={goBack} /></>
+      <>{navFloatWithHint}<WordTrainer lang={lang} onBack={goBack} /></>
     );
   }
 
   if (screen === 'section' && user) {
     return (
-      <>{navFloat}<Section
+      <>{navFloatWithHint}<Section
         lang={lang}
         section={sectionKey}
         volumes={volumes}
@@ -567,25 +579,25 @@ export default function App() {
 
   if (screen === 'quran') {
     return (
-      <>{navFloat}<Quran lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
+      <>{navFloatWithHint}<Quran lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
     );
   }
 
   if (screen === 'ask_teacher') {
     return (
-      <>{navFloat}<AskTeacher lang={lang} onBack={goBack} /></>
+      <>{navFloatWithHint}<AskTeacher lang={lang} onBack={goBack} /></>
     );
   }
 
   if (screen === 'review') {
     return (
-      <>{navFloat}<ReviewScreen lang={lang} onBack={goBack} /></>
+      <>{navFloatWithHint}<ReviewScreen lang={lang} onBack={goBack} /></>
     );
   }
 
   if (screen === 'themes') {
     return (
-      <>{navFloat}<Themes lang={lang} onBack={() => {
+      <>{navFloatWithHint}<Themes lang={lang} onBack={() => {
         skipRecordRef.current = true;
         navStackRef.current = navStackRef.current.slice(0, -1);
         if (user?.is_teacher) { setScreen('dashboard'); }

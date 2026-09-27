@@ -511,6 +511,10 @@ textarea.input-field { resize: none; min-height: 100px; }
   overflow-y: auto;
   padding: 0 16px 80px;
 }
+/* Стрелка «‹» слева в шапках убрана: назад — свайпом от края экрана или стрелкой плавающей кнопки */
+.page-header > button:first-child:has(> svg.lucide-chevron-left),
+.hdr-back-x { display: none; }
+
 .page-header {
   padding: 16px 16px 12px;
   display: flex;
@@ -724,3 +728,30 @@ input[type=range]::-webkit-slider-thumb {
 .navfloat__btn:active { transform: scale(0.88); }
 .navfloat__btn.home   { color: var(--accent-gold); }
 .navfloat__sep { width: 1px; background: rgba(255, 255, 255, 0.12); margin: 5px 1px; }
+
+/* ─── Подсказка «назад — свайпом от края» (показывается один раз) ─── */
+.edge-hint {
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(8, 8, 12, 0.72);
+  display: flex; align-items: center; justify-content: center;
+  animation: edge-hint-in .35s ease both;
+}
+.edge-hint__card {
+  max-width: 300px; margin: 0 24px; padding: 22px 20px; text-align: center;
+  border-radius: 20px; background: #141319; border: 1px solid var(--accent-border, rgba(192,150,60,.4));
+  box-shadow: 0 12px 40px rgba(0,0,0,.5);
+}
+.edge-hint__title { font-size: 17px; font-weight: 800; color: var(--text-main); margin-top: 10px; }
+.edge-hint__sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+.edge-hint__arrows { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--accent); font-size: 22px; letter-spacing: 2px; }
+.edge-hint__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: edge-hint-pulse 1.2s ease-in-out infinite; }
+.edge-hint__side { position: absolute; top: 50%; width: 64px; height: 64px; margin-top: -32px; }
+.edge-hint__side--l { left: 0; }
+.edge-hint__side--r { right: 0; }
+.edge-hint__finger { position: absolute; top: 0; font-size: 34px; }
+.edge-hint__side--l .edge-hint__finger { left: 6px; animation: edge-hint-swipe-l 1.8s ease-in-out infinite; }
+.edge-hint__side--r .edge-hint__finger { right: 6px; animation: edge-hint-swipe-r 1.8s ease-in-out infinite; }
+@keyframes edge-hint-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes edge-hint-pulse { 0%,100% { transform: scale(1); opacity: .6; } 50% { transform: scale(1.6); opacity: 1; } }
+@keyframes edge-hint-swipe-l { 0% { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } 70% { transform: translateX(110px); opacity: 1; } 100% { transform: translateX(110px); opacity: 0; } }
+@keyframes edge-hint-swipe-r { 0% { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } 70% { transform: translateX(-110px); opacity: 1; } 100% { transform: translateX(-110px); opacity: 0; } }

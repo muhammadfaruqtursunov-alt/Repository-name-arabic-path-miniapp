@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronDown, BookOpen, Compass, Eye, PenLine, BookOpenText, Library } from 'lucide-react';
+import { ChevronLeft, ChevronDown, BookOpen, Compass, Eye, PenLine, BookOpenText } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
 import type { VolumeInfo } from '../api/client';
@@ -167,13 +167,6 @@ function QuranSection({ lang, onOpenQuran }: { lang: Lang; onOpenQuran: () => vo
         )}
         onClick={onOpenQuran}
         gold
-        wide
-      />
-      <SectionTile
-        icon={<Library {...ICON} />}
-        title={L(lang, '«Сирадж» — трудные слова', 'Al-Siraj — difficult words', '«Siroj» — qiyin soʻzlar', '«Сироҷ» — калимаҳои душвор')}
-        subtitle={L(lang, 'Объяснения по сурам', 'Explanations by surah', 'Suralar boʻyicha izohlar', 'Шарҳҳо аз рӯи сураҳо')}
-        soonLabel={soonLabel(lang)}
         wide
       />
     </div>

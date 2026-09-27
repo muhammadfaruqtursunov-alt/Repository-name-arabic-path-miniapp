@@ -390,7 +390,7 @@ export default function UmrahGuide({ lang, onBack, onLocalBack }: Props) {
         background: 'linear-gradient(180deg, rgba(13,31,26,0.6) 0%, var(--bg-deep) 100%), url(https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=600) center/cover no-repeat',
         textAlign: 'center', position: 'relative',
       }}>
-        <button style={{ position: 'absolute', top: 16, left: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
+        <button className="hdr-back-x" style={{ position: 'absolute', top: 16, left: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
           onClick={onBack}>
           <ChevronLeft size={24} />
         </button>
