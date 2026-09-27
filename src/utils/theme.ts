@@ -5,7 +5,7 @@ export type Mode    = 'dark' | 'light';
 
 export interface Theme { accent: Accent; surface: Surface; mood: Mood; mode: Mode; }
 
-const DEFAULT: Theme = { accent: 'gold', surface: 'glass', mood: 'focused', mode: 'dark' };
+const DEFAULT: Theme = { accent: 'gold', surface: 'glass', mood: 'focused', mode: 'light' };
 const KEY = 'ap_theme';
 
 export function loadTheme(): Theme {
