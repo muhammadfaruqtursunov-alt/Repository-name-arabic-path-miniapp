@@ -213,9 +213,9 @@ function TabList({ lang, tab, index, names, onList, onPage }: {
   const row = (key: string | number, badge: string, title: string, sub: string, ar: string | null, from: number, to: number) => (
     <button key={key} className="glass-card" onClick={() => onList(title, from, to)}
       style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '12px 14px' }}>
-      <span className="badge badge--muted text-badge" style={{ minWidth: 34, textAlign: 'center' }}>{badge}</span>
+      <span className="surah-medal">{badge}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="title-card" style={{ fontSize: 14 }}>{title}</div>
+        <div className="title-card surah-title-live" style={{ fontSize: 14 }}>{title}</div>
         <div className="text-muted" style={{ fontSize: 11 }}>{sub}</div>
       </div>
       {ar && <span className="quran-ar" dir="rtl" style={{ fontSize: 18, color: 'var(--text-muted)' }}>{ar}</span>}

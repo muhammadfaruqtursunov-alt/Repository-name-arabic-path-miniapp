@@ -136,6 +136,11 @@ html.mood-bold    { --m-glow: 1.6; --m-arabic: 1.15; --m-border: 1.25; }
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Приложение всегда тёмное: без этого <button>/<input> берут системный
+   чёрный ButtonText вместо --text-main и текст пропадает на тёмном фоне. */
+:root { color-scheme: dark; }
+button, input, select, textarea { color: inherit; font: inherit; }
+
 body {
   background: var(--bg-deep);
   min-height: 100dvh;
@@ -532,6 +537,22 @@ textarea.input-field { resize: none; min-height: 100px; }
 }
 .badge--teal { background: rgba(139,151,168,0.14); color: var(--accent-teal); }
 .badge--gold { background: rgba(192,150,60,0.14);  color: var(--accent-gold); }
+
+/* ─── Медальон номера суры/джуза/хизба — золотая (тематическая) окантовка ─── */
+.surah-medal {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(var(--a-rgb), 0.22), rgba(var(--a-rgb), 0.09));
+  border: 1px solid var(--accent-border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 0 10px rgba(var(--a-rgb), calc(0.20 * var(--m-glow)));
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+.surah-title-live {
+  text-shadow: 0 0 16px rgba(var(--a-rgb), calc(0.35 * var(--m-glow)));
+}
 
 /* ─── Range slider ───────────────────────────────────────────── */
 input[type=range] {
