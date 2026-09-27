@@ -145,8 +145,14 @@ export default function Quran({ lang, onBack, onLocalBack }: Props) {
           <div className="text-muted" style={{ fontSize: 12, margin: '6px 0 12px' }}>
             {L(lang, 'Страниц пройдено', 'Pages done', 'Tugatilgan sahifalar', 'Саҳифаҳои анҷомёфта')}: {pagesDoneCount()} / {TOTAL_PAGES}
           </div>
-          <button className="btn btn-primary" style={{ gap: 8 }} onClick={() => openPage(next, { kind: 'home' })}>
-            <Play size={16} /> {pagesDoneCount() ? L(lang, 'Продолжить', 'Continue', 'Davom etish', 'Идома') : L(lang, 'Начать', 'Start', 'Boshlash', 'Оғоз')} · {pageTitle(next)}
+          <button className="btn-continue" onClick={() => openPage(next, { kind: 'home' })}>
+            <span className="btn-continue__icon"><Play size={16} fill="currentColor" /></span>
+            <span className="btn-continue__text">
+              <span className="btn-continue__label">
+                {pagesDoneCount() ? L(lang, 'Продолжить', 'Continue', 'Davom etish', 'Идома') : L(lang, 'Начать', 'Start', 'Boshlash', 'Оғоз')}
+              </span>
+              <span className="btn-continue__title">{pageTitle(next)}</span>
+            </span>
           </button>
         </div>
 
