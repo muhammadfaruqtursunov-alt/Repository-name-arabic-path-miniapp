@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, CheckCircle2 } from 'lucide-react';
 import type { Lang } from '../i18n';
 import type { AqidahLesson as AqidahLessonData, AqidahLexEntry } from '../utils/aqidahData';
@@ -78,7 +79,7 @@ export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, l
         </button>
       </div>
 
-      {subtitle && (
+      {subtitle && createPortal(
         <div
           onClick={() => setSubtitle(null)}
           style={{
@@ -90,7 +91,8 @@ export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, l
         >
           <div className="quran-ar" dir="rtl" style={{ fontSize: 22, marginBottom: 4 }}>{subtitle.ar}</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)' }}>{subtitle.ru}</div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
