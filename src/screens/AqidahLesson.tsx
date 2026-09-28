@@ -7,6 +7,7 @@ import { markLessonDone, isLessonDone } from '../utils/aqidahProgress';
 import type { AqidahBookId } from '../utils/aqidahData';
 import AqidahArabicText from '../components/aqidah/AqidahArabicText';
 import { L } from '../components/quran/qi18n';
+import { speakArabic, stopSpeech } from '../utils/speak';
 
 interface Props {
   lang: Lang;
@@ -20,20 +21,11 @@ interface Props {
   onNext: () => void;
 }
 
-function speakArabic(text: string) {
-  try {
-    window.speechSynthesis?.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ar-SA';
-    window.speechSynthesis?.speak(u);
-  } catch { /* TTS недоступен */ }
-}
-
 export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, lexIndex, isLast, onExit, onNext }: Props) {
   const [subtitle, setSubtitle] = useState<{ ar: string; ru: string } | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => { if (hideTimer.current) clearTimeout(hideTimer.current); window.speechSynthesis?.cancel(); }, []);
+  useEffect(() => () => { if (hideTimer.current) clearTimeout(hideTimer.current); stopSpeech(); }, []);
 
   function onTapWord(_id: number, entry: AqidahLexEntry) {
     speakArabic(entry[1]);

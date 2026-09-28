@@ -37,8 +37,9 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
   useAqidahProgress();
   const [view, setView] = useState<View>({ kind: 'home' });
   const [data, setData] = useState<Partial<Record<AqidahBookId, AqidahBookData>>>({});
-  const [error, setError] = useState<AqidahBookId | null>(null);
+  const [error, setError] = useState<Set<AqidahBookId>>(new Set());
   const [lexicon, setLexicon] = useState<AqidahLexEntry[] | null>(null);
+  const [lexError, setLexError] = useState(false);
 
   useEffect(() => { void syncAqidahFromCloud(); }, []);
 
@@ -46,9 +47,9 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
     for (const b of BOOKS) {
       loadAqidahBook(b.id)
         .then(d => setData(prev => (prev[b.id] ? prev : { ...prev, [b.id]: d })))
-        .catch(() => setError(b.id));
+        .catch(() => setError(prev => new Set(prev).add(b.id)));
     }
-    loadAqidahLexicon().then(setLexicon).catch(() => {});
+    loadAqidahLexicon().then(setLexicon).catch(() => setLexError(true));
   }, []);
 
   const lexIndex = useMemo(() => new Map((lexicon ?? []).map((e, i) => [e[0], i] as const)), [lexicon]);
@@ -115,7 +116,7 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
   const meta = BOOKS.find(b => b.id === book)!;
   const bookData = data[book];
 
-  if (error === book) {
+  if (error.has(book)) {
     return (
       <div className="screen-enter" style={{ minHeight: '100dvh' }}>
         {header(meta.title(lang), () => setView({ kind: 'home' }))}
@@ -165,6 +166,19 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
   }
 
   // view.kind === 'lesson'
+  if (lexError) {
+    return (
+      <div className="screen-enter" style={{ minHeight: '100dvh' }}>
+        {header(bookData.lessons[view.idx].title_ru, () => setView({ kind: 'book', book }))}
+        <div className="page-content">
+          <p className="text-muted" style={{ textAlign: 'center', marginTop: 40 }}>
+            {L(lang, 'Нет связи. Попробуйте позже.', 'No connection. Try again later.', 'Aloqa yoʻq. Keyinroq urinib koʻring.', 'Пайваст нест. Баъдтар кӯшиш кунед.')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!lexicon) {
     return (
       <div className="screen-enter" style={{ minHeight: '100dvh' }}>
