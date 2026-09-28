@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, CheckCircle2 } from 'lucide-react';
 import type { Lang } from '../i18n';
 import type { AqidahLesson as AqidahLessonData, AqidahLexEntry } from '../utils/aqidahData';
 import { aqidahLessonTitle, aqidahPointText } from '../utils/aqidahData';
 import { markLessonDone, isLessonDone } from '../utils/aqidahProgress';
 import type { AqidahBookId } from '../utils/aqidahData';
-import AqidahArabicText from '../components/aqidah/AqidahArabicText';
+import AqidahPane from '../components/aqidah/AqidahPane';
+import type { AqidahWordRef } from '../components/aqidah/AqidahPane';
 import { L } from '../components/quran/qi18n';
 import { speakArabic, stopSpeech } from '../utils/speak';
 
@@ -23,20 +23,20 @@ interface Props {
 }
 
 export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, lexIndex, isLast, onExit, onNext }: Props) {
-  const [subtitle, setSubtitle] = useState<{ ar: string; ru: string } | null>(null);
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [active, setActive] = useState<AqidahWordRef>({ pi: 0, id: -1 });
 
-  useEffect(() => () => { if (hideTimer.current) clearTimeout(hideTimer.current); stopSpeech(); }, []);
+  useEffect(() => () => stopSpeech(), []);
 
-  function onTapWord(_id: number, entry: AqidahLexEntry) {
+  function onTapWord(ref: AqidahWordRef, entry: AqidahLexEntry) {
     speakArabic(entry[1]);
-    setSubtitle({ ar: entry[1], ru: entry[2] });
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setSubtitle(null), 3000);
+    setActive(ref);
   }
 
+  const activePoint = lesson.points[active.pi];
+  const activeWord = active.id >= 0 ? lexicon[active.id] : null;
+
   return (
-    <div className="screen-enter" style={{ minHeight: '100dvh' }}>
+    <div className="screen-enter" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       <div className="page-header islamic-header" style={{ background: 'var(--bg-card)' }}>
         <button onClick={onExit} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}>
           <ChevronLeft size={24} />
@@ -44,14 +44,27 @@ export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, l
         <h1 className="title-card" style={{ flex: 1 }}>{aqidahLessonTitle(lesson, lang)}</h1>
       </div>
 
-      <div className="page-content" style={{ paddingBottom: subtitle ? 90 : undefined }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-          {lesson.points.map((pt, i) => (
-            <div key={i} className="glass-card" style={{ padding: '14px 16px' }}>
-              <AqidahArabicText text={pt.ar} lexicon={lexicon} lexIndex={lexIndex} onTapWord={onTapWord} />
-              <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--text-main)' }}>{aqidahPointText(pt, lang)}</p>
+      <div className="page-content" style={{ paddingTop: 10 }}>
+        <AqidahPane
+          points={lesson.points}
+          activeIdx={active.pi}
+          activeWordId={active.id}
+          lexicon={lexicon}
+          lexIndex={lexIndex}
+          onTapPoint={pi => setActive({ pi, id: -1 })}
+          onTapWord={onTapWord}
+        />
+
+        <div className="glass-card" style={{ padding: '14px 16px', marginBottom: 16 }}>
+          {activeWord && (
+            <div style={{ borderBottom: '1px solid var(--border)', marginBottom: 10, paddingBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                <span className="quran-ar" dir="rtl" style={{ fontSize: 20, color: 'var(--accent)' }}>{activeWord[1]}</span>
+                <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-main)' }}>{activeWord[2]}</span>
+              </div>
             </div>
-          ))}
+          )}
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--text-main)' }}>{aqidahPointText(activePoint, lang)}</p>
         </div>
 
         <button className="btn btn-continue" style={{ width: '100%', justifyContent: 'center' }}
@@ -71,22 +84,6 @@ export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, l
           </span>
         </button>
       </div>
-
-      {subtitle && createPortal(
-        <div
-          onClick={() => setSubtitle(null)}
-          style={{
-            position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40,
-            padding: '14px 20px calc(14px + env(safe-area-inset-bottom))',
-            background: 'var(--bg-glass)', backdropFilter: 'blur(14px)',
-            borderTop: '1px solid var(--border)', textAlign: 'center',
-          }}
-        >
-          <div className="quran-ar" dir="rtl" style={{ fontSize: 22, marginBottom: 4 }}>{subtitle.ar}</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)' }}>{subtitle.ru}</div>
-        </div>,
-        document.body,
-      )}
     </div>
   );
 }
