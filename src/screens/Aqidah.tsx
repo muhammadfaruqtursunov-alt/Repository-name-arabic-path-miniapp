@@ -4,7 +4,7 @@ import type { Lang } from '../i18n';
 import { loadAqidahBook, loadAqidahLexicon } from '../utils/aqidahData';
 import type { AqidahBookData, AqidahBookId, AqidahLexEntry } from '../utils/aqidahData';
 import {
-  isLessonDone, lessonsDoneCount, learnedWordCount, syncAqidahFromCloud, useAqidahProgress,
+  isLessonDone, lessonsDoneCount, syncAqidahFromCloud, useAqidahProgress,
 } from '../utils/aqidahProgress';
 import { L } from '../components/quran/qi18n';
 import AqidahLesson from './AqidahLesson';
@@ -76,11 +76,8 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
       <div className="screen-enter" style={{ minHeight: '100dvh' }}>
         {header(L(lang, 'Акида', 'Aqidah', 'Aqida', 'Ақида'), onBack)}
         <div className="page-content">
-          <p className="text-muted" style={{ fontSize: 12, marginBottom: 4 }}>
-            {L(lang, 'Основы вероучения Ахлю-Сунна, урок за уроком', 'Fundamentals of Ahl as-Sunnah creed, lesson by lesson', 'Ahli Sunna aqidasining asoslari, dars-baʼdars', 'Асосҳои ақидаи Аҳли Суннат, дарс ба дарс')}
-          </p>
           <p className="text-muted" style={{ fontSize: 12, marginBottom: 12 }}>
-            {L(lang, 'Выучено слов', 'Words learned', 'Oʻrganilgan soʻzlar', 'Калимаҳои омӯхта')}: <b style={{ color: 'var(--accent-teal)' }}>{learnedWordCount()}</b>
+            {L(lang, 'Основы вероучения Ахлю-Сунна, урок за уроком', 'Fundamentals of Ahl as-Sunnah creed, lesson by lesson', 'Ahli Sunna aqidasining asoslari, dars-baʼdars', 'Асосҳои ақидаи Аҳли Суннат, дарс ба дарс')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {BOOKS.map(b => {
