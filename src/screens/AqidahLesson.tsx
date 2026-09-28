@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { ChevronLeft, CheckCircle2 } from 'lucide-react';
 import type { Lang } from '../i18n';
 import type { AqidahLesson as AqidahLessonData, AqidahLexEntry } from '../utils/aqidahData';
+import { aqidahLessonTitle, aqidahPointText } from '../utils/aqidahData';
 import { markLessonDone, isLessonDone } from '../utils/aqidahProgress';
 import type { AqidahBookId } from '../utils/aqidahData';
 import AqidahArabicText from '../components/aqidah/AqidahArabicText';
@@ -40,7 +41,7 @@ export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, l
         <button onClick={onExit} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}>
           <ChevronLeft size={24} />
         </button>
-        <h1 className="title-card" style={{ flex: 1 }}>{lesson.title_ru}</h1>
+        <h1 className="title-card" style={{ flex: 1 }}>{aqidahLessonTitle(lesson, lang)}</h1>
       </div>
 
       <div className="page-content" style={{ paddingBottom: subtitle ? 90 : undefined }}>
@@ -48,7 +49,7 @@ export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, l
           {lesson.points.map((pt, i) => (
             <div key={i} className="glass-card" style={{ padding: '14px 16px' }}>
               <AqidahArabicText text={pt.ar} lexicon={lexicon} lexIndex={lexIndex} onTapWord={onTapWord} />
-              <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--text-main)' }}>{pt.ru}</p>
+              <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--text-main)' }}>{aqidahPointText(pt, lang)}</p>
             </div>
           ))}
         </div>

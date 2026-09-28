@@ -2,11 +2,25 @@
  * Статические данные раздела «Акида» (public/aqidah/, готовятся
  * scripts/aqidah/*.py + ручной перевод *_ru.json). Грузим по требованию.
  */
-export interface AqidahPoint { ar: string; ru: string }
-export interface AqidahLesson { title_ru: string; points: AqidahPoint[] }
+import type { Lang } from '../i18n';
+
+export interface AqidahPoint { ar: string; ru: string; tj?: string; uz?: string }
+export interface AqidahLesson { title_ru: string; title_tj?: string; title_uz?: string; points: AqidahPoint[] }
 export interface AqidahBookData { lessons: AqidahLesson[] }
 
 export type AqidahBookId = 'usul' | 'qawaid';
+
+/** Перевод пункта/заголовка на язык ученика, с падением на русский (uz/tj не для всех книг). */
+export function aqidahLessonTitle(lesson: AqidahLesson, lang: Lang): string {
+  if (lang === 'uz') return lesson.title_uz ?? lesson.title_ru;
+  if (lang === 'tj') return lesson.title_tj ?? lesson.title_ru;
+  return lesson.title_ru;
+}
+export function aqidahPointText(pt: AqidahPoint, lang: Lang): string {
+  if (lang === 'uz') return pt.uz ?? pt.ru;
+  if (lang === 'tj') return pt.tj ?? pt.ru;
+  return pt.ru;
+}
 
 /** [нормализованный ключ, форма для показа, краткий перевод] — id слова = индекс в массиве. */
 export type AqidahLexEntry = [string, string, string];

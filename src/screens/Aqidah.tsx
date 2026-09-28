@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, CheckCircle2, MoonStar } from 'lucide-react';
 import type { Lang } from '../i18n';
-import { loadAqidahBook, loadAqidahLexicon } from '../utils/aqidahData';
+import { loadAqidahBook, loadAqidahLexicon, aqidahLessonTitle } from '../utils/aqidahData';
 import type { AqidahBookData, AqidahBookId, AqidahLexEntry } from '../utils/aqidahData';
 import {
   isLessonDone, lessonsDoneCount, syncAqidahFromCloud, useAqidahProgress,
@@ -151,7 +151,7 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
                 style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '12px 14px' }}>
                 <span className="surah-medal">{idx + 1}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="title-card" style={{ fontSize: 14 }}>{lesson.title_ru}</div>
+                  <div className="title-card" style={{ fontSize: 14 }}>{aqidahLessonTitle(lesson, lang)}</div>
                   <div className="text-muted" style={{ fontSize: 11 }}>
                     {lesson.points.length} {L(lang, 'пунктов', 'points', 'band', 'банд')}
                   </div>
@@ -169,7 +169,7 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
   if (lexError) {
     return (
       <div className="screen-enter" style={{ minHeight: '100dvh' }}>
-        {header(bookData.lessons[view.idx].title_ru, () => setView({ kind: 'book', book }))}
+        {header(aqidahLessonTitle(bookData.lessons[view.idx], lang), () => setView({ kind: 'book', book }))}
         <div className="page-content">
           <p className="text-muted" style={{ textAlign: 'center', marginTop: 40 }}>
             {L(lang, 'Нет связи. Попробуйте позже.', 'No connection. Try again later.', 'Aloqa yoʻq. Keyinroq urinib koʻring.', 'Пайваст нест. Баъдтар кӯшиш кунед.')}
@@ -182,7 +182,7 @@ export default function Aqidah({ lang, onBack, onLocalBack }: Props) {
   if (!lexicon) {
     return (
       <div className="screen-enter" style={{ minHeight: '100dvh' }}>
-        {header(bookData.lessons[view.idx].title_ru, () => setView({ kind: 'book', book }))}
+        {header(aqidahLessonTitle(bookData.lessons[view.idx], lang), () => setView({ kind: 'book', book }))}
         <div className="page-content">
           <div className="skeleton" style={{ height: 120, borderRadius: 16 }} />
         </div>
