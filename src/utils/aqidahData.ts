@@ -49,6 +49,20 @@ export function loadAqidahLexicon(): Promise<AqidahLexEntry[]> {
   return load<AqidahLexEntry[]>('lexicon.json');
 }
 
+interface Labeled { ar: string; ru: string }
+/** Разбор слова (scripts/aqidah/build_morphology.py): корень, часть речи, порода, время, залог. */
+export interface AqidahMorph {
+  root: string | null;
+  pos: Labeled | null;
+  form: Labeled | null;
+  tense: Labeled | null;
+  voice: Labeled | null;
+  agreement_ru: string | null;
+}
+export function loadAqidahMorphology(): Promise<Record<string, AqidahMorph>> {
+  return load<Record<string, AqidahMorph>>('morphology.json');
+}
+
 // ── Токенизация арабского текста для тап-по-слову (зеркалит scripts/aqidah/build_word_data.py) ──
 const DIACRITICS_RE = /[ؐ-ًؚ-ٰٟۖ-ۭ࣓-ࣿ]/g;
 const TOKEN_RE = /[ؐ-ؚء-ٰٟۖ-ۭ࣓-ࣿ]+/g;

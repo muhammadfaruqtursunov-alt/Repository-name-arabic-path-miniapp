@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, CheckCircle2 } from 'lucide-react';
 import type { Lang } from '../i18n';
 import type { AqidahLesson as AqidahLessonData, AqidahLexEntry } from '../utils/aqidahData';
-import { aqidahLessonTitle, aqidahPointText } from '../utils/aqidahData';
+import { aqidahLessonTitle, aqidahPointText, loadAqidahMorphology } from '../utils/aqidahData';
+import type { AqidahMorph } from '../utils/aqidahData';
 import { markLessonDone, isLessonDone } from '../utils/aqidahProgress';
 import type { AqidahBookId } from '../utils/aqidahData';
 import AqidahPane from '../components/aqidah/AqidahPane';
@@ -25,6 +26,8 @@ interface Props {
 export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, lexIndex, isLast, onExit, onNext }: Props) {
   const [active, setActive] = useState<AqidahWordRef>({ pi: 0, id: -1 });
 
+  const [morph, setMorph] = useState<Record<string, AqidahMorph>>({});
+  useEffect(() => { loadAqidahMorphology().then(setMorph).catch(() => {}); }, []);
   useEffect(() => () => stopSpeech(), []);
 
   function onTapWord(ref: AqidahWordRef, entry: AqidahLexEntry) {
@@ -34,6 +37,7 @@ export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, l
 
   const activePoint = lesson.points[active.pi];
   const activeWord = active.id >= 0 ? lexicon[active.id] : null;
+  const am = activeWord ? morph[activeWord[0]] : undefined;
 
   return (
     <div className="screen-enter" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
@@ -62,6 +66,25 @@ export default function AqidahLesson({ lang, book, lessonIdx, lesson, lexicon, l
                 <span className="quran-ar" dir="rtl" style={{ fontSize: 20, color: 'var(--accent)' }}>{activeWord[1]}</span>
                 <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-main)' }}>{activeWord[2]}</span>
               </div>
+              {am && (
+                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {[
+                    am.root && { k: L(lang, 'Корень', 'Root', 'Ildiz', 'Реша'), v: am.root.replace(/\./g, ' ') },
+                    am.pos && { k: L(lang, 'Часть речи', 'Part of speech', 'Soʻz turkumi', 'Ҳиссаи нутқ'), v: `${am.pos.ar} · ${am.pos.ru}` },
+                    am.form && { k: L(lang, 'Порода', 'Form', 'Bob', 'Боб'), v: `${am.form.ar}` },
+                    am.tense && { k: L(lang, 'Время', 'Tense', 'Zamon', 'Замон'), v: am.tense.ar },
+                    am.voice && { k: L(lang, 'Залог', 'Voice', 'Daraja', 'Дараҷа'), v: am.voice.ar },
+                    am.agreement_ru && { k: L(lang, 'Лицо/род/число', 'Person', 'Shaxs', 'Шахс'), v: am.agreement_ru },
+                  ].filter(Boolean).map((x, i) => {
+                    const it = x as { k: string; v: string };
+                    return (
+                      <span key={i} style={{ fontSize: 12, padding: '3px 9px', borderRadius: 10, background: 'var(--accent-tint)', border: '1px solid var(--accent-border)', color: 'var(--text-main)' }}>
+                        <b style={{ color: 'var(--accent)' }}>{it.k}:</b> {it.v}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
           <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--text-main)' }}>{aqidahPointText(activePoint, lang)}</p>

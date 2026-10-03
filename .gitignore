@@ -9,3 +9,6 @@ dist
 scripts/quran/.cache/
 scripts/aqidah/.cache/
 __pycache__/
+
+scripts/aqidah/.venv_morph/
+scripts/sarf/.cache/
