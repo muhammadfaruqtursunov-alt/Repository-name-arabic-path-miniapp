@@ -72,7 +72,7 @@ export default function AqidahPane({ points, activeIdx, activeWordId, lexicon, l
             key={pi}
             data-pt={pi}
             className="quran-ar quran-ayah"
-            style={{ opacity: dist === 0 ? 1 : dist === 1 ? 0.55 : 0.28 }}
+            style={{ opacity: dist === 0 ? 1 : dist === 1 ? 0.55 : 0.28, color: 'var(--text-main)' }}
             onClick={() => onTapPoint(pi)}
           >
             {renderPointText(pt.ar, pi, activeIdx, activeWordId, lexicon, lexIndex, onTapWord)}
