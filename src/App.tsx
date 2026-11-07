@@ -32,6 +32,7 @@ import WordTrainer      from './screens/WordTrainer';
 import Section          from './screens/Section';
 import Quran            from './screens/Quran';
 import Aqidah           from './screens/Aqidah';
+import Mutun            from './screens/Mutun';
 import EdgeSwipeHint, { edgeHintSeen, markEdgeHintSeen } from './components/EdgeSwipeHint';
 import type { SectionKey } from './screens/Section';
 import { loadTheme, applyTheme } from './utils/theme';
@@ -55,6 +56,7 @@ type Screen =
   | 'trainer'
   | 'section'       // раздел главного экрана (Арабский язык, Коран, …)
   | 'quran'         // тренажёр слов Корана
+  | 'mutun'
   | 'aqidah';       // раздел «Акида»
 
 // Экраны без «назад»: корень приложения и онбординг.
@@ -598,6 +600,12 @@ export default function App() {
     );
   }
 
+  if (screen === 'mutun') {
+    return (
+      <>{navFloatWithHint}<Mutun lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
+    );
+  }
+
   if (screen === 'aqidah') {
     return (
       <>{navFloatWithHint}<Aqidah lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
@@ -671,6 +679,7 @@ export default function App() {
               }}
               onOpenQuran={() => setScreen('quran')}
               onOpenAqidah={() => setScreen('aqidah')}
+              onOpenMutun={() => setScreen('mutun')}
               onOpenAskTeacher={() => setScreen('ask_teacher')}
               onOpenReview={() => setScreen('review')}
               onOpenSettings={() => handleTabChange('settings')}

@@ -1,6 +1,6 @@
 import {
   MessageCircleQuestion, Palette, Layers, Flame, TrendingUp, RotateCcw,
-  Languages, BookOpenText, MoonStar, ScrollText,
+  Languages, BookOpenText, MoonStar, ScrollText, BookMarked,
 } from 'lucide-react';
 import { t } from '../i18n';
 import type { Lang } from '../i18n';
@@ -20,6 +20,7 @@ interface Props {
   onOpenSection: (key: SectionKey) => void;
   onOpenQuran: () => void;
   onOpenAqidah: () => void;
+  onOpenMutun: () => void;
   onOpenAskTeacher: () => void;
   onOpenSettings: () => void;
   onOpenThemes: () => void;
@@ -37,7 +38,7 @@ function getLevel(totalLearned: number, lang: Lang): string {
 }
 
 export default function Dashboard({
-  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume, onOpenSection, onOpenQuran, onOpenAqidah,
+  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume, onOpenSection, onOpenQuran, onOpenAqidah, onOpenMutun,
   onOpenAskTeacher, onOpenSettings: _onOpenSettings, onOpenThemes, onOpenReview,
 }: Props) {
   // Карточка прогресса показывает, где ученик учился последним
@@ -186,6 +187,12 @@ export default function Dashboard({
             title={L(lang, 'Акида', 'Aqidah', 'Aqida', 'Ақида')}
             subtitle={L(lang, 'Книги по вероучению', 'Books on creed', 'Aqida kitoblari', 'Китобҳо оид ба ақида')}
             onClick={onOpenAqidah}
+          />
+          <SectionTile
+            icon={<BookMarked size={22} color="var(--accent)" />}
+            title={L(lang, 'Мутун талиб аль-ильм', 'Mutun Talib al-Ilm', 'Mutun tolib al-ilm', 'Мутуни толиб-ул-илм')}
+            subtitle={L(lang, '4 уровня, 15 текстов с пословным переводом', '4 levels, 15 texts, word by word', '4 daraja, 15 matn, soʻzma-soʻz', '4 сатҳ, 15 матн, калима ба калима')}
+            onClick={onOpenMutun}
           />
           <SectionTile
             icon={<ScrollText size={22} color="var(--accent)" />}

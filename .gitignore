@@ -12,3 +12,7 @@ __pycache__/
 
 scripts/aqidah/.venv_morph/
 scripts/sarf/.cache/
+scripts/mutun/.cache/
+scripts/mutun/raw/
+scripts/mutun/freq.json
+scripts/mutun/missing.json

@@ -1,5 +1,6 @@
 /* ─── Arabic Path Design System — Dark Obsidian ──────────────── */
 :root {
+  --mutun-red: #E5484D;
   /* Backgrounds */
   --bg-deep:     #141319;
   --bg-card:     #141319;
@@ -82,6 +83,7 @@
 /* ── Светлая тема ─────────────────────────────────────────────────
    Переключается кнопкой в Настройках (utils/theme.ts, data-mode). */
 :root[data-mode="light"] {
+  --mutun-red: #B3261E;
   --bg-deep:     #F5F1E6;
   --bg-card:     #FFFFFF;
   --bg-glass:    rgba(255, 253, 247, 0.82);
