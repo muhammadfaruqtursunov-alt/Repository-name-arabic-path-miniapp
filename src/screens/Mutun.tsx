@@ -29,7 +29,7 @@ type View =
 
 const LEVELS = [1, 2, 3, 4];
 /** Книги, у которых есть своя обложка (public/mutun/covers/<id>.jpg). */
-const BOOK_COVERS = new Set(['ajurrumiyya']);
+const BOOK_COVERS = new Set(['ajurrumiyya', 'bulugh']);
 /** Фото обложек из издания пользователя (public/mutun/covers/L1-4.jpg). */
 const COVER_EXT = 'jpg';
 
@@ -105,9 +105,11 @@ export default function Mutun({ section = 'mutun', lang, onBack, onLocalBack }: 
             {HADITH_BOOKS.map(b => (
               <button key={b.id} className="glass-card" onClick={() => setView({ kind: 'book', id: b.id })}
                 style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer', border: 'none', width: '100%', padding: '14px' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <BookMarked size={22} color="var(--accent)" />
-                </div>
+                {BOOK_COVERS.has(b.id)
+                  ? <img src={`/mutun/covers/${b.id}.jpg`} alt="" style={{ width: 48, height: 64, objectFit: 'cover', borderRadius: 6, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,.25)' }} />
+                  : <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <BookMarked size={22} color="var(--accent)" />
+                    </div>}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="title-card" style={{ fontSize: 14 }}>{b.title_ru}</div>
                   <div className="quran-ar" dir="rtl" style={{ fontSize: 17, color: 'var(--mutun-red)' }}>{b.title_ar}</div>
