@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, BookMarked, Bookmark } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookMarked, Bookmark, CheckCircle2 } from 'lucide-react';
 import type { Lang } from '../i18n';
 import { L } from '../components/quran/qi18n';
 import {
@@ -9,7 +9,8 @@ import type { MutunBook, MutunIndexEntry } from '../utils/mutunData';
 import type { AqidahLexEntry } from '../utils/aqidahData';
 import MutunReader from './MutunReader';
 import MutunWords from './MutunWords';
-import { useSavedWords } from '../utils/mutunWords';
+import { syncMutunWordsFromCloud, useSavedWords } from '../utils/mutunWords';
+import { bookDoneCount, isChapterDone, syncMutunProgressFromCloud, useMutunProgress } from '../utils/mutunProgress';
 
 interface Props {
   lang: Lang;
@@ -41,6 +42,9 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
   const [lexicon, setLexicon] = useState<AqidahLexEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
   const saved = useSavedWords();
+  useMutunProgress();
+
+  useEffect(() => { void syncMutunWordsFromCloud(); void syncMutunProgressFromCloud(); }, []);
 
   useEffect(() => {
     loadMutunIndex().then(setIndex).catch(() => setFailed(true));
@@ -144,7 +148,9 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="title-card" style={{ fontSize: 14 }}>{b.title_ru}</div>
                     <div className="quran-ar" dir="rtl" style={{ fontSize: 16, color: 'var(--mutun-red)' }}>{b.title_ar}</div>
-                    <div className="text-muted" style={{ fontSize: 11 }}>{b.sub_ru}</div>
+                    <div className="text-muted" style={{ fontSize: 11 }}>
+                      {b.sub_ru} · {bookDoneCount(b.id)} / {b.chapters} {L(lang, 'глав', 'chapters', 'bob', 'боб')}
+                    </div>
                   </div>
                   <ChevronRight size={16} color="var(--text-muted)" />
                 </button>
@@ -200,7 +206,9 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
                       {ch.points.length} {L(lang, 'пунктов', 'points', 'band', 'банд')}
                     </div>
                   </div>
-                  <ChevronRight size={16} color="var(--text-muted)" />
+                  {isChapterDone(book.id, idx)
+                    ? <CheckCircle2 size={18} color="var(--accent-teal)" />
+                    : <ChevronRight size={16} color="var(--text-muted)" />}
                 </button>
               );
             })}
@@ -225,6 +233,7 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
     <MutunReader
       key={`${book.id}-${view.idx}`}
       lang={lang}
+      bookId={book.id}
       bookTitle={meta.title_ru}
       chapter={chapter}
       chapterIdx={view.idx}

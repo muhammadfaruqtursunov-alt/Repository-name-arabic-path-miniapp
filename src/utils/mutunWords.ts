@@ -1,8 +1,9 @@
 /**
  * «Мои слова»: слова из Мутун, которые ученик отметил как незнакомые.
- * Хранится в localStorage этого устройства (облако Telegram слишком мало для списка).
+ * localStorage + Telegram CloudStorage (кусками), чтобы слова не терялись при очистке данных.
  */
 import { useEffect, useState } from 'react';
+import { cloudGetChunked, cloudSetChunked } from './tgCloud';
 
 export interface SavedWord { k: string; ar: string; gl: string; at: number }
 
@@ -20,7 +21,9 @@ let words: SavedWord[] = read();
 
 function commit(next: SavedWord[]) {
   words = next;
-  try { localStorage.setItem(LS_KEY, JSON.stringify(words)); } catch { /* нет места */ }
+  const text = JSON.stringify(words);
+  try { localStorage.setItem(LS_KEY, text); } catch { /* нет места */ }
+  cloudSetChunked('mu_w', text);
   listeners.forEach(fn => fn());
 }
 
@@ -31,6 +34,21 @@ export function toggleSavedWord(w: Omit<SavedWord, 'at'>) {
 }
 
 export function removeSavedWord(k: string) { commit(words.filter(w => w.k !== k)); }
+
+let synced = false;
+/** Подтягивает слова из облака Telegram и объединяет с локальными (новые сверху). */
+export async function syncMutunWordsFromCloud() {
+  if (synced) return;
+  synced = true;
+  try {
+    const text = await cloudGetChunked('mu_w');
+    if (!text) return;
+    const remote = JSON.parse(text) as SavedWord[];
+    const have = new Set(words.map(w => w.k));
+    const extra = remote.filter(w => !have.has(w.k));
+    if (extra.length) commit([...words, ...extra].sort((a, b) => b.at - a.at));
+  } catch { /* облако недоступно */ }
+}
 
 export function useSavedWords(): SavedWord[] {
   const [, setTick] = useState(0);

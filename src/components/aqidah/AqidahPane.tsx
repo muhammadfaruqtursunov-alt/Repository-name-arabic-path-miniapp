@@ -22,23 +22,23 @@ interface Props {
 /** [сура: аят] и подобные адреса в тексте — не часть матна, а ссылка на источник. Показываем их отдельным «бейджем». */
 const CITATION_RE = /\[[^\]]*\]/g;
 
+/** Красный текст книги: на сборке оборачивается в … (в Шамиле это класс c5). */
+const RED_RE = /([^]*)/g;
+
 function renderPointText(
   text: string, pi: number, activeIdx: number, activeWordId: number | null,
   lexicon: AqidahLexEntry[], lexIndex: Map<string, number>,
   onTapWord: (ref: AqidahWordRef, entry: AqidahLexEntry) => void,
 ) {
   const out: React.ReactNode[] = [];
-  let last = 0;
-  let m: RegExpExecArray | null;
   let key = 0;
-  CITATION_RE.lastIndex = 0;
-  const pushWords = (chunk: string) => {
+  const pushWords = (chunk: string, into: React.ReactNode[]) => {
     for (const part of splitArabicForTap(chunk)) {
-      if (!part.word) { out.push(<span key={key++}>{part.text}</span>); continue; }
+      if (!part.word) { into.push(<span key={key++}>{part.text}</span>); continue; }
       const id = lexIndex.get(part.key);
-      if (id === undefined) { out.push(<span key={key++}>{part.text}</span>); continue; }
+      if (id === undefined) { into.push(<span key={key++}>{part.text}</span>); continue; }
       const isFocus = pi === activeIdx && activeWordId === id;
-      out.push(
+      into.push(
         <span key={key++} className={isFocus ? 'qw qw--focus' : 'qw'}
           onClick={e => { e.stopPropagation(); onTapWord({ pi, id }, lexicon[id]); }}>
           {part.text}
@@ -46,12 +46,28 @@ function renderPointText(
       );
     }
   };
-  while ((m = CITATION_RE.exec(text))) {
-    if (m.index > last) pushWords(text.slice(last, m.index));
-    out.push(<span key={key++} className="qw-ayah">{m[0]}</span>);
+  const pushPlain = (chunk: string, into: React.ReactNode[]) => {
+    let last = 0;
+    let m: RegExpExecArray | null;
+    CITATION_RE.lastIndex = 0;
+    while ((m = CITATION_RE.exec(chunk))) {
+      if (m.index > last) pushWords(chunk.slice(last, m.index), into);
+      into.push(<span key={key++} className="qw-ayah">{m[0]}</span>);
+      last = m.index + m[0].length;
+    }
+    if (last < chunk.length) pushWords(chunk.slice(last), into);
+  };
+  let last = 0;
+  let m: RegExpExecArray | null;
+  RED_RE.lastIndex = 0;
+  while ((m = RED_RE.exec(text))) {
+    if (m.index > last) pushPlain(text.slice(last, m.index), out);
+    const inner: React.ReactNode[] = [];
+    pushPlain(m[1], inner);
+    out.push(<span key={key++} className="mutun-red">{inner}</span>);
     last = m.index + m[0].length;
   }
-  if (last < text.length) pushWords(text.slice(last));
+  if (last < text.length) pushPlain(text.slice(last), out);
   return out;
 }
 

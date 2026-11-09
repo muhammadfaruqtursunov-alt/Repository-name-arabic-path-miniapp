@@ -284,6 +284,7 @@ body {
 .qw--new { color: var(--text-main); }
 .qw--learned { color: var(--text-muted); opacity: .6; }
 .qw--focus { background: var(--accent-tint); color: var(--accent); box-shadow: 0 0 0 1px var(--accent-border); }
+.mutun-red { color: var(--mutun-red); }
 .qw-ayah { font-size: 18px; color: var(--accent); margin-right: 2px; }
 
 .text-muted { color: var(--text-muted); }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Bookmark, BookmarkCheck } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, Bookmark, BookmarkCheck } from 'lucide-react';
 import type { Lang } from '../i18n';
 import { L } from '../components/quran/qi18n';
 import AqidahPane from '../components/aqidah/AqidahPane';
@@ -9,11 +9,13 @@ import { loadAqidahMorphology } from '../utils/aqidahData';
 import type { AqidahLexEntry, AqidahMorph } from '../utils/aqidahData';
 import { mutunChapterLabel, mutunPointText } from '../utils/mutunData';
 import type { MutunChapter } from '../utils/mutunData';
+import { isChapterDone, markChapterDone, useMutunProgress } from '../utils/mutunProgress';
 import { isWordSaved, toggleSavedWord, useSavedWords } from '../utils/mutunWords';
 import { speakArabic, stopSpeech } from '../utils/speak';
 
 interface Props {
   lang: Lang;
+  bookId: string;
   bookTitle: string;
   chapter: MutunChapter;
   chapterIdx: number;
@@ -31,13 +33,14 @@ const SHEET_MIN = 64;
  * Перевод идёт за пунктом, который сейчас в середине экрана; окно перевода
  * можно тянуть вверх и вниз (или свернуть до полоски).
  */
-export default function MutunReader({ lang, bookTitle, chapter, chapterIdx, lexicon, lexIndex, isLast, onExit, onNext }: Props) {
+export default function MutunReader({ lang, bookId, bookTitle, chapter, chapterIdx, lexicon, lexIndex, isLast, onExit, onNext }: Props) {
   const [active, setActive] = useState<AqidahWordRef>({ pi: 0, id: -1 });
   const [morph, setMorph] = useState<Record<string, AqidahMorph>>({});
   const vh = typeof window === 'undefined' ? 800 : window.innerHeight;
   const [sheetH, setSheetH] = useState(Math.round(vh * 0.3));
   const drag = useRef<{ y: number; h: number; moved: boolean } | null>(null);
   useSavedWords();
+  useMutunProgress();
 
   useEffect(() => { loadAqidahMorphology().then(setMorph).catch(() => {}); }, []);
   useEffect(() => () => stopSpeech(), []);
@@ -170,14 +173,20 @@ export default function MutunReader({ lang, bookTitle, chapter, chapterIdx, lexi
           onTapWord={(ref, entry) => { speakArabic(entry[1]); setActive(ref); }}
         />
 
-        {!isLast && (
-          <button className="btn btn-continue" style={{ width: '100%', justifyContent: 'center' }} onClick={onNext}>
-            <span className="btn-continue__icon"><ChevronRight size={16} /></span>
-            <span className="btn-continue__text">
-              <span className="btn-continue__label">{L(lang, 'Дальше', 'Next', 'Keyingi', 'Минбаъд')}</span>
+        <button className="btn btn-continue" style={{ width: '100%', justifyContent: 'center' }}
+          onClick={() => { markChapterDone(bookId, chapterIdx); if (isLast) onExit(); else onNext(); }}>
+          <span className="btn-continue__icon"><CheckCircle2 size={16} /></span>
+          <span className="btn-continue__text">
+            <span className="btn-continue__label">
+              {isChapterDone(bookId, chapterIdx)
+                ? L(lang, 'Пройдено', 'Done', 'Oʻtildi', 'Гузашт')
+                : L(lang, 'Отметить пройденным', 'Mark as done', 'Oʻtilgan deb belgilash', 'Гузашта қайд кунед')}
             </span>
-          </button>
-        )}
+            {!isLast && (
+              <span className="btn-continue__title">{L(lang, 'Следующая глава', 'Next chapter', 'Keyingi bob', 'Боби оянда')}</span>
+            )}
+          </span>
+        </button>
       </div>
       {createPortal(sheet, document.body)}
     </div>
