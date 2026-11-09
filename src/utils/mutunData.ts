@@ -13,11 +13,13 @@ export interface MutunIndexEntry {
   id: string; level: number; title_ar: string; title_ru: string; sub_ru: string; chapters: number; points: number;
 }
 
-/** Книги раздела «Хадисы» (данные лежат рядом с Мутун: public/mutun/<id>.json). */
+/** Хадисы внутри Мутун: отдельный список под уровнями (данные рядом: public/mutun/<id>.json). */
 export const HADITH_BOOKS: MutunIndexEntry[] = [
-  { id: 'arbain', level: 0, title_ar: 'الأَرْبَعُونَ النَّوَوِيَّة', title_ru: 'Сорок хадисов ан-Навави', sub_ru: 'Имам ан-Навави, с добавлениями Ибн Раджаба', chapters: 51, points: 150 },
-  { id: 'bulugh', level: 0, title_ar: 'بُلُوغُ المَرَامِ', title_ru: 'Булюг аль-Марам', sub_ru: 'Ибн Хаджар аль-Аскаляни: хадисы по разделам фикха', chapters: 78, points: 1767 },
+  { id: 'bulugh', level: 0, title_ar: 'بُلُوغُ المَرَامِ', title_ru: 'Булюг аль-Марам', sub_ru: 'Ибн Хаджар аль-Аскаляни', chapters: 78, points: 1767 },
+  { id: 'umdah', level: 0, title_ar: 'العُمْدَةُ فِي الأَحْكَامِ', title_ru: 'Умдат аль-Ахкам', sub_ru: 'Абдульгани аль-Мукдиси', chapters: 80, points: 789 },
 ];
+/** Книги, которые по сути сборники хадисов (на карточке ставим пометку «хадис»). */
+export const HADITH_IDS = new Set(['arbain', 'bulugh', 'umdah']);
 
 const cache = new Map<string, Promise<unknown>>();
 function load<T>(path: string): Promise<T> {

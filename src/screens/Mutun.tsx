@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, BookMarked, Bookmark, CheckCircle2 } from 'l
 import type { Lang } from '../i18n';
 import { L } from '../components/quran/qi18n';
 import {
-  HADITH_BOOKS, loadMutunBook, loadMutunIndex, loadMutunLexicon, mutunChapterLabel,
+  HADITH_BOOKS, HADITH_IDS, loadMutunBook, loadMutunIndex, loadMutunLexicon, mutunChapterLabel,
 } from '../utils/mutunData';
 import type { MutunBook, MutunIndexEntry } from '../utils/mutunData';
 import type { AqidahLexEntry } from '../utils/aqidahData';
@@ -13,8 +13,6 @@ import { syncMutunWordsFromCloud, useSavedWords } from '../utils/mutunWords';
 import { bookDoneCount, isChapterDone, syncMutunProgressFromCloud, useMutunProgress } from '../utils/mutunProgress';
 
 interface Props {
-  /** 'hadith' — раздел «Хадисы» (Арбаин и Булюг аль-Марам); по умолчанию Мутун. */
-  section?: 'mutun' | 'hadith';
   lang: Lang;
   onBack: () => void;
   onLocalBack: (fn: null | (() => void)) => void;
@@ -29,9 +27,16 @@ type View =
 
 const LEVELS = [1, 2, 3, 4];
 /** Книги, у которых есть своя обложка (public/mutun/covers/<id>.jpg). */
-const BOOK_COVERS = new Set(['ajurrumiyya', 'bulugh']);
+const BOOK_COVERS = new Set(['ajurrumiyya', 'bulugh', 'umdah']);
 /** Фото обложек из издания пользователя (public/mutun/covers/L1-4.jpg). */
 const COVER_EXT = 'jpg';
+
+const HadithBadge = ({ lang }: { lang: Lang }) => (
+  <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 800, letterSpacing: .3, padding: '1px 6px', borderRadius: 8, verticalAlign: 'middle',
+    border: '1px solid var(--accent-border)', color: 'var(--accent)', background: 'var(--accent-tint)' }}>
+    {L(lang, 'хадис', 'hadith', 'hadis', 'ҳадис')}
+  </span>
+);
 
 const NoConn = ({ lang }: { lang: Lang }) => (
   <p className="text-muted" style={{ textAlign: 'center', marginTop: 40 }}>
@@ -39,8 +44,7 @@ const NoConn = ({ lang }: { lang: Lang }) => (
   </p>
 );
 
-export default function Mutun({ section = 'mutun', lang, onBack, onLocalBack }: Props) {
-  const hadith = section === 'hadith';
+export default function Mutun({ lang, onBack, onLocalBack }: Props) {
   const [view, setView] = useState<View>({ kind: 'home' });
   const [index, setIndex] = useState<MutunIndexEntry[] | null>(null);
   const [book, setBook] = useState<MutunBook | null>(null);
@@ -66,10 +70,10 @@ export default function Mutun({ section = 'mutun', lang, onBack, onLocalBack }: 
   }, [bookId]);
 
   useEffect(() => {
-    const bk = (hadith ? HADITH_BOOKS : index)?.find(b => b.id === bookId);
+    const bk = index?.find(b => b.id === bookId);
     const parent: View | null =
       view.kind === 'chapter' ? { kind: 'book', id: view.id }
-      : view.kind === 'book' ? (bk && !hadith ? { kind: 'level', lv: bk.level } : { kind: 'home' })
+      : view.kind === 'book' ? (bk ? { kind: 'level', lv: bk.level } : { kind: 'home' })
       : view.kind === 'level' || view.kind === 'words' ? { kind: 'home' }
       : null;
     onLocalBack(parent ? () => setView(parent) : null);
@@ -77,7 +81,7 @@ export default function Mutun({ section = 'mutun', lang, onBack, onLocalBack }: 
   }, [view, onLocalBack, index, bookId]);
 
   const lexIndex = useMemo(() => new Map((lexicon ?? []).map((e, i) => [e[0], i] as const)), [lexicon]);
-  const meta = (hadith ? HADITH_BOOKS : index)?.find(b => b.id === bookId);
+  const meta = index?.find(b => b.id === bookId) ?? HADITH_BOOKS.find(b => b.id === bookId);
 
   const header = (title: string, back: () => void) => (
     <div className="page-header islamic-header" style={{ background: 'var(--bg-card)' }}>
@@ -87,53 +91,12 @@ export default function Mutun({ section = 'mutun', lang, onBack, onLocalBack }: 
       <h1 className="title-card" style={{ flex: 1 }}>{title}</h1>
     </div>
   );
-  const pageTitle = hadith
-    ? L(lang, 'Хадисы', 'Hadith', 'Hadislar', 'Ҳадисҳо')
-    : L(lang, 'Мутун талиб аль-ильм', 'Mutun Talib al-Ilm', 'Mutun tolib al-ilm', 'Мутуни толиб-ул-илм');
+  const pageTitle = L(lang, 'Мутун талиб аль-ильм', 'Mutun Talib al-Ilm', 'Mutun tolib al-ilm', 'Мутуни толиб-ул-илм');
   const skeleton = <div className="skeleton" style={{ height: 120, borderRadius: 16 }} />;
 
   const levelLabel = (lv: number) => L(lang, `Мустава ${lv}`, `Level ${lv}`, `${lv}-daraja`, `Сатҳи ${lv}`);
 
   if (view.kind === 'words') return <MutunWords lang={lang} onBack={() => setView({ kind: 'home' })} />;
-
-  if (view.kind === 'home' && hadith) {
-    return (
-      <div className="screen-enter" style={{ minHeight: '100dvh' }}>
-        {header(pageTitle, onBack)}
-        <div className="page-content">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {HADITH_BOOKS.map(b => (
-              <button key={b.id} className="glass-card" onClick={() => setView({ kind: 'book', id: b.id })}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer', border: 'none', width: '100%', padding: '14px' }}>
-                {BOOK_COVERS.has(b.id)
-                  ? <img src={`/mutun/covers/${b.id}.jpg`} alt="" style={{ width: 48, height: 64, objectFit: 'cover', borderRadius: 6, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,.25)' }} />
-                  : <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <BookMarked size={22} color="var(--accent)" />
-                    </div>}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="title-card" style={{ fontSize: 14 }}>{b.title_ru}</div>
-                  <div className="quran-ar" dir="rtl" style={{ fontSize: 17, color: 'var(--mutun-red)' }}>{b.title_ar}</div>
-                  <div className="text-muted" style={{ fontSize: 11 }}>
-                    {b.sub_ru} · {bookDoneCount(b.id)} / {b.chapters} {L(lang, 'глав', 'chapters', 'bob', 'боб')}
-                  </div>
-                </div>
-                <ChevronRight size={16} color="var(--text-muted)" />
-              </button>
-            ))}
-            <button className="glass-card" onClick={() => setView({ kind: 'words' })}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '12px 14px' }}>
-              <Bookmark size={20} color="var(--accent)" />
-              <div style={{ flex: 1 }}>
-                <div className="title-card" style={{ fontSize: 14 }}>{L(lang, 'Мои слова', 'My words', 'Mening soʻzlarim', 'Калимаҳои ман')}</div>
-                <div className="text-muted" style={{ fontSize: 11 }}>{saved.length} {L(lang, 'сохранено', 'saved', 'saqlangan', 'захира шуд')}</div>
-              </div>
-              <ChevronRight size={16} color="var(--text-muted)" />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (view.kind === 'home') {
     return (
@@ -164,6 +127,29 @@ export default function Mutun({ section = 'mutun', lang, onBack, onLocalBack }: 
               ))}
             </div>
           )}
+          <div className="title-card" style={{ fontSize: 13, color: 'var(--mutun-red)', margin: '20px 0 8px' }}>
+            {L(lang, 'Сборники хадисов', 'Hadith collections', 'Hadis toʻplamlari', 'Маҷмӯаҳои ҳадис')}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {HADITH_BOOKS.map(b => (
+              <button key={b.id} className="glass-card" onClick={() => setView({ kind: 'book', id: b.id })}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer', border: 'none', width: '100%', padding: '12px 14px' }}>
+                {BOOK_COVERS.has(b.id)
+                  ? <img src={`/mutun/covers/${b.id}.jpg`} alt="" style={{ width: 42, height: 56, objectFit: 'cover', borderRadius: 6, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,.25)' }} />
+                  : <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <BookMarked size={20} color="var(--accent)" />
+                    </div>}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="title-card" style={{ fontSize: 14 }}>{b.title_ru}<HadithBadge lang={lang} /></div>
+                  <div className="quran-ar" dir="rtl" style={{ fontSize: 16, color: 'var(--mutun-red)' }}>{b.title_ar}</div>
+                  <div className="text-muted" style={{ fontSize: 11 }}>
+                    {b.sub_ru}{b.chapters ? ` · ${bookDoneCount(b.id)} / ${b.chapters} ${L(lang, 'глав', 'chapters', 'bob', 'боб')}` : ''}
+                  </div>
+                </div>
+                <ChevronRight size={16} color="var(--text-muted)" />
+              </button>
+            ))}
+          </div>
           <button className="glass-card" onClick={() => setView({ kind: 'words' })}
             style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '12px 14px', marginTop: 16 }}>
             <Bookmark size={20} color="var(--accent)" />
@@ -194,7 +180,7 @@ export default function Mutun({ section = 'mutun', lang, onBack, onLocalBack }: 
                         <BookMarked size={20} color="var(--accent)" />
                       </div>}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="title-card" style={{ fontSize: 14 }}>{b.title_ru}</div>
+                    <div className="title-card" style={{ fontSize: 14 }}>{b.title_ru}{HADITH_IDS.has(b.id) && <HadithBadge lang={lang} />}</div>
                     <div className="quran-ar" dir="rtl" style={{ fontSize: 16, color: 'var(--mutun-red)' }}>{b.title_ar}</div>
                     <div className="text-muted" style={{ fontSize: 11 }}>
                       {b.sub_ru} · {bookDoneCount(b.id)} / {b.chapters} {L(lang, 'глав', 'chapters', 'bob', 'боб')}
@@ -211,7 +197,7 @@ export default function Mutun({ section = 'mutun', lang, onBack, onLocalBack }: 
   }
 
   const backToBook = () => setView({ kind: 'book', id: view.id });
-  const backToHome = () => setView(meta && !hadith ? { kind: 'level', lv: meta.level } : { kind: 'home' });
+  const backToHome = () => setView(meta && meta.level > 0 ? { kind: 'level', lv: meta.level } : { kind: 'home' });
 
   if (failed) {
     return (
@@ -251,7 +237,7 @@ export default function Mutun({ section = 'mutun', lang, onBack, onLocalBack }: 
                       ? <div className="quran-ar" dir="rtl" style={{ fontSize: 17, color: 'var(--mutun-red)' }}>{lab.text}</div>
                       : <div className="title-card" style={{ fontSize: 14, color: 'var(--mutun-red)' }}>{lab.text}</div>}
                     <div className="text-muted" style={{ fontSize: 11 }}>
-                      {ch.note ? `${L(lang, 'хадисы', 'hadiths', 'hadislar', 'ҳадисҳо')} ${ch.note}` : `${ch.points.length} ${L(lang, 'пунктов', 'points', 'band', 'банд')}`}
+                      {ch.note ? (/^\d/.test(ch.note) ? `${L(lang, 'хадисы', 'hadiths', 'hadislar', 'ҳадисҳо')} ${ch.note}` : ch.note) : `${ch.points.length} ${L(lang, 'пунктов', 'points', 'band', 'банд')}`}
                     </div>
                   </div>
                   {isChapterDone(book.id, idx)
