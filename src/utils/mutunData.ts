@@ -7,11 +7,17 @@ import type { AqidahLexEntry } from './aqidahData';
 import { L } from '../components/quran/qi18n';
 
 export interface MutunPoint { ar: string; ru?: string; tj?: string; uz?: string }
-export interface MutunChapter { title_ar: string; points: MutunPoint[] }
+export interface MutunChapter { title_ar: string; note?: string; points: MutunPoint[] }
 export interface MutunBook { id: string; level: number; title_ar: string; chapters: MutunChapter[] }
 export interface MutunIndexEntry {
   id: string; level: number; title_ar: string; title_ru: string; sub_ru: string; chapters: number; points: number;
 }
+
+/** Книги раздела «Хадисы» (данные лежат рядом с Мутун: public/mutun/<id>.json). */
+export const HADITH_BOOKS: MutunIndexEntry[] = [
+  { id: 'arbain', level: 0, title_ar: 'الأَرْبَعُونَ النَّوَوِيَّة', title_ru: 'Сорок хадисов ан-Навави', sub_ru: 'Имам ан-Навави, с добавлениями Ибн Раджаба', chapters: 51, points: 150 },
+  { id: 'bulugh', level: 0, title_ar: 'بُلُوغُ المَرَامِ', title_ru: 'Булюг аль-Марам', sub_ru: 'Ибн Хаджар аль-Аскаляни: хадисы по разделам фикха', chapters: 78, points: 1767 },
+];
 
 const cache = new Map<string, Promise<unknown>>();
 function load<T>(path: string): Promise<T> {

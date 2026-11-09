@@ -16,3 +16,5 @@ scripts/mutun/.cache/
 scripts/mutun/raw/
 scripts/mutun/freq.json
 scripts/mutun/missing.json
+scripts/tasrif/.cache/
+scripts/hadith/.cache/

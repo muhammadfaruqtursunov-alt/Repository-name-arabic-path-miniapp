@@ -7,7 +7,7 @@ import type { Lang } from '../i18n';
 import type { UserProfile, VolumeInfo } from '../api/client';
 import ProgressBar from '../components/ProgressBar';
 import SectionTile from '../components/SectionTile';
-import { sectionTitle, soonLabel } from './Section';
+import { sectionTitle } from './Section';
 import type { SectionKey } from './Section';
 import { getLastSection, lastPage, learnedCount } from '../utils/quranProgress';
 
@@ -21,6 +21,7 @@ interface Props {
   onOpenQuran: () => void;
   onOpenAqidah: () => void;
   onOpenMutun: () => void;
+  onOpenHadith: () => void;
   onOpenAskTeacher: () => void;
   onOpenSettings: () => void;
   onOpenThemes: () => void;
@@ -38,7 +39,7 @@ function getLevel(totalLearned: number, lang: Lang): string {
 }
 
 export default function Dashboard({
-  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume, onOpenSection, onOpenQuran, onOpenAqidah, onOpenMutun,
+  lang, onLangChange: _onLangChange, user, volumes, onOpenVolume, onOpenSection, onOpenQuran, onOpenAqidah, onOpenMutun, onOpenHadith,
   onOpenAskTeacher, onOpenSettings: _onOpenSettings, onOpenThemes, onOpenReview,
 }: Props) {
   // Карточка прогресса показывает, где ученик учился последним
@@ -198,7 +199,7 @@ export default function Dashboard({
             icon={<ScrollText size={22} color="var(--accent)" />}
             title={L(lang, 'Хадисы', 'Hadith', 'Hadislar', 'Ҳадисҳо')}
             subtitle={L(lang, 'Сборники хадисов', 'Hadith collections', 'Hadis toʻplamlari', 'Маҷмӯаҳои ҳадис')}
-            soonLabel={soonLabel(lang)}
+            onClick={onOpenHadith}
           />
           <SectionTile
             icon={<RotateCcw size={22} color="var(--accent)" />}

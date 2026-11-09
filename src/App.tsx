@@ -57,6 +57,7 @@ type Screen =
   | 'section'       // раздел главного экрана (Арабский язык, Коран, …)
   | 'quran'         // тренажёр слов Корана
   | 'mutun'
+  | 'hadith'
   | 'aqidah';       // раздел «Акида»
 
 // Экраны без «назад»: корень приложения и онбординг.
@@ -600,6 +601,12 @@ export default function App() {
     );
   }
 
+  if (screen === 'hadith') {
+    return (
+      <>{navFloatWithHint}<Mutun section="hadith" lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
+    );
+  }
+
   if (screen === 'mutun') {
     return (
       <>{navFloatWithHint}<Mutun lang={lang} onBack={goBack} onLocalBack={setLocalBack} /></>
@@ -680,6 +687,7 @@ export default function App() {
               onOpenQuran={() => setScreen('quran')}
               onOpenAqidah={() => setScreen('aqidah')}
               onOpenMutun={() => setScreen('mutun')}
+              onOpenHadith={() => setScreen('hadith')}
               onOpenAskTeacher={() => setScreen('ask_teacher')}
               onOpenReview={() => setScreen('review')}
               onOpenSettings={() => handleTabChange('settings')}
