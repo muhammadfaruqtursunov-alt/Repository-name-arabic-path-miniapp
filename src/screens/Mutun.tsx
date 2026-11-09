@@ -25,6 +25,8 @@ type View =
   | { kind: 'chapter'; id: string; idx: number };
 
 const LEVELS = [1, 2, 3, 4];
+/** Фото настоящих обложек есть у мустава 2 и 3; у 1 и 4 пока нарисованные. */
+const COVER_EXT: Record<number, string> = { 1: 'svg', 2: 'jpg', 3: 'jpg', 4: 'svg' };
 
 const NoConn = ({ lang }: { lang: Lang }) => (
   <p className="text-muted" style={{ textAlign: 'center', marginTop: 40 }}>
@@ -102,7 +104,7 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
               {LEVELS.map(lv => (
                 <button key={lv} onClick={() => setView({ kind: 'level', lv })}
                   style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'center' }}>
-                  <img src={`/mutun/covers/L${lv}.svg`} alt={levelLabel(lv)}
+                  <img src={`/mutun/covers/L${lv}.${COVER_EXT[lv]}`} alt={levelLabel(lv)}
                     style={{ width: '100%', aspectRatio: '3 / 4', objectFit: 'cover', borderRadius: 12, boxShadow: '0 6px 18px rgba(0,0,0,.28)', display: 'block' }} />
                   <div className="title-card" style={{ fontSize: 14, color: 'var(--mutun-red)', marginTop: 8 }}>{levelLabel(lv)}</div>
                   <div className="text-muted" style={{ fontSize: 11 }}>
