@@ -128,8 +128,11 @@ for lv, bs in bylevel.items():
         title = TITLES.get(bid) or title
         chs = [c for c in chs if c["points"] or c["title_ar"]]
         tp = os.path.join(HERE, "translations", bid + ".json")
-        if os.path.exists(tp):
-            tr = json.load(open(tp, encoding="utf-8"))
+        tr = json.load(open(tp, encoding="utf-8")) if os.path.exists(tp) else {}
+        for lg in ("ru", "tj", "uz"):
+            lp = os.path.join(HERE, "translations", f"{bid}.{lg}.json")
+            if os.path.exists(lp): tr[lg] = json.load(open(lp, encoding="utf-8"))
+        if tr:
             flat = [p for c in chs for p in c["points"]]
             for lang, arr in tr.items():
                 if len(arr) != len(flat): print("!! translation length mismatch", bid, lang, len(arr), len(flat)); continue
