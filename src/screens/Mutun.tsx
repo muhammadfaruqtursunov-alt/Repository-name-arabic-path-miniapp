@@ -130,23 +130,17 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
           <div className="title-card" style={{ fontSize: 13, color: 'var(--mutun-red)', margin: '20px 0 8px' }}>
             {L(lang, 'Сборники хадисов', 'Hadith collections', 'Hadis toʻplamlari', 'Маҷмӯаҳои ҳадис')}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {HADITH_BOOKS.map(b => (
-              <button key={b.id} className="glass-card" onClick={() => setView({ kind: 'book', id: b.id })}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer', border: 'none', width: '100%', padding: '12px 14px' }}>
-                {BOOK_COVERS.has(b.id)
-                  ? <img src={`/mutun/covers/${b.id}.jpg`} alt="" style={{ width: 42, height: 56, objectFit: 'cover', borderRadius: 6, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,.25)' }} />
-                  : <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <BookMarked size={20} color="var(--accent)" />
-                    </div>}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="title-card" style={{ fontSize: 14 }}>{b.title_ru}<HadithBadge lang={lang} /></div>
-                  <div className="quran-ar" dir="rtl" style={{ fontSize: 16, color: 'var(--mutun-red)' }}>{b.title_ar}</div>
-                  <div className="text-muted" style={{ fontSize: 11 }}>
-                    {b.sub_ru}{b.chapters ? ` · ${bookDoneCount(b.id)} / ${b.chapters} ${L(lang, 'глав', 'chapters', 'bob', 'боб')}` : ''}
-                  </div>
+              <button key={b.id} onClick={() => setView({ kind: 'book', id: b.id })}
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'center' }}>
+                <img src={`/mutun/covers/${b.id}.jpg`} alt={b.title_ru}
+                  style={{ width: '100%', aspectRatio: '3 / 4', objectFit: 'cover', borderRadius: 12, boxShadow: '0 6px 18px rgba(0,0,0,.28)', display: 'block' }} />
+                <div className="title-card" style={{ fontSize: 14, marginTop: 8 }}>{b.title_ru}</div>
+                <div style={{ marginTop: 2, marginLeft: -6 }}><HadithBadge lang={lang} /></div>
+                <div className="text-muted" style={{ fontSize: 11, marginTop: 2 }}>
+                  {bookDoneCount(b.id)} / {b.chapters} {L(lang, 'глав', 'chapters', 'bob', 'боб')}
                 </div>
-                <ChevronRight size={16} color="var(--text-muted)" />
               </button>
             ))}
           </div>
