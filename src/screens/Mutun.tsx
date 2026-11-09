@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, BookMarked } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookMarked, Bookmark } from 'lucide-react';
 import type { Lang } from '../i18n';
 import { L } from '../components/quran/qi18n';
 import {
@@ -8,6 +8,8 @@ import {
 import type { MutunBook, MutunIndexEntry } from '../utils/mutunData';
 import type { AqidahLexEntry } from '../utils/aqidahData';
 import MutunReader from './MutunReader';
+import MutunWords from './MutunWords';
+import { useSavedWords } from '../utils/mutunWords';
 
 interface Props {
   lang: Lang;
@@ -17,6 +19,8 @@ interface Props {
 
 type View =
   | { kind: 'home' }
+  | { kind: 'level'; lv: number }
+  | { kind: 'words' }
   | { kind: 'book'; id: string }
   | { kind: 'chapter'; id: string; idx: number };
 
@@ -34,13 +38,14 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
   const [book, setBook] = useState<MutunBook | null>(null);
   const [lexicon, setLexicon] = useState<AqidahLexEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const saved = useSavedWords();
 
   useEffect(() => {
     loadMutunIndex().then(setIndex).catch(() => setFailed(true));
     loadMutunLexicon().then(setLexicon).catch(() => setFailed(true));
   }, []);
 
-  const bookId = view.kind === 'home' ? null : view.id;
+  const bookId = view.kind === 'book' || view.kind === 'chapter' ? view.id : null;
   useEffect(() => {
     setBook(null);
     if (!bookId) return;
@@ -50,13 +55,15 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
   }, [bookId]);
 
   useEffect(() => {
+    const bk = index?.find(b => b.id === bookId);
     const parent: View | null =
       view.kind === 'chapter' ? { kind: 'book', id: view.id }
-      : view.kind === 'book' ? { kind: 'home' }
+      : view.kind === 'book' ? (bk ? { kind: 'level', lv: bk.level } : { kind: 'home' })
+      : view.kind === 'level' || view.kind === 'words' ? { kind: 'home' }
       : null;
     onLocalBack(parent ? () => setView(parent) : null);
     return () => onLocalBack(null);
-  }, [view, onLocalBack]);
+  }, [view, onLocalBack, index, bookId]);
 
   const lexIndex = useMemo(() => new Map((lexicon ?? []).map((e, i) => [e[0], i] as const)), [lexicon]);
   const meta = index?.find(b => b.id === bookId);
@@ -72,6 +79,10 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
   const pageTitle = L(lang, 'Мутун талиб аль-ильм', 'Mutun Talib al-Ilm', 'Mutun tolib al-ilm', 'Мутуни толиб-ул-илм');
   const skeleton = <div className="skeleton" style={{ height: 120, borderRadius: 16 }} />;
 
+  const levelLabel = (lv: number) => L(lang, `Мустава ${lv}`, `Level ${lv}`, `${lv}-daraja`, `Сатҳи ${lv}`);
+
+  if (view.kind === 'words') return <MutunWords lang={lang} onBack={() => setView({ kind: 'home' })} />;
+
   if (view.kind === 'home') {
     return (
       <div className="screen-enter" style={{ minHeight: '100dvh' }}>
@@ -86,36 +97,65 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
           </p>
           {failed && <NoConn lang={lang} />}
           {!index && !failed && skeleton}
-          {index && LEVELS.map(lv => (
-            <div key={lv} style={{ marginBottom: 16 }}>
-              <div className="title-card" style={{ fontSize: 13, color: 'var(--accent)', marginBottom: 6 }}>
-                {L(lang, `Мустава ${lv}`, `Level ${lv}`, `${lv}-daraja`, `Сатҳи ${lv}`)}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {index.filter(b => b.level === lv).map(b => (
-                  <button key={b.id} className="glass-card" onClick={() => setView({ kind: 'book', id: b.id })}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer', border: 'none', width: '100%', padding: '12px 14px' }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <BookMarked size={20} color="var(--accent)" />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="title-card" style={{ fontSize: 14 }}>{b.title_ru}</div>
-                      <div className="quran-ar" dir="rtl" style={{ fontSize: 15, color: 'var(--mutun-red)' }}>{b.title_ar}</div>
-                      <div className="text-muted" style={{ fontSize: 11 }}>{b.sub_ru}</div>
-                    </div>
-                    <ChevronRight size={16} color="var(--text-muted)" />
-                  </button>
-                ))}
-              </div>
+          {index && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {LEVELS.map(lv => (
+                <button key={lv} onClick={() => setView({ kind: 'level', lv })}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'center' }}>
+                  <img src={`/mutun/covers/L${lv}.svg`} alt={levelLabel(lv)}
+                    style={{ width: '100%', aspectRatio: '3 / 4', objectFit: 'cover', borderRadius: 12, boxShadow: '0 6px 18px rgba(0,0,0,.28)', display: 'block' }} />
+                  <div className="title-card" style={{ fontSize: 14, color: 'var(--mutun-red)', marginTop: 8 }}>{levelLabel(lv)}</div>
+                  <div className="text-muted" style={{ fontSize: 11 }}>
+                    {index.filter(b => b.level === lv).length} {L(lang, 'текста', 'texts', 'matn', 'матн')}
+                  </div>
+                </button>
+              ))}
             </div>
-          ))}
+          )}
+          <button className="glass-card" onClick={() => setView({ kind: 'words' })}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '12px 14px', marginTop: 16 }}>
+            <Bookmark size={20} color="var(--accent)" />
+            <div style={{ flex: 1 }}>
+              <div className="title-card" style={{ fontSize: 14 }}>{L(lang, 'Мои слова', 'My words', 'Mening soʻzlarim', 'Калимаҳои ман')}</div>
+              <div className="text-muted" style={{ fontSize: 11 }}>{saved.length} {L(lang, 'сохранено', 'saved', 'saqlangan', 'захира шуд')}</div>
+            </div>
+            <ChevronRight size={16} color="var(--text-muted)" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (view.kind === 'level') {
+    return (
+      <div className="screen-enter" style={{ minHeight: '100dvh' }}>
+        {header(levelLabel(view.lv), () => setView({ kind: 'home' }))}
+        <div className="page-content">
+          {!index ? skeleton : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {index.filter(b => b.level === view.lv).map(b => (
+                <button key={b.id} className="glass-card" onClick={() => setView({ kind: 'book', id: b.id })}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer', border: 'none', width: '100%', padding: '12px 14px' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <BookMarked size={20} color="var(--accent)" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="title-card" style={{ fontSize: 14 }}>{b.title_ru}</div>
+                    <div className="quran-ar" dir="rtl" style={{ fontSize: 16, color: 'var(--mutun-red)' }}>{b.title_ar}</div>
+                    <div className="text-muted" style={{ fontSize: 11 }}>{b.sub_ru}</div>
+                  </div>
+                  <ChevronRight size={16} color="var(--text-muted)" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
   const backToBook = () => setView({ kind: 'book', id: view.id });
-  const backToHome = () => setView({ kind: 'home' });
+  const backToHome = () => setView(meta ? { kind: 'level', lv: meta.level } : { kind: 'home' });
 
   if (failed) {
     return (
@@ -153,7 +193,7 @@ export default function Mutun({ lang, onBack, onLocalBack }: Props) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {lab.ar
                       ? <div className="quran-ar" dir="rtl" style={{ fontSize: 17, color: 'var(--mutun-red)' }}>{lab.text}</div>
-                      : <div className="title-card" style={{ fontSize: 14 }}>{lab.text}</div>}
+                      : <div className="title-card" style={{ fontSize: 14, color: 'var(--mutun-red)' }}>{lab.text}</div>}
                     <div className="text-muted" style={{ fontSize: 11 }}>
                       {ch.points.length} {L(lang, 'пунктов', 'points', 'band', 'банд')}
                     </div>
